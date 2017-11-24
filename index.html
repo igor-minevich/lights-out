@@ -1,10 +1,160 @@
 <html>
 <head>
   <title>Lights Out Puzzle Interface</title>
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <style type="text/css">
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    .controls input[type="text"] {
+      margin-right: 10px;
+      width: 50px;
+    }
+    section {
+      margin-bottom: 10px;
+    }
+    #solution-input {
+      width: 400px;
+    }
+    .board span {
+      border: 1px solid #000;
+      cursor: pointer;
+      display: inline-block;
+      padding: 2px;
+      text-align: right;
+    }
+    .board .active {
+      background-color: rgb(255, 200, 0);
+    }
+    .board .clicked {
+      color: #f00;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
+  <section class="controls">
+    <label for="row-input">Rows:</label>
+    <input type="text" id="row-input" value="5" />
+    <label for="col-input">Columns:</label>
+    <input type="text" id="col-input" value="5" />
+    <label for="size-input">Size (pixels):</label>
+    <input type="text" id="size-input" value="80" />
+    <input type="button" id="generate-button" value="Generate/Reset Puzzle" />
+  </section>
 
+  <section class="solution">
+    <label for="solution-input">Your clicks:</label>
+    <input type="text" id="solution-input" />
+    <input type="button" id="set-solution" value="Set" />
+  </section>
 
+  <section class="board">
+  </section>
 
+  <script type="text/javascript">
+    var rows, cols, size;
+
+    $("#generate-button").on("click", function() {
+      rows = parseInt($("#row-input").val());
+      cols = parseInt($("#col-input").val());
+      size = parseInt($("#size-input").val());
+      
+      if (isNaN(rows) || rows < 1 || rows > 100) {
+        alert("Please enter a valid number of rows, between 1 and 100.")
+        return;
+      }
+
+      if (isNaN(cols) || cols < 1 || cols > 100) {
+        alert("Please enter a valid number of columns, between 1 and 100.")
+        return;
+      }
+
+      if (isNaN(size) || size < 1 || size > 1000) {
+        alert("Please enter a valid pixel size, between 1 and 1000.")
+        return;
+      }
+      
+      // Clear state
+      $(".board").empty();
+      $("#solution-input").val("");
+
+      // Set the size of the spans to be added to the board
+      var stylesheet = document.styleSheets[0];
+      stylesheet.insertRule(".board span { width: " + size + "; height: " + size + "}", stylesheet.cssRules.length);
+
+      // Generate the spans and put them into the board visually, i.e. insert them into the DOM
+      for (var r = 0; r < rows; r++) {
+        var $div = $("<div></div>");
+        $div.attr("id", "board-row-" + r);
+        for (var c = 0; c < cols; c++) {
+          var $span = $("<span></span>");
+          $span.attr("id", "board-cell-" + r + "-" + c);
+          $span.data("row", r);
+          $span.data("col", c);
+          $span.text("(" + r + ", " + c + ")");
+          $div.append($span);
+        }
+        $(".board").append($div);
+      }
+
+    });
+    
+    $(".board").on("click", "span", function() {
+      var $span = $(this);
+      //alert("Row: " + $span.data("row") + "; Column: " + $span.data("col"));
+      var r = $span.data("row");
+      var c = $span.data("col");
+
+      if ($span.hasClass("clicked"))
+        $span.removeClass("clicked");
+      else
+        $span.addClass("clicked");
+      
+      updateBoard();
+    });
+
+    $("#set-solution").on("click", function() {
+      $(".board span").removeClass("clicked");
+      $(".board span").removeClass("active");
+      
+    
+    });
+
+    function updateBoard() {
+      $("#solution-input").val("");
+      
+      var state;
+      for (var r = 0; r < rows; r++) {
+        for (var c = 0; c < cols; c++){
+          state = 0;
+          state += isClicked(r, c);
+          state += isClicked(r-1, c);
+          state += isClicked(r+1, c);
+          state += isClicked(r, c-1);
+          state += isClicked(r, c+1);
+
+          var id = "#board-cell-" + r + "-" + c;
+          if(state % 2)
+            $(id).addClass("active");
+          else
+            $(id).removeClass("active");
+
+          if(isClicked(r, c))
+            $("#solution-input").val($("#solution-input").val() + $(id).text());
+        }
+      }
+    }
+
+    function isClicked(r, c) {
+      if(r < 0 || r > rows - 1 || c < 0 || c > cols -1)
+        return 0;
+      var id = "#board-cell-" + r + "-" + c;
+      if($(id).hasClass("clicked")) 
+        return 1;
+      return 0;
+    }
+  
+  </script>
 </body>
 </html>
