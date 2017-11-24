@@ -117,8 +117,30 @@
     $("#set-solution").on("click", function() {
       $(".board span").removeClass("clicked");
       $(".board span").removeClass("active");
-      
-    
+
+      // .match(/\s*\(\s*\d+\s*,\s*\d+\s*\)\s*/g);
+      // .match(/\s*\(\s*(\d+)\s*,\s*(\d+).*/)
+
+      var coords = $("#solution-input").val().match(/\s*\(\s*\d+\s*,\s*\d+\s*\)\s*/g);
+      if (coords == null) {
+        alert("The entered clicks are not valid.");
+        return;
+      }
+      for (var i = 0; i < coords.length; i++) {
+        var coord = coords[i].match(/\s*\(\s*(\d+)\s*,\s*(\d+).*/);
+        if (coord == null || coord.length < 3) {
+          alert("A coordinate in the entered clicks is not valid.");
+          return;
+        }
+        var r = parseInt(coord[1]);
+        var c = parseInt(coord[2]);
+        if (isNaN(r) || isNaN(c)) {
+          alert("A coordinate in the entered clicks contains invalid data.");
+          return;
+        }
+        $("#board-cell-" + r + "-" + c).addClass("clicked");
+      }
+      updateBoard();
     });
 
     function updateBoard() {
