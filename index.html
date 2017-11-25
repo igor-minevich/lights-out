@@ -81,7 +81,7 @@
 
       // Set the size of the spans to be added to the board
       var stylesheet = document.styleSheets[0];
-      stylesheet.insertRule(".board span { width: " + size + "; height: " + size + "}", stylesheet.cssRules.length);
+      stylesheet.insertRule(".board span { width: " + (size - 4) + "; height: " + (size - 4) + "}", stylesheet.cssRules.length);
 
       // Generate the spans and put them into the board visually, i.e. insert them into the DOM
       for (var r = 0; r < rows; r++) {
