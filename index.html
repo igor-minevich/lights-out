@@ -118,9 +118,6 @@
       $(".board span").removeClass("clicked");
       $(".board span").removeClass("active");
 
-      // .match(/\s*\(\s*\d+\s*,\s*\d+\s*\)\s*/g);
-      // .match(/\s*\(\s*(\d+)\s*,\s*(\d+).*/)
-
       var coords = $("#solution-input").val().match(/\s*\(\s*\d+\s*,\s*\d+\s*\)\s*/g);
       if (coords == null) {
         alert("The entered clicks are not valid.");
@@ -138,7 +135,11 @@
           alert("A coordinate in the entered clicks contains invalid data.");
           return;
         }
-        $("#board-cell-" + r + "-" + c).addClass("clicked");
+        var $span = $("#board-cell-" + r + "-" + c);
+        if ($span.hasClass("clicked"))
+          $span.removeClass("clicked");
+        else
+          $span.addClass("clicked");
       }
       updateBoard();
     });
@@ -146,9 +147,15 @@
     function updateBoard() {
       $("#solution-input").val("");
       
+
+      // Variables used to check if we've produced a solution or a null grid
+      var solved = true;
+      var nontrivial = false, nullgrid = true;
+
       var state;
       for (var r = 0; r < rows; r++) {
         for (var c = 0; c < cols; c++){
+          // Determine the state of the current cell (on or off)
           state = 0;
           state += isClicked(r, c);
           state += isClicked(r-1, c);
@@ -156,16 +163,33 @@
           state += isClicked(r, c-1);
           state += isClicked(r, c+1);
 
+          // Display the state of the current cell
           var id = "#board-cell-" + r + "-" + c;
           if(state % 2)
             $(id).addClass("active");
           else
             $(id).removeClass("active");
 
+          // Add the coordinate of the current cell to the "Your clicks" textbox if the current cell has been clicked
           if(isClicked(r, c))
             $("#solution-input").val($("#solution-input").val() + $(id).text());
+
+          // Check if we've perhaps produced a solution or a nontrivial null-grid
+          if ($(id).hasClass("active"))
+            nullgrid = false;
+          else
+            solved = false;
+
+          if (isClicked(r, c))
+            nontrivial = true;
         }
       }
+
+      if(solved)
+        alert("Congratulations! You solved the puzzle!");
+
+      if(nontrivial && nullgrid)
+        alert("Congratulations! You've produced a nontrivial null grid!")      
     }
 
     function isClicked(r, c) {
