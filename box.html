@@ -1,6 +1,6 @@
 <html>
 <head>
-  <title>(L, R, U, D) version of Lights Out</title>
+  <title>Box Version of Lights Out</title>
   <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
   <style type="text/css">
     body {
@@ -36,16 +36,8 @@
 <body>
 <a href="index.html">Main page</a><br>
 <br>
-  <section class="controls">
-    <label for="row-input">L:</label>
-    <input type="text" id="L-input" value="1" />
-    <label for="row-input">R:</label>
-    <input type="text" id="R-input" value="1" />
-    <label for="row-input">U:</label>
-    <input type="text" id="U-input" value="1" />
-    <label for="row-input">D:</label>
-    <input type="text" id="D-input" value="1" />
-     <label for="row-input">Rows:</label>
+   <section class="controls">
+    <label for="row-input">Rows:</label>
     <input type="text" id="row-input" value="5" />
     <label for="col-input">Columns:</label>
     <input type="text" id="col-input" value="5" />
@@ -64,37 +56,13 @@
   </section>
 
   <script type="text/javascript">
-    var L, R, U, D, rows, cols, size;
+    var rows, cols, size;
 
     $("#generate-button").on("click", function() {
-      L = parseInt($("#L-input").val());
-      R = parseInt($("#R-input").val());
-      U = parseInt($("#U-input").val());
-      D = parseInt($("#D-input").val());
       rows = parseInt($("#row-input").val());
       cols = parseInt($("#col-input").val());
       size = parseInt($("#size-input").val());
       
-      if (isNaN(L) || L < 0 || L > 100) {
-        alert("Please enter a valid number for L, the number of cells affected to the left, between 0 and 100.")
-        return;
-      }
-
-      if (isNaN(R) || R < 0 || R > 100) {
-        alert("Please enter a valid number for R, the number of cells affected to the right, between 0 and 100.")
-        return;
-      }
-
-      if (isNaN(U) || U < 0 || U > 100) {
-        alert("Please enter a valid number for U, the number of cells affected above, between 0 and 100.")
-        return;
-      }
-
-      if (isNaN(D) || D < 0 || D > 100) {
-        alert("Please enter a valid number for D, the number of cells affected below, between 0 and 100.")
-        return;
-      }
-
       if (isNaN(rows) || rows < 1 || rows > 100) {
         alert("Please enter a valid number of rows, between 1 and 100.")
         return;
@@ -193,14 +161,14 @@
           // Determine the state of the current cell (on or off)
           state = 0;
           state += isClicked(r, c);
-		  for(var i = 1; i <= D; i++)
-			state += isClicked(r-i, c);
-  		  for(var i = 1; i <= U; i++)
-			state += isClicked(r+i, c);
-		  for(var i = 1; i <= L; i++)
-			state += isClicked(r, c+i);
-		  for(var i = 1; i <= R; i++)
-			state += isClicked(r, c-i);
+          state += isClicked(r, c-1);
+          state += isClicked(r-1, c);
+          state += isClicked(r, c+1);
+          state += isClicked(r+1, c);
+          state += isClicked(r-1, c-1);
+          state += isClicked(r+1, c-1);
+          state += isClicked(r-1, c+1);
+          state += isClicked(r+1, c+1);
 
           // Display the state of the current cell
           var id = "#board-cell-" + r + "-" + c;
