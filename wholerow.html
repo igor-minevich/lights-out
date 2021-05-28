@@ -1,6 +1,6 @@
 <html>
 <head>
-  <title>(L, R, U, D)-Lights Out Puzzle Interface</title>
+  <title> Whole row / column version of Lights Out</title>
   <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
   <style type="text/css">
     body {
@@ -165,9 +165,9 @@
           // Determine the state of the current cell (on or off)
           state = 0;
           state += isClicked(r, c);
-		  for(var i = 0; i < cols; i++)
+		  for(var i = 0; i < rows; i++)
 			state += isClicked(i, c);
-  		  for(var i = 0; i < rows; i++)
+  		  for(var i = 0; i < cols; i++)
 			state += isClicked(r, i);
 
           // Display the state of the current cell
