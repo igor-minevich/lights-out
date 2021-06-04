@@ -1,0 +1,313 @@
+
+<html>
+    <head>
+      <title>5-Color version of Lights Out</title>
+      <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+      <style type="text/css">
+        body {
+          font-family: Arial, Helvetica, sans-serif;
+        }
+        .controls input[type="text"] {
+          margin-right: 10px;
+          width: 50px;
+        }
+        section {
+          margin-bottom: 10px;
+        }
+        #solution-input {
+          width: 400px;
+        }
+        .board span {
+          border: 1px solid #000;
+          cursor: pointer;
+          display: inline-block;
+          padding: 2px;
+          text-align: right;
+        }
+        .board .boardSwitched1x {
+          background-color: rgb(255, 200, 0);
+        }
+        .board .boardSwitched2x {
+          background-color: rgb(255, 100, 0);
+        }
+        .board .boardSwitched3x {
+          background-color: rgb(255, 0, 0);
+        }
+        .board .boardSwitched4x {
+          background-color: rgb(64, 64, 71);
+        }
+        .board .textClicked1x {
+          color: rgb(0, 127, 0);
+          font-weight: bold;
+          font-size: 16;
+        }
+        .board .textClicked2x {
+          color: rgb(0, 127, 127);
+          font-weight: bold;
+          font-size: 16;
+        }
+        .board .textClicked3x {
+          color: rgb(0, 255, 0);
+          font-weight: bold;
+          font-size: 16;
+        }
+        .board .textClicked4x {
+          color: rgb(190, 87, 139);
+          font-weight: bold;
+          font-size: 16;
+        }
+        
+      </style>
+    </head>
+    <body>
+    <a href="index.html">Main page</a><br>
+    <br>
+      <section class="controls">
+        <label for="row-input">Rows:</label>
+        <input type="text" id="row-input" value="5" />
+        <label for="col-input">Columns:</label>
+        <input type="text" id="col-input" value="5" />
+        <label for="size-input">Size (pixels):</label>
+        <input type="text" id="size-input" value="80" />
+        <input type="button" id="generate-button" value="Generate/Reset Puzzle" />
+      </section>
+    
+      <section class="solution">
+        <label for="solution-input">Your clicks:</label>
+        <input type="text" id="solution-input" />
+        <input type="button" id="set-solution" value="Set" />
+      </section>
+    
+      <section class="board">
+      </section>
+    
+      <script type="text/javascript">
+        var rows, cols, size;
+    
+        $("#generate-button").on("click", function() {
+          rows = parseInt($("#row-input").val());
+          cols = parseInt($("#col-input").val());
+          size = parseInt($("#size-input").val());
+          
+          if (isNaN(rows) || rows < 1 || rows > 100) {
+            alert("Please enter a valid number of rows, between 1 and 100.")
+            return;
+          }
+    
+          if (isNaN(cols) || cols < 1 || cols > 100) {
+            alert("Please enter a valid number of columns, between 1 and 100.")
+            return;
+          }
+    
+          if (isNaN(size) || size < 1 || size > 1000) {
+            alert("Please enter a valid pixel size, between 1 and 1000.")
+            return;
+          }
+          
+          // Clear state
+          $(".board").empty();
+          $("#solution-input").val("");
+    
+          // Set the size of the spans to be added to the board
+          var stylesheet = document.styleSheets[0];
+          stylesheet.insertRule(".board span { width: " + (size - 4) + "; height: " + (size - 4) + "}", stylesheet.cssRules.length);
+    
+          // Generate the spans and put them into the board visually, i.e. insert them into the DOM
+          for (var r = 0; r < rows; r++) {
+            var $div = $("<div></div>");
+            $div.attr("id", "board-row-" + r);
+            for (var c = 0; c < cols; c++) {
+              var $span = $("<span></span>");
+              $span.attr("id", "board-cell-" + r + "-" + c);
+              $span.data("row", r);
+              $span.data("col", c);
+              $span.text("(" + r + ", " + c + ")");
+              $div.append($span);
+            }
+            $(".board").append($div);
+          }
+    
+        });
+        
+        $(".board").on("click", "span", function() {
+          var $span = $(this);
+          //alert("Row: " + $span.data("row") + "; Column: " + $span.data("col"));
+          var r = $span.data("row");
+          var c = $span.data("col");
+    
+          if ($span.hasClass("textClicked1x")) {
+            $span.removeClass("textClicked1x");
+            $span.addClass("textClicked2x");
+          }
+          else if($span.hasClass("textClicked2x")) {
+            $span.removeClass("textClicked2x");
+            $span.addClass("textClicked3x");
+          }
+          else if($span.hasClass("textClicked3x")){
+            $span.removeClass("textClicked3x");
+            $span.addClass("textClicked4x");
+          }
+          else if($span.hasClass("textClicked4x"))
+            $span.removeClass("textClicked4x");
+          else
+            $span.addClass("textClicked1x");
+          
+          updateBoard();
+        });
+    
+        $("#set-solution").on("click", function() {
+          $(".board span").removeClass("clicked");
+          $(".board span").removeClass("active");
+    
+          var coords = $("#solution-input").val().match(/\s*\(\s*\d+\s*,\s*\d+\s*\)\s*/g);
+          if (coords == null) {
+            alert("The entered clicks are not valid.");
+            return;
+          }
+          for (var i = 0; i < coords.length; i++) {
+            var coord = coords[i].match(/\s*\(\s*(\d+)\s*,\s*(\d+).*/);
+            if (coord == null || coord.length < 3) {
+              alert("A coordinate in the entered clicks is not valid.");
+              return;
+            }
+            var r = parseInt(coord[1]);
+            var c = parseInt(coord[2]);
+            if (isNaN(r) || isNaN(c)) {
+              alert("A coordinate in the entered clicks contains invalid data.");
+              return;
+            }
+            var $span = $("#board-cell-" + r + "-" + c);
+            if ($span.hasClass("textClicked1x")) {
+              $span.removeClass("textClicked1x");
+              $span.addClass("textClicked2x");
+            }
+            else if($span.hasClass("textClicked2x")) {
+              $span.removeClass("textClicked2x");
+              $span.addClass("textClicked3x");
+            }
+            else if($span.hasClass("textClicked3x")){
+              $span.removeClass("textClicked3x");
+              $span.addClass("textClicked3x");
+            }
+            else if($span.hasClass("textClicked4x"))
+              $span.removeClass("textClicked4x");
+            else
+              $span.addClass("textClicked1x");
+            }
+              updateBoard();
+        });
+    
+        function updateBoard() {
+          $("#solution-input").val("");
+          
+    
+          // Variables used to check if we've produced a solution or a null grid
+          var solved1 = true, solved2 = true, solved3 = true, solved4 = true;
+          var nontrivial = false, nullgrid = true;
+    
+          var state;
+          for (var r = 0; r < rows; r++) {
+            for (var c = 0; c < cols; c++){
+              // Determine the state of the current cell (on or off)
+              state = 0;
+              state += timesClicked(r, c);
+              state += timesClicked(r-1, c);
+              state += timesClicked(r+1, c);
+              state += timesClicked(r, c-1);
+              state += timesClicked(r, c+1);
+    
+              // Display the state of the current cell
+              var id = "#board-cell-" + r + "-" + c;
+              // First remove whatever state it's in
+              if($(id).hasClass("boardSwitched1x"))
+                $(id).removeClass("boardSwitched1x");
+              if($(id).hasClass("boardSwitched2x"))
+                $(id).removeClass("boardSwitched2x");
+              if($(id).hasClass("boardSwitched3x"))
+                $(id).removeClass("boardSwitched3x");
+              if($(id).hasClass("boardSwitched4x"))
+                $(id).removeClass("boardSwitched4x");
+              // Now, change it to a certain color depending on the state, unless state % 4 = 0
+              if(state % 5 != 0)
+                $(id).addClass("boardSwitched" + (state % 5) + "x");
+    
+              
+              // Add the coordinate of the current cell to the "Your clicks" textbox if the current cell has been clicked
+              if(timesClicked(r, c)==1)
+                $("#solution-input").val($("#solution-input").val() + $(id).text());
+              if(timesClicked(r, c)==2)
+                $("#solution-input").val($("#solution-input").val() + $(id).text() + $(id).text());
+              if(timesClicked(r, c)==3)
+                $("#solution-input").val($("#solution-input").val() + $(id).text() + $(id).text() + $(id).text());
+              if(timesClicked(r, c)==3)
+                $("#solution-input").val($("#solution-input").val() + $(id).text() + $(id).text() + $(id).text() + $(id).text());
+    
+              // Check if we've perhaps produced a solution or a null-grid
+              if ($(id).hasClass("boardSwitched1x")) {
+                nullgrid = false;
+                solved2 = false;
+                solved3 = false;
+                solved4 = false;
+              }
+              else if($(id).hasClass("boardSwitched2x")) {
+                nullgrid = false;
+                solved1 = false;
+                solved3 = false;
+                solved4 = false;
+              }
+              else if($(id).hasClass("boardSwitched3x")) {
+                nullgrid = false;
+                solved1 = false;
+                solved2 = false;
+                solved4 = false;
+              }
+              else if($(id).hasClass("boardSwitched4x")) {
+                nullgrid = false;
+                solved1 = false;
+                solved2 = false;
+                solved3 = false;
+              }
+              else {
+                solved1 = false;
+                solved2 = false;
+                solved3 = false;
+                solved4 = false;
+              }
+              
+              // Check if the null-grid is nontrivial (if it is a null-grid)
+              if (timesClicked(r, c) > 0)
+                nontrivial = true;
+            }
+          }
+    
+          if(solved1)
+            alert("Congratulations! You solved the puzzle with the first color!");
+          if(solved2)
+            alert("Congratulations! You solved the puzzle with the second color!");
+          if(solved3)
+            alert("Congratulations! You solved the puzzle with the third color!");
+          if(solved4)
+            alert("Congratulations! You solved the puzzle with the fourth color!");
+          if(nontrivial && nullgrid)
+            alert("Congratulations! You've produced a nontrivial null grid!")      
+        }
+    
+        function timesClicked(r, c) {
+          if(r < 0 || r > rows - 1 || c < 0 || c > cols -1)
+            return 0;
+          var id = "#board-cell-" + r + "-" + c;
+          if($(id).hasClass("textClicked1x")) 
+            return 1;
+          if($(id).hasClass("textClicked2x")) 
+            return 2;
+          if($(id).hasClass("textClicked3x")) 
+            return 3;
+          if($(id).hasClass("textClicked4x")) 
+            return 4;		
+          return 0;
+        }
+      
+      </script>
+    </body>
+    </html>
+    
