@@ -1,6 +1,6 @@
 <html>
 <head>
-  <title>Lights Out Puzzle on a Torus</title>
+  <title>Torus Lights Out Puzzle</title>
   <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
   <style type="text/css">
     body {
@@ -23,14 +23,6 @@
       padding: 2px;
       text-align: right;
     }
-    .board .active {
-      background-color: rgb(255, 200, 0);
-    }
-    .board .clicked {
-      color: #f00;
-      font-weight: bold;
-      font-size: 16;
-    }
   </style>
 </head>
 <body>
@@ -41,6 +33,8 @@
     <input type="text" id="row-input" value="5" />
     <label for="col-input">Columns:</label>
     <input type="text" id="col-input" value="5" />
+    <label for="col-input">No. of Colors:</label>
+    <input type="text" id="color-input" value="2" /> 
     <label for="size-input">Size (pixels):</label>
     <input type="text" id="size-input" value="80" />
     <input type="button" id="generate-button" value="Generate/Reset Puzzle" />
@@ -56,13 +50,16 @@
   </section>
 
   <script type="text/javascript">
-    var rows, cols, size;
+	var back_colors = ["white", "#ffc800",'#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'];
+	// var text_colors = ["black","#ffc800",'#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'];
+    var rows, cols, colors, size;
 
     $("#generate-button").on("click", function() {
       rows = parseInt($("#row-input").val());
       cols = parseInt($("#col-input").val());
       size = parseInt($("#size-input").val());
-      
+      colors = parseInt($("#color-input").val());
+
       if (isNaN(rows) || rows < 1 || rows > 100) {
         alert("Please enter a valid number of rows, between 1 and 100.")
         return;
@@ -70,6 +67,11 @@
 
       if (isNaN(cols) || cols < 1 || cols > 100) {
         alert("Please enter a valid number of columns, between 1 and 100.")
+        return;
+      }
+
+      if (isNaN(colors) || colors < 1 || colors > 20) {
+        alert("Please enter a valid number of colors, between 1 and 20.")
         return;
       }
 
@@ -84,24 +86,26 @@
 
       // Set the size of the spans to be added to the board
       var stylesheet = document.styleSheets[0];
-      stylesheet.insertRule(".board span { width: " + (size - 4) + "; height: " + (size - 4) + "}", stylesheet.cssRules.length);
+      stylesheet.insertRule(".board span { width: " + (size - 4) + "; height: " + (size - 4) + "}", stylesheet.cssRules.length); // text
 
-      // Generate the spans and put them into the board visually, i.e. insert them into the DOM
-      for (var r = 0; r < rows; r++) {
-        var $div = $("<div></div>");
-        $div.attr("id", "board-row-" + r);
-        for (var c = 0; c < cols; c++) {
-          var $span = $("<span></span>");
-          $span.attr("id", "board-cell-" + r + "-" + c);
-          $span.data("row", r);
-          $span.data("col", c);
-          $span.text("(" + r + ", " + c + ")");
-          $div.append($span);
-        }
+        // Generate the spans and put them into the board visually, i.e. insert them into the DOM
+		
+		for (var r = 0; r < rows; r++) {
+			var $div = $("<div></div>");
+			$div.attr("id", "board-row-" + r);
+			for (var c = 0; c < cols; c++) {
+			  var $span = $("<span></span>");
+			  $span.attr("id", "board-cell-" + r + "-" + c);
+			  $span.data("row", r);
+			  $span.data("col", c);
+              $span.text("(" + r + ", " + c + ")");
+			  $span.data("state", 0);
+              $span.data("clicks", 0);
+			  $div.append($span);
+		  }
         $(".board").append($div);
-      }
-
-    });
+		}		
+    });  
     
     $(".board").on("click", "span", function() {
       var $span = $(this);
@@ -109,17 +113,16 @@
       var r = $span.data("row");
       var c = $span.data("col");
 
-      if ($span.hasClass("clicked"))
-        $span.removeClass("clicked");
-      else
-        $span.addClass("clicked");
+      var id = "#board-cell-" + r + "-" + c;
+
+	  $(id).data("clicks", ($(id).data("clicks") + 1) % colors);	
+	  
+	  //alert("Row: " + r + ", Column: " + c + ", Clicks: " + $(id).data("clicks") + ", State: " + $(id).data("state"));
       
       updateBoard();
     });
 
     $("#set-solution").on("click", function() {
-      $(".board span").removeClass("clicked");
-      $(".board span").removeClass("active");
 
       var coords = $("#solution-input").val().match(/\s*\(\s*\d+\s*,\s*\d+\s*\)\s*/g);
       if (coords == null) {
@@ -139,10 +142,7 @@
           return;
         }
         var $span = $("#board-cell-" + r + "-" + c);
-        if ($span.hasClass("clicked"))
-          $span.removeClass("clicked");
-        else
-          $span.addClass("clicked");
+		$span.data("clicks", ($span.data("clicks") + 1) % colors);	
       }
       updateBoard();
     });
@@ -152,64 +152,92 @@
       
 
       // Variables used to check if we've produced a solution or a null grid
-      var solved = true;
-      var nontrivial = false, nullgrid = true;
+      /*var solved = new Array();
+      for (var i = 0; i < colors; i++){
+        solved.push(true);
+      }  */
+      var nontrivial = false;
 
       var state;
       for (var r = 0; r < rows; r++) {
         for (var c = 0; c < cols; c++){
+
+		  //alert("r: " + r + ", c: " + c);
           // Determine the state of the current cell (on or off)
           state = 0;
-          state += isClicked(r, c);
-          state += isClicked(r-1, c);
-          state += isClicked(r+1, c);
-          state += isClicked(r, c-1);
-          state += isClicked(r, c+1);
-		  if(c==0)
-			state += isClicked(r, cols - 1);
+          state += timesClicked(r, c);
+          state += timesClicked(r-1, c);
+          state += timesClicked(r+1, c);
+          state += timesClicked(r, c-1);
+          state += timesClicked(r, c+1);
+      if(c==0)
+			state += timesClicked(r, cols - 1);
 		  if(c==cols-1)
-			state += isClicked(r, 0);
+			state += timesClicked(r, 0);
 		  if(r==0)
-			state += isClicked(rows-1, c);
+			state += timesClicked(rows-1, c);
 		  if(r==rows-1)
-			state += isClicked(0, c);
+			state += timesClicked(0, c);       
+          
 
-          // Display the state of the current cell
+          // Change the background of the current cell
           var id = "#board-cell-" + r + "-" + c;
-          if(state % 2)
-            $(id).addClass("active");
-          else
-            $(id).removeClass("active");
-
+      	  $(id).css("background-color", back_colors[state % colors]);
+		  $(id).data("state", state % colors);
+		  
+		  // Change the text of the current cell
+		  clicks = $(id).data("clicks");
+		  if(clicks) {
+			$(id).text("(" + r + ", " + c + ")x" + clicks);
+			$(id).css("font-weight", "bold");}
+		  else {
+			$(id).text("(" + r + ", " + c + ")");
+			$(id).css("font-weight", "normal"); }
+	
           // Add the coordinate of the current cell to the "Your clicks" textbox if the current cell has been clicked
-          if(isClicked(r, c))
-            $("#solution-input").val($("#solution-input").val() + $(id).text());
+          for (var i = 0; i < clicks; i++)
+            $("#solution-input").val($("#solution-input").val() + "(" + r + ", " + c + ")");
+       
+          if (timesClicked(r, c))
+            nontrivial = true;	
+		}
+	  }
+	  
+	  // Check if we've perhaps produced a solution or a nontrivial null-grid
+	  for (var i = 0; i < colors; i++) {
+		solved = true;
+		for(var r = 0; r < rows && solved; r++)// if there's still a chance it's solved with that color, then proceed
+			for(var c = 0; c < cols; c++) {
+				var id = "#board-cell-" + r + "-" + c;
+				if ($(id).data("state") != i)
+				  solved = false;
+				}
+		if(solved)
+		{
+			if (i>0)
+				alert("Congratulations! You solved the puzzle with color " + i + "!");
+			else
+				if (nontrivial)
+					alert("Congratulations! You've produced a nontrivial null grid!");
+		}
+	  }
 
-          // Check if we've perhaps produced a solution or a nontrivial null-grid
-          if ($(id).hasClass("active"))
-            nullgrid = false;
-          else
-            solved = false;
-
-          if (isClicked(r, c))
-            nontrivial = true;
-        }
-      }
-
-      if(solved)
-        alert("Congratulations! You solved the puzzle!");
-
-      if(nontrivial && nullgrid)
-        alert("Congratulations! You've produced a nontrivial null grid!")      
+	  
+      /*for (var i = 1; i < colors; i++)
+        if (solved[i]){
+          alert("Congratulations! You solved the puzzle with color " + i + "!");
+		  break;
+		}
+    
+      if(nontrivial && solved[0])
+        alert("Congratulations! You've produced a nontrivial null grid!")      */
     }
 
-    function isClicked(r, c) {
+    function timesClicked(r, c) {
       if(r < 0 || r > rows - 1 || c < 0 || c > cols -1)
         return 0;
       var id = "#board-cell-" + r + "-" + c;
-      if($(id).hasClass("clicked")) 
-        return 1;
-      return 0;
+      return $(id).data("clicks");
     }
   
   </script>
