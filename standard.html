@@ -1,236 +1,597 @@
+
 <html>
-<head>
-  <title>Standard Lights Out Puzzle</title>
-  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-  <style type="text/css">
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-    }
-    .controls input[type="text"] {
-      margin-right: 10px;
-      width: 50px;
-    }
-    section {
-      margin-bottom: 10px;
-    }
-    #solution-input {
-      width: 400px;
-    }
-    .board span {
-      border: 1px solid #000;
-      cursor: pointer;
-      display: inline-block;
-      padding: 2px;
-      text-align: right;
-    }
-  </style>
-</head>
-<body>
-<a href="index.html">Main page</a><br>
-<br>
-  <section class="controls">
-    <label for="row-input">Rows:</label>
-    <input type="text" id="row-input" value="5" />
-    <label for="col-input">Columns:</label>
-    <input type="text" id="col-input" value="5" />
-    <label for="col-input">No. of Colors:</label>
-    <input type="text" id="color-input" value="2" /> 
-    <label for="size-input">Size (pixels):</label>
-    <input type="text" id="size-input" value="80" />
-    <input type="button" id="generate-button" value="Generate/Reset Puzzle" />
-  </section>
-
-  <section class="solution">
-    <label for="solution-input">Your clicks:</label>
-    <input type="text" id="solution-input" />
-    <input type="button" id="set-solution" value="Set" />
-  </section>
-
-  <section class="board">
-  </section>
-
-  <script type="text/javascript">
-	var back_colors = ["white", "#ffc800",'#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'];
-	// var text_colors = ["black","#ffc800",'#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'];
-    var rows, cols, colors, size;
-
-    $("#generate-button").on("click", function() {
-      rows = parseInt($("#row-input").val());
-      cols = parseInt($("#col-input").val());
-      size = parseInt($("#size-input").val());
-      colors = parseInt($("#color-input").val());
-
-      if (isNaN(rows) || rows < 1 || rows > 100) {
-        alert("Please enter a valid number of rows, between 1 and 100.")
-        return;
+  <head>
+    <title>Standard Lights Out Puzzle</title>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <style type="text/css">
+      body {
+        font-family: Arial, Helvetica, sans-serif;
       }
-
-      if (isNaN(cols) || cols < 1 || cols > 100) {
-        alert("Please enter a valid number of columns, between 1 and 100.")
-        return;
+      .controls input[type="text"] {
+        margin-right: 10px;
+        width: 50px;
       }
-
-      if (isNaN(colors) || colors < 1 || colors > 20) {
-        alert("Please enter a valid number of colors, between 1 and 20.")
-        return;
+      section {
+        margin-bottom: 10px;
       }
-
-      if (isNaN(size) || size < 1 || size > 1000) {
-        alert("Please enter a valid pixel size, between 1 and 1000.")
-        return;
+      #solution-input {
+        width: 400px;
       }
-      
-      // Clear state
-      $(".board").empty();
-      $("#solution-input").val("");
-
-      // Set the size of the spans to be added to the board
-      var stylesheet = document.styleSheets[0];
-      stylesheet.insertRule(".board span { width: " + (size - 4) + "; height: " + (size - 4) + "}", stylesheet.cssRules.length); // text
-
-        // Generate the spans and put them into the board visually, i.e. insert them into the DOM
-		
-		for (var r = 0; r < rows; r++) {
-			var $div = $("<div></div>");
-			$div.attr("id", "board-row-" + r);
-			for (var c = 0; c < cols; c++) {
-			  var $span = $("<span></span>");
-			  $span.attr("id", "board-cell-" + r + "-" + c);
-			  $span.data("row", r);
-			  $span.data("col", c);
-              $span.text("(" + r + ", " + c + ")");
-			  $span.data("state", 0);
-              $span.data("clicks", 0);
-			  $div.append($span);
-		  }
-        $(".board").append($div);
-		}		
-    });  
-    
-    $(".board").on("click", "span", function() {
-      var $span = $(this);
-      //alert("Row: " + $span.data("row") + "; Column: " + $span.data("col"));
-      var r = $span.data("row");
-      var c = $span.data("col");
-
-      var id = "#board-cell-" + r + "-" + c;
-
-	  $(id).data("clicks", ($(id).data("clicks") + 1) % colors);	
-	  
-	  //alert("Row: " + r + ", Column: " + c + ", Clicks: " + $(id).data("clicks") + ", State: " + $(id).data("state"));
-      
-      updateBoard();
-    });
-
-    $("#set-solution").on("click", function() {
-
-      var coords = $("#solution-input").val().match(/\s*\(\s*\d+\s*,\s*\d+\s*\)\s*/g);
-      if (coords == null) {
-        alert("The entered clicks are not valid.");
-        return;
+      .board span {
+        border: 1px solid #000;
+        cursor: pointer;
+        display: inline-block;
+        padding: 2px;
+        text-align: right;
       }
-      for (var i = 0; i < coords.length; i++) {
-        var coord = coords[i].match(/\s*\(\s*(\d+)\s*,\s*(\d+).*/);
-        if (coord == null || coord.length < 3) {
-          alert("A coordinate in the entered clicks is not valid.");
-          return;
-        }
-        var r = parseInt(coord[1]);
-        var c = parseInt(coord[2]);
-        if (isNaN(r) || isNaN(c)) {
-          alert("A coordinate in the entered clicks contains invalid data.");
-          return;
-        }
-        var $span = $("#board-cell-" + r + "-" + c);
-		$span.data("clicks", ($span.data("clicks") + 1) % colors);	
-      }
-      updateBoard();
-    });
-
-    function updateBoard() {
-      $("#solution-input").val("");
+    </style>
+  </head>
+  <body>
+  <a href="index.html">Main page</a><br>
+  <br>
+    <section>
+      <label for="variation">Choose a variation:</label>
+      <select name="variation" id="choose_variation">
+        <option value="custom">Custom</option>  
+        <option value="standard">Standard</option>
+        <option value="diagonal">Diagonal</option>
+        <option value="king">King</option>
+        <option value="knight">Knight</option>
+        <option value="rook">Rook</option>
+        <option value="queen">Queen</option>
+        <option value="bishop">Bishop</option>        
       
 
-      // Variables used to check if we've produced a solution or a null grid
-      /*var solved = new Array();
-      for (var i = 0; i < colors; i++){
-        solved.push(true);
-      }  */
-      var nontrivial = false;
+      </select>
+      <input type="checkbox" id="chk_square_affect" checked>
+      <label for="affect">Squares affect themselves</label>      
+    </section>    
+    <section>
+      <input type="checkbox" id="chk_knight_moves">
+      <label for="knightmoves">Knight moves</label>  
+      <input type="checkbox" id="chk_top_bottom">
+      <label for="top_bottom">Top and bottom connected</label>      
+      <input type="checkbox" id="chk_sides_connected">
+      <label for="affect">Sides are connected</label>
+      </section>
 
-      var state;
-      for (var r = 0; r < rows; r++) {
-        for (var c = 0; c < cols; c++){
+    <section class="controls">
+      <label for="L-input">L:</label>
+      <input type="text" id="L-input" value="1" />
+      <label for="R-input">R:</label>
+      <input type="text" id="R-input" value="1" />
+      <label for="U-input">U:</label>
+      <input type="text" id="U-input" value="1" /> 
+      <label for="D-input">D:</label>
+      <input type="text" id="D-input" value="1" />
+      <label for="Diag-input">Diag:</label>
+      <input type="text" id="Diag-input" value="0" />      
+    </section>
 
-		  //alert("r: " + r + ", c: " + c);
-          // Determine the state of the current cell (on or off)
-          state = 0;
-          state += timesClicked(r, c);
-          state += timesClicked(r-1, c);
-          state += timesClicked(r+1, c);
-          state += timesClicked(r, c-1);
-          state += timesClicked(r, c+1);
+    <section class="controls">
+      <label for="row-input">Rows:</label>
+      <input type="text" id="row-input" value="5" />
+      <label for="col-input">Columns:</label>
+      <input type="text" id="col-input" value="5" />
+      <label for="col-input">No. of Colors:</label>
+      <input type="text" id="color-input" value="2" /> 
+      <label for="size-input">Size (pixels):</label>
+      <input type="text" id="size-input" value="80" />
+      <input type="button" id="generate-button" value="Generate/Reset Puzzle" />
 
-          // Change the background of the current cell
-          var id = "#board-cell-" + r + "-" + c;
-      	  $(id).css("background-color", back_colors[state % colors]);
-		  $(id).data("state", state % colors);
-		  
-		  // Change the text of the current cell
-		  clicks = $(id).data("clicks");
-		  if(clicks) {
-			$(id).text("(" + r + ", " + c + ")x" + clicks);
-			$(id).css("font-weight", "bold");}
-		  else {
-			$(id).text("(" + r + ", " + c + ")");
-			$(id).css("font-weight", "normal"); }
-	
-          // Add the coordinate of the current cell to the "Your clicks" textbox if the current cell has been clicked
-          for (var i = 0; i < clicks; i++)
-            $("#solution-input").val($("#solution-input").val() + "(" + r + ", " + c + ")");
-       
-          if (timesClicked(r, c))
-            nontrivial = true;	
-		}
-	  }
-	  
-	  // Check if we've perhaps produced a solution or a nontrivial null-grid
-	  for (var i = 0; i < colors; i++) {
-		solved = true;
-		for(var r = 0; r < rows && solved; r++)// if there's still a chance it's solved with that color, then proceed
-			for(var c = 0; c < cols; c++) {
-				var id = "#board-cell-" + r + "-" + c;
-				if ($(id).data("state") != i)
-				  solved = false;
-				}
-		if(solved)
-		{
-			if (i>0)
-				alert("Congratulations! You solved the puzzle with color " + i + "!");
-			else
-				if (nontrivial)
-					alert("Congratulations! You've produced a nontrivial null grid!");
-		}
-	  }
-
-	  
-      /*for (var i = 1; i < colors; i++)
-        if (solved[i]){
-          alert("Congratulations! You solved the puzzle with color " + i + "!");
-		  break;
-		}
-    
-      if(nontrivial && solved[0])
-        alert("Congratulations! You've produced a nontrivial null grid!")      */
-    }
-
-    function timesClicked(r, c) {
-      if(r < 0 || r > rows - 1 || c < 0 || c > cols -1)
-        return 0;
-      var id = "#board-cell-" + r + "-" + c;
-      return $(id).data("clicks");
-    }
+    </section>
   
-  </script>
-</body>
-</html>
+  
+    <section class="solution">
+      <label for="solution-input">Your clicks:</label>
+      <input type="text" id="solution-input" />
+      <input type="button" id="set-solution" value="Set" />
+      <input type="checkbox" id="editmode_function" name="editmode" value="editmode">
+      <label for="editmode">Edit mode</label>
+    </section>
+  
+    <section class="board">
+    </section>
+  
+    <script type="text/javascript">
+    var back_colors = ["white", "#ffc800",'#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'];
+    // var text_colors = ["black","#ffc800",'#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'];
+      var L, R, U, D, Diag, rows, cols, colors, size;
+      var top_bottom, left_right, knight_moves, affect_self;
+      var variation;
+      var edit_array;
+      var row;   
+      $("#generate-button").on("click", function() {
+        rows = parseInt($("#row-input").val());
+        cols = parseInt($("#col-input").val());
+        size = parseInt($("#size-input").val());
+        colors = parseInt($("#color-input").val());
+        edit_array = [];
+        for (var i = 0; i < rows; i++){
+          row = [];
+          for (var j = 0; j < cols; j++){
+            row.push(0);         
+          }
+          edit_array.push(row);
+        }
+        // for (var i = 0; i < rows; i++){
+        //   for (var j = 0; j < cols; j++){
+        //     alert("i = " + i.toString() + ", j = " + j.toString() + ": " + edit_array[i][j]);        
+        //   }
+        // }
+        variation = document.getElementById("choose_variation").value;
+
+
+        if (variation == "standard"){
+          $('#L-input').val("1");
+          $('#R-input').val("1");
+          $('#U-input').val("1");
+          $('#D-input').val("1");                              
+          $('#Diag-input').val("0");
+          $("#chk_square_affect").prop("checked", true);
+          $("#chk_sides_connected").prop("checked", false);
+          $("#chk_top_bottom").prop("checked", false);
+          $("#chk_knight_moves").prop("checked", false);  
+        }
+
+        if (variation == "diagonal"){
+          $('#L-input').val("0");
+          $('#R-input').val("0");
+          $('#U-input').val("0");
+          $('#D-input').val("0");                              
+          $('#Diag-input').val("1");
+          $("#chk_square_affect").prop("checked", true);
+          $("#chk_sides_connected").prop("checked", false);
+          $("#chk_top_bottom").prop("checked", false);
+          $("#chk_knight_moves").prop("checked", false);  
+        }
+
+        if (variation == "king"){
+          $('#L-input').val("1");
+          $('#R-input').val("1");
+          $('#U-input').val("1");
+          $('#D-input').val("1");                              
+          $('#Diag-input').val("1");
+          $("#chk_square_affect").prop("checked", true);
+          $("#chk_sides_connected").prop("checked", false);
+          $("#chk_top_bottom").prop("checked", false);
+          $("#chk_knight_moves").prop("checked", false);  
+        }        
+
+        if (variation == "knight"){
+          $('#L-input').val("0");
+          $('#R-input').val("0");
+          $('#U-input').val("0");
+          $('#D-input').val("0");                              
+          $('#Diag-input').val("0");
+          $("#chk_square_affect").prop("checked", true);
+          $("#chk_sides_connected").prop("checked", false);
+          $("#chk_top_bottom").prop("checked", false);
+          $("#chk_knight_moves").prop("checked", true);       
+        }
+
+        if (variation == "rook"){
+          $('#L-input').val(cols);
+          $('#R-input').val(cols);
+          $('#U-input').val(rows);
+          $('#D-input').val(rows);                              
+          $('#Diag-input').val("0");
+          $("#chk_square_affect").prop("checked", true);
+          $("#chk_sides_connected").prop("checked", false);
+          $("#chk_top_bottom").prop("checked", false);
+          $("#chk_knight_moves").prop("checked", false);  
+        }
+
+
+        if (variation == "bishop"){
+          $('#L-input').val("0");
+          $('#R-input').val("0");
+          $('#U-input').val("0");
+          $('#D-input').val("0");                              
+          $('#Diag-input').val(Math.min(rows, cols));
+          $("#chk_square_affect").prop("checked", true);
+          $("#chk_sides_connected").prop("checked", false);
+          $("#chk_top_bottom").prop("checked", false);
+          $("#chk_knight_moves").prop("checked", false);  
+        }
+
+        if (variation == "queen"){
+          $('#L-input').val(cols);
+          $('#R-input').val(cols);
+          $('#U-input').val(rows);
+          $('#D-input').val(rows);                              
+          $('#Diag-input').val(Math.min(rows, cols));
+          $("#chk_square_affect").prop("checked", true);
+          $("#chk_sides_connected").prop("checked", false);
+          $("#chk_top_bottom").prop("checked", false);
+          $("#chk_knight_moves").prop("checked", false);  
+        }        
+
+        L = parseInt($("#L-input").val());
+        R = parseInt($("#R-input").val());
+        U = parseInt($("#U-input").val());
+        D = parseInt($("#D-input").val());
+        Diag = parseInt($("#Diag-input").val());
+        affect_self = document.getElementById('chk_square_affect').checked;
+        knight_moves = document.getElementById('chk_knight_moves').checked;
+        top_bottom = document.getElementById('chk_top_bottom').checked;
+        left_right = document.getElementById('chk_sides_connected').checked;
+        //left_right = document.getElementById('chk_sides_connected').checked;
+
+ 
+
+        if (isNaN(L) || L < 0 || L > 100) {
+        alert("Please enter a valid number for L, the number of cells affected to the left, between 0 and 100.")
+        return;
+        }
+
+        if (isNaN(R) || R < 0 || R > 100) {
+          alert("Please enter a valid number for R, the number of cells affected to the right, between 0 and 100.")
+          return;
+        }
+
+        if (isNaN(U) || U < 0 || U > 100) {
+          alert("Please enter a valid number for U, the number of cells affected above, between 0 and 100.")
+          return;
+        }
+
+        if (isNaN(D) || D < 0 || D > 100) {
+          alert("Please enter a valid number for D, the number of cells affected below, between 0 and 100.")
+          return;
+        }
+        
+        if (isNaN(Diag) || Diag < 0 || Diag > 100) {
+          alert("Please enter a valid number for Diag, the number of cells affected diagonally, between 0 and 100.")
+          return;
+        }
+  
+        if (isNaN(rows) || rows < 1 || rows > 100) {
+          alert("Please enter a valid number of rows, between 1 and 100.")
+          return;
+        }
+  
+        if (isNaN(cols) || cols < 1 || cols > 100) {
+          alert("Please enter a valid number of columns, between 1 and 100.")
+          return;
+        }
+  
+        if (isNaN(colors) || colors < 1 || colors > 20) {
+          alert("Please enter a valid number of colors, between 1 and 20.")
+          return;
+        }
+  
+        if (isNaN(size) || size < 1 || size > 1000) {
+          alert("Please enter a valid pixel size, between 1 and 1000.")
+          return;
+        }
+        
+        // Clear state
+        $(".board").empty();
+        $("#solution-input").val("");
+  
+        // Set the size of the spans to be added to the board
+        var stylesheet = document.styleSheets[0];
+        stylesheet.insertRule(".board span { width: " + (size - 4) + "; height: " + (size - 4) + "}", stylesheet.cssRules.length); // text
+  
+          // Generate the spans and put them into the board visually, i.e. insert them into the DOM
+      
+      for (var r = 0; r < rows; r++) {
+        var $div = $("<div></div>");
+        $div.attr("id", "board-row-" + r);
+        for (var c = 0; c < cols; c++) {
+          var $span = $("<span></span>");
+          $span.attr("id", "board-cell-" + r + "-" + c);
+          $span.data("row", r);
+          $span.data("col", c);
+                $span.text("(" + r + ", " + c + ")");
+          $span.data("state", 0);
+                $span.data("clicks", 0);
+          $div.append($span);
+        }
+          $(".board").append($div);
+      }		
+      });  
+      
+      $(".board").on("click", "span", function() {
+        var chk_edit = document.getElementById('editmode_function').checked;
+        var $span = $(this);
+        //alert("Row: " + $span.data("row") + "; Column: " + $span.data("col"));
+        //alert(timesClicked(1,1));
+        var r = $span.data("row");
+        var c = $span.data("col");
+  
+        var id = "#board-cell-" + r + "-" + c;
+
+        if (chk_edit) {
+          edit_array[r][c] = (edit_array[r][c] + 1) % colors;
+        }
+
+        else{
+          $(id).data("clicks", ($(id).data("clicks") + 1) % colors);
+        }
+  
+      
+      //alert("Row: " + r + ", Column: " + c + ", Clicks: " + $(id).data("clicks") + ", State: " + $(id).data("state"));
+        
+        updateBoard();
+      });
+  
+      $("#set-solution").on("click", function() {
+  
+        var coords = $("#solution-input").val().match(/\s*\(\s*\d+\s*,\s*\d+\s*\)\s*/g);
+        if (coords == null) {
+          alert("The entered clicks are not valid.");
+          return;
+        }
+        for (var i = 0; i < coords.length; i++) {
+          var coord = coords[i].match(/\s*\(\s*(\d+)\s*,\s*(\d+).*/);
+          if (coord == null || coord.length < 3) {
+            alert("A coordinate in the entered clicks is not valid.");
+            return;
+          }
+          var r = parseInt(coord[1]);
+          var c = parseInt(coord[2]);
+          if (isNaN(r) || isNaN(c)) {
+            alert("A coordinate in the entered clicks contains invalid data.");
+            return;
+          }
+          var $span = $("#board-cell-" + r + "-" + c);
+      $span.data("clicks", ($span.data("clicks") + 1) % colors);	
+        }
+        updateBoard();
+      });
+  
+      function updateBoard() {
+        $("#solution-input").val("");
+        
+  
+        // Variables used to check if we've produced a solution or a null grid
+        /*var solved = new Array();
+        for (var i = 0; i < colors; i++){
+          solved.push(true);
+        }  */
+        var nontrivial = false;
+        //log.console(variation)
+
+  
+        var state;
+
+
+        //if (variation == "diagonal"){
+          for (var r = 0; r < rows; r++) {
+            for (var c = 0; c < cols; c++){
+              state = edit_array[r][c];
+
+              if (affect_self) {
+                state += timesClicked(r, c);
+              }
+
+              if (knight_moves){                
+                  state += timesClicked(r-2, c+1);
+                  state += timesClicked(r-2, c-1);
+                  state += timesClicked(r+2, c+1);
+                  state += timesClicked(r+2, c-1);
+                  state += timesClicked(r-1, c-2);
+                  state += timesClicked(r-1, c+2);
+                  state += timesClicked(r+1, c-2);
+                  state += timesClicked(r+1, c+2);
+                } 
+                         
+
+          //alert("r: " + r + ", c: " + c);
+              // Determine the state of the current cell (on or off)
+              for(var i = 1; i <= D; i++)
+                state += timesClicked(r-i, c);
+              for(var i = 1; i <= U; i++)
+                state += timesClicked(r+i, c);
+              for(var i = 1; i <= L; i++)
+                state += timesClicked(r, c+i);
+              for(var i = 1; i <= R; i++)
+                state += timesClicked(r, c-i);
+              for(var i = 1; i <= Diag; i++){
+                state += timesClicked(r-i, c-i);  
+                state += timesClicked(r+i, c-i);  
+                state += timesClicked(r+i, c+i);  
+                state += timesClicked(r-i, c+i);  
+              } 
+             
+  
+              //  if (variation == "standard"){
+              //     state += timesClicked(r-1, c);
+              //     state += timesClicked(r+1, c);
+              //     state += timesClicked(r, c-1);
+              //     state += timesClicked(r, c+1);
+              //   }   
+
+              // else if (variation == "diagonal"){
+              //     state += timesClicked(r-1, c-1);
+              //     state += timesClicked(r+1, c-1);
+              //     state += timesClicked(r-1, c+1);
+              //     state += timesClicked(r+1, c+1);  
+              //   }   
+              
+              // else if (variation == "h_cylindrical"){
+              //     state += timesClicked(r-1, c);
+              //     state += timesClicked(r+1, c);
+              //     state += timesClicked(r, c-1);
+              //     state += timesClicked(r, c+1);
+              //     if(c==0)
+              //     state += timesClicked(r, cols - 1);
+              //     if(c==cols-1)
+              //     state += timesClicked(r, 0);  
+              //   } 
+
+              //   else if (variation == "v_cylindrical"){
+              //     state += timesClicked(r-1, c);
+              //     state += timesClicked(r+1, c);
+              //     state += timesClicked(r, c-1);
+              //     state += timesClicked(r, c+1);
+              //     if(r==0)
+              //     state += timesClicked(rows - 1, c);
+              //     if(r==rows-1)
+              //     state += timesClicked(0, c);  
+              //   } 
+
+
+              //   else if (variation == "torus"){                
+              //     state += timesClicked(r-1, c);
+              //     state += timesClicked(r+1, c);
+              //     state += timesClicked(r, c-1);
+              //     state += timesClicked(r, c+1);
+              //     if(c==0)
+              //     state += timesClicked(r, cols - 1);
+              //     if(c==cols-1)
+              //     state += timesClicked(r, 0);
+              //     if(r==0)
+              //     state += timesClicked(rows-1, c);
+              //     if(r==rows-1)
+              //     state += timesClicked(0, c); 
+              //   }
+
+              //   else if (variation == "box"){                
+              //     state += timesClicked(r, c-1);
+              //     state += timesClicked(r-1, c);
+              //     state += timesClicked(r, c+1);
+              //     state += timesClicked(r+1, c);
+              //     state += timesClicked(r-1, c-1);
+              //     state += timesClicked(r+1, c-1);
+              //     state += timesClicked(r-1, c+1);
+              //     state += timesClicked(r+1, c+1);
+              //   }                
+  
+
+              //   else if (variation == "rook"){                
+              //     for (let i = 1; i < cols; i++){
+              //       state += timesClicked(r, c+i);
+              //       state += timesClicked(r, c-i);
+              //     }
+              //     for (let i = 1; i < rows; i++){
+              //       state += timesClicked(r+i, c);
+              //       state += timesClicked(r-i, c);
+              //     }  
+              //   } 
+
+              //   else if (variation == "bishop"){                
+              //     for (let i = 1; i < cols; i++){
+              //       state += timesClicked(r+i, c+i);
+              //       state += timesClicked(r-i, c-i);
+
+              //     }
+              //     for (let i = 1; i < rows; i++){
+              //       state += timesClicked(r+i, c-i);
+              //       state += timesClicked(r-i, c+i);
+              //     }  
+              //   }             
+   
+
+              //   else if (variation == "queen"){                
+              //     for (let i = 1; i < cols; i++){
+              //       state += timesClicked(r+i, c+i);
+              //       state += timesClicked(r-i, c-i);
+              //       state += timesClicked(r, c+i);
+              //       state += timesClicked(r, c-i);
+
+              //     }
+              //     for (let i = 1; i < rows; i++){
+              //       state += timesClicked(r+i, c);
+              //       state += timesClicked(r-i, c);
+              //       state += timesClicked(r+i, c-i);
+              //       state += timesClicked(r-i, c+i);
+              //     }  
+                 
+                
+            // Change the background of the current cell
+            var id = "#board-cell-" + r + "-" + c;
+            $(id).css("background-color", back_colors[state % colors]);
+        $(id).data("state", state % colors);
+        
+        // Change the text of the current cell
+        clicks = $(id).data("clicks");
+        if(clicks) {
+        $(id).text("(" + r + ", " + c + ")x" + clicks);
+        $(id).css("font-weight", "bold");}
+        else {
+        $(id).text("(" + r + ", " + c + ")");
+        $(id).css("font-weight", "normal"); }
+    
+            // Add the coordinate of the current cell to the "Your clicks" textbox if the current cell has been clicked
+            for (var i = 0; i < clicks; i++)
+              $("#solution-input").val($("#solution-input").val() + "(" + r + ", " + c + ")");
+         
+            if (timesClicked(r, c))
+              nontrivial = true;	
+      }
+    }
+    var triv_sol = false;
+    for (var i = 0; i < rows; i++){
+      for (var j = 0; j < cols; j++){
+        if (edit_array[i][j] != 0)
+          triv_sol = true;
+      }
+    }
+    if (!triv_sol){
+      // Check if we've perhaps produced a solution or a nontrivial null-grid
+      for (var i = 0; i < colors; i++) {
+        solved = true;
+        for(var r = 0; r < rows && solved; r++)// if there's still a chance it's solved with that color, then proceed
+          for(var c = 0; c < cols; c++) {
+            var id = "#board-cell-" + r + "-" + c;
+            if ($(id).data("state") != i)
+              solved = false;
+            }
+        if(solved)
+        {
+          if (i > 0 )
+            alert("Congratulations! You solved the puzzle with color " + i + "!");
+          else
+            if (nontrivial)
+              alert("Congratulations! You've produced a nontrivial null grid!");
+        }
+      }
+    }
+    
+
+    
+  }
+  
+      
+        /*for (var i = 1; i < colors; i++)
+          if (solved[i]){
+            alert("Congratulations! You solved the puzzle with color " + i + "!");
+        break;
+      }
+      
+        if(nontrivial && solved[0])
+          alert("Congratulations! You've produced a nontrivial null grid!")      */
+
+      function timesClicked(r, c) {
+        if (!top_bottom){
+          if(r < 0 || r > rows - 1){
+            return 0;
+          }
+        }
+        else {
+          if (r < 0) {
+            r = rows + r;
+          }
+        }
+
+
+        if (!left_right) {
+          if(c < 0 || c > cols - 1) {
+            return 0;
+          }
+        }
+        else {          
+          if (c < 0) {
+            c = cols + c;
+          }
+        }        
+
+        var id = "#board-cell-" + (r % rows) + "-" + (c % cols);
+        return $(id).data("clicks");
+      }
+    
+    </script>
+  </body>
+  </html>
