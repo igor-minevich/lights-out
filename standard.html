@@ -45,6 +45,8 @@
       </select>
       <input type="checkbox" id="chk_square_affect" checked>
       <label for="affect">Squares affect themselves</label>      
+      <input type="checkbox" id="chk_congrats" checked>
+      <label for="affect">Congratulate achievements</label>      
     </section>    
     <section>
       <input type="checkbox" id="chk_knight_moves">
@@ -94,7 +96,7 @@
     </section>
   
     <script type="text/javascript">
-    var back_colors = ["white", "#ffc800",'#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'];
+    var back_colors = ["white", "#ffc800",'#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#ffe119', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'];
     // var text_colors = ["black","#ffc800",'#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'];
       var L, R, U, D, Diag, rows, cols, colors, size;
       var top_bottom, left_right, knight_moves, affect_self;
@@ -345,11 +347,7 @@
         $("#solution-input").val("");
         
   
-        // Variables used to check if we've produced a solution or a null grid
-        /*var solved = new Array();
-        for (var i = 0; i < colors; i++){
-          solved.push(true);
-        }  */
+        // Variables used to check if we've produced a solution or a quiet pattern
         var nontrivial = false;
         //log.console(variation)
 
@@ -395,110 +393,7 @@
                 state += timesClicked(r-i, c+i);  
               } 
              
-  
-              //  if (variation == "standard"){
-              //     state += timesClicked(r-1, c);
-              //     state += timesClicked(r+1, c);
-              //     state += timesClicked(r, c-1);
-              //     state += timesClicked(r, c+1);
-              //   }   
 
-              // else if (variation == "diagonal"){
-              //     state += timesClicked(r-1, c-1);
-              //     state += timesClicked(r+1, c-1);
-              //     state += timesClicked(r-1, c+1);
-              //     state += timesClicked(r+1, c+1);  
-              //   }   
-              
-              // else if (variation == "h_cylindrical"){
-              //     state += timesClicked(r-1, c);
-              //     state += timesClicked(r+1, c);
-              //     state += timesClicked(r, c-1);
-              //     state += timesClicked(r, c+1);
-              //     if(c==0)
-              //     state += timesClicked(r, cols - 1);
-              //     if(c==cols-1)
-              //     state += timesClicked(r, 0);  
-              //   } 
-
-              //   else if (variation == "v_cylindrical"){
-              //     state += timesClicked(r-1, c);
-              //     state += timesClicked(r+1, c);
-              //     state += timesClicked(r, c-1);
-              //     state += timesClicked(r, c+1);
-              //     if(r==0)
-              //     state += timesClicked(rows - 1, c);
-              //     if(r==rows-1)
-              //     state += timesClicked(0, c);  
-              //   } 
-
-
-              //   else if (variation == "torus"){                
-              //     state += timesClicked(r-1, c);
-              //     state += timesClicked(r+1, c);
-              //     state += timesClicked(r, c-1);
-              //     state += timesClicked(r, c+1);
-              //     if(c==0)
-              //     state += timesClicked(r, cols - 1);
-              //     if(c==cols-1)
-              //     state += timesClicked(r, 0);
-              //     if(r==0)
-              //     state += timesClicked(rows-1, c);
-              //     if(r==rows-1)
-              //     state += timesClicked(0, c); 
-              //   }
-
-              //   else if (variation == "box"){                
-              //     state += timesClicked(r, c-1);
-              //     state += timesClicked(r-1, c);
-              //     state += timesClicked(r, c+1);
-              //     state += timesClicked(r+1, c);
-              //     state += timesClicked(r-1, c-1);
-              //     state += timesClicked(r+1, c-1);
-              //     state += timesClicked(r-1, c+1);
-              //     state += timesClicked(r+1, c+1);
-              //   }                
-  
-
-              //   else if (variation == "rook"){                
-              //     for (let i = 1; i < cols; i++){
-              //       state += timesClicked(r, c+i);
-              //       state += timesClicked(r, c-i);
-              //     }
-              //     for (let i = 1; i < rows; i++){
-              //       state += timesClicked(r+i, c);
-              //       state += timesClicked(r-i, c);
-              //     }  
-              //   } 
-
-              //   else if (variation == "bishop"){                
-              //     for (let i = 1; i < cols; i++){
-              //       state += timesClicked(r+i, c+i);
-              //       state += timesClicked(r-i, c-i);
-
-              //     }
-              //     for (let i = 1; i < rows; i++){
-              //       state += timesClicked(r+i, c-i);
-              //       state += timesClicked(r-i, c+i);
-              //     }  
-              //   }             
-   
-
-              //   else if (variation == "queen"){                
-              //     for (let i = 1; i < cols; i++){
-              //       state += timesClicked(r+i, c+i);
-              //       state += timesClicked(r-i, c-i);
-              //       state += timesClicked(r, c+i);
-              //       state += timesClicked(r, c-i);
-
-              //     }
-              //     for (let i = 1; i < rows; i++){
-              //       state += timesClicked(r+i, c);
-              //       state += timesClicked(r-i, c);
-              //       state += timesClicked(r+i, c-i);
-              //       state += timesClicked(r-i, c+i);
-              //     }  
-                 
                 
             // Change the background of the current cell
             var id = "#board-cell-" + r + "-" + c;
@@ -522,6 +417,11 @@
               nontrivial = true;	
       }
     }
+	
+	// Check if we've produced a quiet pattern or a solution, unless user doesn't want that
+	if(!document.getElementById('chk_congrats').checked)
+		return;
+	
     var triv_sol = false;
     for (var i = 0; i < rows; i++){
       for (var j = 0; j < cols; j++){
@@ -530,7 +430,7 @@
       }
     }
     if (!triv_sol){
-      // Check if we've perhaps produced a solution or a nontrivial null-grid
+      // Check if we've perhaps produced a solution or a nontrivial quiet pattern
       for (var i = 0; i < colors; i++) {
         solved = true;
         for(var r = 0; r < rows && solved; r++)// if there's still a chance it's solved with that color, then proceed
@@ -545,7 +445,7 @@
             alert("Congratulations! You solved the puzzle with color " + i + "!");
           else
             if (nontrivial)
-              alert("Congratulations! You've produced a nontrivial null grid!");
+              alert("Congratulations! You've produced a nontrivial quiet pattern!");
         }
       }
     }
@@ -553,17 +453,7 @@
 
     
   }
-  
-      
-        /*for (var i = 1; i < colors; i++)
-          if (solved[i]){
-            alert("Congratulations! You solved the puzzle with color " + i + "!");
-        break;
-      }
-      
-        if(nontrivial && solved[0])
-          alert("Congratulations! You've produced a nontrivial null grid!")      */
-
+ 
       function timesClicked(r, c) {
         if (!top_bottom){
           if(r < 0 || r > rows - 1){
