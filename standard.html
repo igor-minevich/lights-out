@@ -333,12 +333,23 @@
     
         $("#set-solution").on("click", function() {
     
+		  // coords is an array of coordinates like (1, 2)
           var coords = $("#solution-input").val().match(/\s*\(\s*\d+\s*,\s*\d+\s*\)\s*/g);
           if (coords == null) {
             alert("The entered clicks are not valid.");
             return;
           }
+		  
+          for (var r = 0; r < rows; r++) {
+            for (var c = 0; c < cols; c++){
+			  var $span = $("#board-cell-" + r + "-" + c);
+			  $span.data("clicks", 0);	
+			}
+		  }
+
+		  
           for (var i = 0; i < coords.length; i++) {
+		    // coord is a list of three things: coord[0] is not used, coord[1] = row, coord[2] = column
             var coord = coords[i].match(/\s*\(\s*(\d+)\s*,\s*(\d+).*/);
             if (coord == null || coord.length < 3) {
               alert("A coordinate in the entered clicks is not valid.");
@@ -351,7 +362,7 @@
               return;
             }
             var $span = $("#board-cell-" + r + "-" + c);
-        $span.data("clicks", ($span.data("clicks") + 1) % colors);	
+			$span.data("clicks", ($span.data("clicks") + 1) % colors);	
           }
           updateBoard();
         });
