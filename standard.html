@@ -42,8 +42,6 @@
           <option value="rook">Rook</option>
           <option value="queen">Queen</option>
           <option value="bishop">Bishop</option>        
-        
-  
         </select>
         <input type="checkbox" id="chk_square_affect" checked>
         <label for="affect">Squares affect themselves</label>      
@@ -106,7 +104,7 @@
         var edit_array;
         var row;   
 
-        var when_click = function() {
+        var gen_click = function() {
             rows = parseInt($("#row-input").val());
             cols = parseInt($("#col-input").val());
             size = parseInt($("#size-input").val());
@@ -276,23 +274,37 @@
 
             // Set the size of the spans to be added to the board
             var stylesheet = document.styleSheets[0];
-            stylesheet.insertRule(".board span { width: " + (size - 4) + "; height: " + (size - 4) + "}", stylesheet.cssRules.length); // text
 
-                // Generate the spans and put them into the board visually, i.e. insert them into the DOM
+            // Generate the legend and put it into the DOM
+			var $div = $("<div></div>");
+			$div.append("Legend: ");
+			for(var c = 0; c < colors; c++){
+				var $span = $("<span></span>");
+				$span.text(c);
+				$span.css("width", 20);
+				$span.css("height", 20);
+				$span.css("textalign", "center");
+				$span.css("background-color", back_colors[c]);
+				$div.append($span);
+			}
+			$(".board").append($div);
+			$(".board").append("<p></p>");
 
+            stylesheet.insertRule(".board span { width: " + (size - 4) + "; height: " + (size - 4) + "}", stylesheet.cssRules.length); // text				
+			// Generate the spans and put them into the board visually, i.e. insert them into the DOM
             for (var r = 0; r < rows; r++) {
-            var $div = $("<div></div>");
-            $div.attr("id", "board-row-" + r);
-            for (var c = 0; c < cols; c++) {
-                var $span = $("<span></span>");
-                $span.attr("id", "board-cell-" + r + "-" + c);
-                $span.data("row", r);
-                $span.data("col", c);
-                    $span.text("(" + r + ", " + c + ")");
-                $span.data("state", 0);
-                    $span.data("clicks", 0);
-                $div.append($span);
-            }
+				var $div = $("<div></div>");
+				$div.attr("id", "board-row-" + r);
+				for (var c = 0; c < cols; c++) {
+					var $span = $("<span></span>");
+					$span.attr("id", "board-cell-" + r + "-" + c);
+					$span.data("row", r);
+					$span.data("col", c);
+					$span.text("(" + r + ", " + c + ")");
+					$span.data("state", 0);
+					$span.data("clicks", 0);
+					$div.append($span);
+				}
                 $(".board").append($div);
             }};
 
@@ -300,19 +312,15 @@
 
         for (let i = 0; i < id_array.length; i++) {
             $(id_array[i]).keypress(function(event) {
-            if (event.which == 13) when_click();
+            if (event.which == 13) gen_click();
             });   
         }     
  
-        $("#generate-button").on("click", when_click);
-
-  //$('#generate_button').click(when_click);        
+        $("#generate-button").on("click", gen_click);
         
         $(".board").on("click", "span", function() {
           var chk_edit = document.getElementById('editmode_function').checked;
           var $span = $(this);
-          //alert("Row: " + $span.data("row") + "; Column: " + $span.data("col"));
-          //alert(timesClicked(1,1));
           var r = $span.data("row");
           var c = $span.data("col");
     
@@ -325,10 +333,7 @@
           else{
             $(id).data("clicks", ($(id).data("clicks") + 1) % colors);
           }
-    
-        
-        //alert("Row: " + r + ", Column: " + c + ", Clicks: " + $(id).data("clicks") + ", State: " + $(id).data("state"));
-          
+         
           updateBoard();
         });
     
@@ -347,7 +352,6 @@
 			  $span.data("clicks", 0);	
 			}
 		  }
-
 		  
           for (var i = 0; i < coords.length; i++) {
 		    // coord is a list of three things: coord[0] is not used, coord[1] = row, coord[2] = column
@@ -369,70 +373,64 @@
         });
     
         function updateBoard() {
-          $("#solution-input").val("");
-          
+          $("#solution-input").val("");         
     
           // Variables used to check if we've produced a solution or a quiet pattern
           var nontrivial = false;
           //log.console(variation)
-  
     
           var state;
   
+
+          for (var r = 0; r < rows; r++) {
+            for (var c = 0; c < cols; c++){
+              state = edit_array[r][c];
   
-          //if (variation == "diagonal"){
-            for (var r = 0; r < rows; r++) {
-              for (var c = 0; c < cols; c++){
-                state = edit_array[r][c];
+              if (affect_self) {
+                state += timesClicked(r, c);
+              }
   
-                if (affect_self) {
-                  state += timesClicked(r, c);
-                }
-  
-                if (knight_moves){                
-                    state += timesClicked(r-2, c+1);
-                    state += timesClicked(r-2, c-1);
-                    state += timesClicked(r+2, c+1);
-                    state += timesClicked(r+2, c-1);
-                    state += timesClicked(r-1, c-2);
-                    state += timesClicked(r-1, c+2);
-                    state += timesClicked(r+1, c-2);
-                    state += timesClicked(r+1, c+2);
-                  } 
+              if (knight_moves){                
+				state += timesClicked(r-2, c+1);
+                state += timesClicked(r-2, c-1);
+                state += timesClicked(r+2, c+1);
+                state += timesClicked(r+2, c-1);
+                state += timesClicked(r-1, c-2);
+				state += timesClicked(r-1, c+2);
+                state += timesClicked(r+1, c-2);
+                state += timesClicked(r+1, c+2);
+              } 
                            
   
-            //alert("r: " + r + ", c: " + c);
-                // Determine the state of the current cell (on or off)
-                for(var i = 1; i <= D; i++)
-                  state += timesClicked(r-i, c);
-                for(var i = 1; i <= U; i++)
-                  state += timesClicked(r+i, c);
-                for(var i = 1; i <= L; i++)
-                  state += timesClicked(r, c+i);
-                for(var i = 1; i <= R; i++)
-                  state += timesClicked(r, c-i);
-                for(var i = 1; i <= Diag; i++){
-                  state += timesClicked(r-i, c-i);  
-                  state += timesClicked(r+i, c-i);  
-                  state += timesClicked(r+i, c+i);  
-                  state += timesClicked(r-i, c+i);  
-                } 
-               
-  
-                  
-              // Change the background of the current cell
+			  // Determine the state of the current cell (on or off)
+			  for(var i = 1; i <= D; i++)
+			    state += timesClicked(r-i, c);
+			  for(var i = 1; i <= U; i++)
+			    state += timesClicked(r+i, c);
+			  for(var i = 1; i <= L; i++)
+			    state += timesClicked(r, c+i);
+			  for(var i = 1; i <= R; i++)
+			    state += timesClicked(r, c-i);
+			  for(var i = 1; i <= Diag; i++){
+			    state += timesClicked(r-i, c-i);  
+			    state += timesClicked(r+i, c-i);  
+			    state += timesClicked(r+i, c+i);  
+			    state += timesClicked(r-i, c+i);  
+			  } 
+ 
+			  // Change the background of the current cell
               var id = "#board-cell-" + r + "-" + c;
               $(id).css("background-color", back_colors[state % colors]);
-          $(id).data("state", state % colors);
+			  $(id).data("state", state % colors);
           
-          // Change the text of the current cell
-          clicks = $(id).data("clicks");
-          if(clicks) {
-          $(id).text("(" + r + ", " + c + ")x" + clicks);
-          $(id).css("font-weight", "bold");}
-          else {
-          $(id).text("(" + r + ", " + c + ")");
-          $(id).css("font-weight", "normal"); }
+			  // Change the text of the current cell
+			  clicks = $(id).data("clicks");
+			  if(clicks) {
+			  $(id).text("(" + r + ", " + c + ")x" + clicks);
+			  $(id).css("font-weight", "bold");}
+			  else {
+			  $(id).text("(" + r + ", " + c + ")");
+			  $(id).css("font-weight", "normal"); }
       
               // Add the coordinate of the current cell to the "Your clicks" textbox if the current cell has been clicked
               for (var i = 0; i < clicks; i++)
