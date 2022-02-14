@@ -1,6 +1,6 @@
 <html>
     <head>
-      <title>Standard Lights Out Puzzle</title>
+      <title>Variants of Lights Out Puzzle</title>
       <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
       <style type="text/css">
         body {
@@ -308,7 +308,7 @@
                 $(".board").append($div);
             }};
 
-        var id_array = ['#L-input', '#R-input', '#U-input', '#D-input', '#Diag-input', '#row-input', '#col-input', '#color-input', '#size-input','#chk_knight_moves','#chk_top_bottom','#chk_sides_connected', '#chk_square_affect', '#chk_congrats','#choose_variation' ]
+        var id_array = ['#L-input', '#R-input', '#U-input', '#D-input', '#Diag-input', '#row-input', '#col-input', '#color-input', '#size-input','#chk_knight_moves','#chk_top_bottom','#chk_sides_connected', '#chk_square_affect', '#chk_congrats','#choose_variation' ];
 
         for (let i = 0; i < id_array.length; i++) {
             $(id_array[i]).keypress(function(event) {
@@ -379,9 +379,8 @@
           var nontrivial = false;
           //log.console(variation)
     
-          var state;
-  
-
+		  // Find the state of each square
+		  var state;
           for (var r = 0; r < rows; r++) {
             for (var c = 0; c < cols; c++){
               state = edit_array[r][c];
@@ -444,7 +443,8 @@
       // Check if we've produced a quiet pattern or a solution, unless user doesn't want that
       if(!document.getElementById('chk_congrats').checked)
           return;
-      
+		  
+	  // Check if the edit array has been changed; if so, set triv_sol = true and don't check if we have produced a solution or a quiet pattern
       var triv_sol = false;
       for (var i = 0; i < rows; i++){
         for (var j = 0; j < cols; j++){
@@ -472,9 +472,6 @@
           }
         }
       }
-      
-  
-      
     }
    
         function timesClicked(r, c) {

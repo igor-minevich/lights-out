@@ -41,11 +41,12 @@
         <label for="size-input">Size (pixels):</label>
         <input type="text" id="size-input" value="80" />
         <input type="button" id="generate-button" value="Generate/Reset Puzzle" />
-		<input type="button" id="evolve-button" value="EVOLVE" />
-
       </section>
-	  
-        
+	  <section class="target-color">
+		<label for="target-color-input">Target color:</label>
+        <input type="text" id="target-color-input" size=20 value="0"/>
+		<input type="button" id="chase-button" value="CHASE" />
+	  </section>
       <section class="solution">
         <label for="solution-input">Your clicks:</label>
         <input type="text" id="solution-input" />
@@ -129,14 +130,14 @@
 					$span.attr("id", "board-cell-" + r + "-" + c);
 					$span.data("row", r);
 					$span.data("col", c);
-					$span.text(0);
+					$span.text("(" + r + ", " + c + ")");
 					$span.data("state", 0);
 					$span.data("clicks", 0);
 					$div.append($span);
 				}
                 $(".board").append($div);
             }};
-
+				
         var id_array = ['#row-input', '#col-input', '#color-input', '#size-input'];
 
         for (let i = 0; i < id_array.length; i++) {
@@ -213,8 +214,8 @@
           var nontrivial = false;
           //log.console(variation)
   
-  		  // Find the state of each square
-          var state;
+		  // Find the state of each square
+          var state;  
           for (var r = 0; r < rows; r++) {
             for (var c = 0; c < cols; c++){
               state = edit_array[r][c];
@@ -227,26 +228,26 @@
               // Change the background of the current cell
               var id = "#board-cell-" + r + "-" + c;
               $(id).css("background-color", back_colors[state % colors]);
-          $(id).data("state", state % colors);
+			  $(id).data("state", state % colors);
           
-          // Change the text of the current cell
-		  clicks = $(id).data("clicks");
-          if(clicks) {
-			  $(id).text(clicks);
-			  $(id).css("font-weight", "bold");}
-          else {
-			  $(id).text(0);
-			  $(id).css("font-weight", "normal"); }
-      
-              // Add the coordinate of the current cell to the "Your clicks" textbox if the current cell has been clicked
-              for (var i = 0; i < clicks; i++)
-                $("#solution-input").val($("#solution-input").val() + "(" + r + ", " + c + ")");
-           
-              if (timesClicked(r, c))
-                nontrivial = true;	
+			  // Change the text of the current cell
+			  clicks = $(id).data("clicks");
+			  if(clicks) {
+				  $(id).text("(" + r + ", " + c + ")x" + clicks);
+				  $(id).css("font-weight", "bold");}
+			  else {
+				  $(id).text("(" + r + ", " + c + ")");
+				  $(id).css("font-weight", "normal"); }
+ 		  
+				  // Add the coordinate of the current cell to the "Your clicks" textbox if the current cell has been clicked
+				  for (var i = 0; i < clicks; i++)
+					$("#solution-input").val($("#solution-input").val() + "(" + r + ", " + c + ")");
+			   
+				  if (timesClicked(r, c))
+					nontrivial = true;	
         }
       }
-	  
+      
 	  // Check if the edit array has been changed; if so, set triv_sol = true and don't check if we have produced a solution or a quiet pattern
       var triv_sol = false;
       for (var i = 0; i < rows; i++){
@@ -285,88 +286,32 @@
 	  return $(id).data("clicks");
 	}
       
-	$("#evolve-button").on("click", function() {
-		// Save the clicks made in the array original_clicks
-		var original_clicks = [];
-		var orig_rows = rows;
-		var orig_cols = cols;
-		for (var r = 0; r < rows; r++){
-			row = [];
-			for (var c = 0; c < cols; c++)
-				row.push(timesClicked(r, c));
-			original_clicks.push(row);
+	$("#chase-button").on("click", function() {
+		// Get the target color from the input textbox
+		var target = parseInt($("#target-color-input").val());
+		
+		// Check if the target color is valid
+		if (isNaN(target) || target < 0 || target > colors-1) {
+			alert("Please enter a valid target color, between 0 and " + (colors - 1) + ".")
+			return;
+		}
+		
+		var c, r, id;
+		// Go through each column, starting at 1, and set the # of clicks
+		for (c=1; c < cols; c++) {
+			// Set the click of the top cell in the column
+			id = "#board-cell-" + 0 + "-" + c;
+			$(id).data("clicks", (3*colors - timesClicked(0, c-1) - timesClicked(0, c-2) - timesClicked(1, c-1) + target) % colors);
+			
+			for (r=1; r < rows-1; r++) {
+				id = "#board-cell-" + r + "-" + c;
+				$(id).data("clicks", (4*colors - timesClicked(r, c-1) - timesClicked(r, c-2) - timesClicked(r+1, c-1) - timesClicked(r-1, c-1) + target) % colors);}
+			
+			id = "#board-cell-" + (rows-1) + "-" + c;
+			$(id).data("clicks", (3*colors - timesClicked(rows-1, c-1) - timesClicked(rows-1, c-2) - timesClicked(rows-2, c-1) + target) % colors);
 		}
 
-		// Set the new sizes in the Rows and Columns 
-		$("#row-input").val(rows*colors + colors - 1);
-		$("#col-input").val(cols*colors + colors - 1);
-
-		// Generate the new grid
-		gen_click();
-		
-		//generate the first two columns as 0 and e_{k, 2k-1} where k = # colors
-		var evol_length = 2*colors - 1; // size of the evolution of a 1x1 square
-		var prev_col = [];
-		var next_col = [];
-		for (var i = 0; i < evol_length; i++){
-			prev_col.push(0);
-			if(i == colors-1)
-				next_col.push(1);
-			else
-				next_col.push(0);
-		}
-		
-		var r, c, curCol, i, id, s, temp;
-		
-		// Insert the left and right columns of every (2k-1)x(2k-1) grid corresponding to the evolution of the current square
-		for (curCol = 0; curCol < colors; curCol++){
-			// Go through every square of the original grid
-			for (r = 0; r < orig_rows; r++){
-				for (c = 0; c < orig_cols; c++){					
-					//alert("nextcol:" + next_col[0] + ", " + next_col[1] + ", " + next_col[2]);
-					// Edit the states of the squares
-					for (i = 0; i < evol_length; i++){
-						// First left half
-						// The current cell has row = r*k + i, col = c*k + curCol
-						id = "#board-cell-" + (r*colors + i) + "-" + (c*colors + curCol);
-						s = $(id).data("clicks");
-						$(id).data("clicks", (s + original_clicks[r][c] * next_col[i]) % colors);
-						
-						// Insert the right half of the evolved square unless this is the middle column
-						if (curCol < colors-1){
-							// The current cell has row = r*k + i, col = c*k + 2k-2-curCol
-							id = "#board-cell-" + (r*colors + i) + "-" + ((c+2)*colors - curCol - 2);
-							s = $(id).data("clicks");
-							$(id).data("clicks", (s + original_clicks[r][c] * next_col[i]) % colors);
-						}
-					}
-				}
-			}
-				
-			// Remake prev_col and next_col
-			// First the top entry
-			temp = next_col[0];
-			next_col[0] = (colors*3 - (next_col[0] + prev_col[0] + next_col[1]) ) % colors;
-			prev_col[0] = temp;
-			// The middle entries
-			for (i = 1; i < evol_length-1; i++) {
-				temp = next_col[i];
-				next_col[i] = (colors*4 -(next_col[i] + prev_col[i] + next_col[i+1] + prev_col[i-1]) ) % colors;
-				prev_col[i] = temp;
-			}
-			// The bottom entry
-			temp = next_col[evol_length-1];
-			next_col[evol_length-1] = (colors*3 - (next_col[evol_length-1] + prev_col[evol_length-1] + prev_col[evol_length-2]) ) % colors;
-		}
-					
-		/*/ Display all the changes
-		for (var r = 0; r < rows; r++) {
-            for (var c = 0; c < cols; c++){						
-				// Change the background of the current cell
-				var id = "#board-cell-" + r + "-" + c;
-				$(id).css("background-color", back_colors[$(id).data("state") % colors]);
-			}
-		}*/
+		// All that's left to do is update the board to set all the states.
 		updateBoard();
 	});
 	
