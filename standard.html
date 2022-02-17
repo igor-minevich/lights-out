@@ -33,7 +33,7 @@
     <br>
       <section>
         <label for="variation">Choose a variation:</label>
-        <select name="variation" id="choose_variation">
+        <select name="variation" id="choose_variation" title="Changing the variation and clicking 'Generate' changes the settings below.">
           <option value="custom">Custom</option>  
           <option value="standard">Standard</option>
           <option value="diagonal">Diagonal</option>
@@ -49,8 +49,8 @@
         <label for="affect">Congratulate achievements</label>      
       </section>    
       <section>
-        <input type="checkbox" id="chk_knight_moves">
-        <label for="knightmoves">Knight moves</label>  
+        <input type="checkbox" id="chk_knight_moves" title="If checked, a click will affect squares a standard knight move away">
+        <label for="knightmoves"  title="If checked, a click will affect squares a standard knight move away">Knight moves</label>  
         <input type="checkbox" id="chk_top_bottom">
         <label for="top_bottom">Top and bottom connected</label>      
         <input type="checkbox" id="chk_sides_connected">
@@ -59,15 +59,15 @@
   
       <section class="controls">
         <label for="L-input">L:</label>
-        <input type="text" id="L-input" value="1" />
+        <input type="text" id="L-input" value="1" title="The number of squares to the left that are affected by a click"/>
         <label for="R-input">R:</label>
-        <input type="text" id="R-input" value="1" />
+        <input type="text" id="R-input" value="1" title="The number of squares to the right that are affected by a click"/>
         <label for="U-input">U:</label>
-        <input type="text" id="U-input" value="1" /> 
+        <input type="text" id="U-input" value="1" title="The number of squares above that are affected by a click"/> 
         <label for="D-input">D:</label>
-        <input type="text" id="D-input" value="1" />
+        <input type="text" id="D-input" value="1" title="The number of squares below that are affected by a click"/>
         <label for="Diag-input">Diag:</label>
-        <input type="text" id="Diag-input" value="0" />      
+        <input type="text" id="Diag-input" value="0" title="The number of squares diagonally that are affected by a click" />      
       </section>
   
       <section class="controls", text-align="center">
@@ -79,7 +79,7 @@
         <input type="text" id="color-input" value="2" /> 
         <label for="size-input">Size (pixels):</label>
         <input type="text" id="size-input" value="80" />
-        <input type="button" id="generate-button" value="Generate/Reset Puzzle" />
+        <input type="button" id="generate-button" value="Generate/Reset Puzzle" title="If a non-Custom variation is selected, changes the settings above, then resets the puzzle."/>
   
       </section>
     
