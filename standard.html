@@ -34,56 +34,58 @@
       <section>
         <label for="variation">Choose a variation:</label>
         <select name="variation" id="choose_variation" title="Changing the variation and clicking 'Generate' changes the settings below.">
-          <option value="custom">Custom</option>  
+          <option value="custom">Custom</option>
           <option value="standard">Standard</option>
           <option value="diagonal">Diagonal</option>
           <option value="king">King</option>
           <option value="knight">Knight</option>
           <option value="rook">Rook</option>
           <option value="queen">Queen</option>
-          <option value="bishop">Bishop</option>        
+          <option value="bishop">Bishop</option>
         </select>
         <input type="checkbox" id="chk_square_affect" checked>
-        <label for="affect">Squares affect themselves</label>      
+        <label for="affect">Squares affect themselves</label>
         <input type="checkbox" id="chk_congrats" checked>
-        <label for="affect">Congratulate achievements</label>      
-      </section>    
+        <label for="affect">Congratulate achievements</label>
+      </section>
       <section>
         <input type="checkbox" id="chk_knight_moves" title="If checked, a click will affect squares a standard knight move away">
-        <label for="knightmoves"  title="If checked, a click will affect squares a standard knight move away">Knight moves</label>  
+        <label for="knightmoves"  title="If checked, a click will affect squares a standard knight move away">Knight moves</label>
         <input type="checkbox" id="chk_top_bottom">
-        <label for="top_bottom">Top and bottom connected</label>      
+        <label for="top_bottom">Top and bottom connected</label>
         <input type="checkbox" id="chk_sides_connected">
         <label for="affect">Sides are connected</label>
+        <input type="checkbox", id="chk_coordinates">
+        <label for="coordinates">Show coordinates</label>
         </section>
-  
+
       <section class="controls">
         <label for="L-input">L:</label>
         <input type="text" id="L-input" value="1" title="The number of squares to the left that are affected by a click"/>
         <label for="R-input">R:</label>
         <input type="text" id="R-input" value="1" title="The number of squares to the right that are affected by a click"/>
         <label for="U-input">U:</label>
-        <input type="text" id="U-input" value="1" title="The number of squares above that are affected by a click"/> 
+        <input type="text" id="U-input" value="1" title="The number of squares above that are affected by a click"/>
         <label for="D-input">D:</label>
         <input type="text" id="D-input" value="1" title="The number of squares below that are affected by a click"/>
         <label for="Diag-input">Diag:</label>
-        <input type="text" id="Diag-input" value="0" title="The number of squares diagonally that are affected by a click" />      
+        <input type="text" id="Diag-input" value="0" title="The number of squares diagonally that are affected by a click" />
       </section>
-  
+
       <section class="controls", text-align="center">
         <label for="row-input">Rows:</label>
         <input type="text" id="row-input" value="5" />
         <label for="col-input">Columns:</label>
         <input type="text" id="col-input" value="5" />
         <label for="color-input">No. of Colors:</label>
-        <input type="text" id="color-input" value="2" /> 
+        <input type="text" id="color-input" value="2" />
         <label for="size-input">Size (pixels):</label>
         <input type="text" id="size-input" value="80" />
         <input type="button" id="generate-button" value="Generate/Reset Puzzle" title="If a non-Custom variation is selected, changes the settings above, then resets the puzzle."/>
-  
+
       </section>
-    
-    
+
+
       <section class="solution">
         <label for="solution-input">Your clicks:</label>
         <input type="text" id="solution-input" />
@@ -91,10 +93,10 @@
         <input type="checkbox" id="editmode_function" name="editmode" value="editmode">
         <label for="editmode">Edit mode</label>
       </section>
-    
+
       <section class="board">
       </section>
-    
+
       <script type="text/javascript">
       var back_colors = ["white", "#ffc800",'#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#ffe119', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'];
       // var text_colors = ["black","#ffc800",'#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'];
@@ -102,7 +104,8 @@
         var top_bottom, left_right, knight_moves, affect_self;
         var variation;
         var edit_array;
-        var row;   
+        var row;
+        var num_clicks = 1;
 
         var gen_click = function() {
             rows = parseInt($("#row-input").val());
@@ -113,13 +116,13 @@
             for (var i = 0; i < rows; i++){
                 row = [];
                 for (var j = 0; j < cols; j++){
-                row.push(0);         
+                row.push(0);
                 }
                 edit_array.push(row);
             }
             // for (var i = 0; i < rows; i++){
             //   for (var j = 0; j < cols; j++){
-            //     alert("i = " + i.toString() + ", j = " + j.toString() + ": " + edit_array[i][j]);        
+            //     alert("i = " + i.toString() + ", j = " + j.toString() + ": " + edit_array[i][j]);
             //   }
             // }
             variation = document.getElementById("choose_variation").value;
@@ -129,60 +132,60 @@
                 $('#L-input').val("1");
                 $('#R-input').val("1");
                 $('#U-input').val("1");
-                $('#D-input').val("1");                              
+                $('#D-input').val("1");
                 $('#Diag-input').val("0");
                 $("#chk_square_affect").prop("checked", true);
                 $("#chk_sides_connected").prop("checked", false);
                 $("#chk_top_bottom").prop("checked", false);
-                $("#chk_knight_moves").prop("checked", false);  
+                $("#chk_knight_moves").prop("checked", false);
             }
 
             if (variation == "diagonal"){
                 $('#L-input').val("0");
                 $('#R-input').val("0");
                 $('#U-input').val("0");
-                $('#D-input').val("0");                              
+                $('#D-input').val("0");
                 $('#Diag-input').val("1");
                 $("#chk_square_affect").prop("checked", true);
                 $("#chk_sides_connected").prop("checked", false);
                 $("#chk_top_bottom").prop("checked", false);
-                $("#chk_knight_moves").prop("checked", false);  
+                $("#chk_knight_moves").prop("checked", false);
             }
 
             if (variation == "king"){
                 $('#L-input').val("1");
                 $('#R-input').val("1");
                 $('#U-input').val("1");
-                $('#D-input').val("1");                              
+                $('#D-input').val("1");
                 $('#Diag-input').val("1");
                 $("#chk_square_affect").prop("checked", true);
                 $("#chk_sides_connected").prop("checked", false);
                 $("#chk_top_bottom").prop("checked", false);
-                $("#chk_knight_moves").prop("checked", false);  
-            }        
+                $("#chk_knight_moves").prop("checked", false);
+            }
 
             if (variation == "knight"){
                 $('#L-input').val("0");
                 $('#R-input').val("0");
                 $('#U-input').val("0");
-                $('#D-input').val("0");                              
+                $('#D-input').val("0");
                 $('#Diag-input').val("0");
                 $("#chk_square_affect").prop("checked", true);
                 $("#chk_sides_connected").prop("checked", false);
                 $("#chk_top_bottom").prop("checked", false);
-                $("#chk_knight_moves").prop("checked", true);       
+                $("#chk_knight_moves").prop("checked", true);
             }
 
             if (variation == "rook"){
                 $('#L-input').val(cols);
                 $('#R-input').val(cols);
                 $('#U-input').val(rows);
-                $('#D-input').val(rows);                              
+                $('#D-input').val(rows);
                 $('#Diag-input').val("0");
                 $("#chk_square_affect").prop("checked", true);
                 $("#chk_sides_connected").prop("checked", false);
                 $("#chk_top_bottom").prop("checked", false);
-                $("#chk_knight_moves").prop("checked", false);  
+                $("#chk_knight_moves").prop("checked", false);
             }
 
 
@@ -190,25 +193,25 @@
                 $('#L-input').val("0");
                 $('#R-input').val("0");
                 $('#U-input').val("0");
-                $('#D-input').val("0");                              
+                $('#D-input').val("0");
                 $('#Diag-input').val(Math.min(rows, cols));
                 $("#chk_square_affect").prop("checked", true);
                 $("#chk_sides_connected").prop("checked", false);
                 $("#chk_top_bottom").prop("checked", false);
-                $("#chk_knight_moves").prop("checked", false);  
+                $("#chk_knight_moves").prop("checked", false);
             }
 
             if (variation == "queen"){
                 $('#L-input').val(cols);
                 $('#R-input').val(cols);
                 $('#U-input').val(rows);
-                $('#D-input').val(rows);                              
+                $('#D-input').val(rows);
                 $('#Diag-input').val(Math.min(rows, cols));
                 $("#chk_square_affect").prop("checked", true);
                 $("#chk_sides_connected").prop("checked", false);
                 $("#chk_top_bottom").prop("checked", false);
-                $("#chk_knight_moves").prop("checked", false);  
-            }        
+                $("#chk_knight_moves").prop("checked", false);
+            }
 
             L = parseInt($("#L-input").val());
             R = parseInt($("#R-input").val());
@@ -242,7 +245,7 @@
                 alert("Please enter a valid number for D, the number of cells affected below, between 0 and 100.")
                 return;
             }
-            
+
             if (isNaN(Diag) || Diag < 0 || Diag > 100) {
                 alert("Please enter a valid number for Diag, the number of cells affected diagonally, between 0 and 100.")
                 return;
@@ -267,7 +270,7 @@
                 alert("Please enter a valid pixel size, between 1 and 1000.")
                 return;
             }
-            
+
             // Clear state
             $(".board").empty();
             $("#solution-input").val("");
@@ -281,78 +284,85 @@
 			for(var c = 0; c < colors; c++){
 				var $span = $("<span></span>");
 				$span.text(c);
+				$span.data("color", c)
 				$span.css("width", 20);
 				$span.css("height", 20);
 				$span.css("text-align", "center");
 				$span.css("background-color", back_colors[c]);
 				$div.append($span);
 			}
+			$div.on("click", "span", function() {
+				var $span = $(this);
+				if($span.data("color") != 0)
+				num_clicks = $span.data("color");
+				});
 			$(".board").append($div);
 			$(".board").append("<p></p>");
 
-            stylesheet.insertRule(".board span { width: " + (size - 4) + "; height: " + (size - 4) + "}", stylesheet.cssRules.length); // text				
+            stylesheet.insertRule(".board span { width: " + (size - 4) + "; height: " + (size - 4) + "}", stylesheet.cssRules.length); // text
 			// Generate the spans and put them into the board visually, i.e. insert them into the DOM
-            for (var r = 0; r < rows; r++) {
-				var $div = $("<div></div>");
-				$div.attr("id", "board-row-" + r);
-				for (var c = 0; c < cols; c++) {
-					var $span = $("<span></span>");
-					$span.attr("id", "board-cell-" + r + "-" + c);
-					$span.data("row", r);
-					$span.data("col", c);
-					$span.text("(" + r + ", " + c + ")");
-					$span.data("state", 0);
-					$span.data("clicks", 0);
-					$div.append($span);
-				}
-                $(".board").append($div);
-            }};
+        for (var r = 0; r < rows; r++) {
+  				var $div = $("<div></div>");
+  				$div.attr("id", "board-row-" + r);
+  				for (var c = 0; c < cols; c++) {
+  					var $span = $("<span></span>");
+  					$span.attr("id", "board-cell-" + r + "-" + c);
+  					$span.data("row", r);
+  					$span.data("col", c);
+  					//$span.text("(" + r + ", " + c + ")");
+  					$span.data("state", 0);
+  					$span.data("clicks", 0);
+  					$div.append($span);
+  				}
+        $(".board").append($div);
+              }
+          updateBoard();
+            };
 
         var id_array = ['#L-input', '#R-input', '#U-input', '#D-input', '#Diag-input', '#row-input', '#col-input', '#color-input', '#size-input','#chk_knight_moves','#chk_top_bottom','#chk_sides_connected', '#chk_square_affect', '#chk_congrats','#choose_variation' ];
 
         for (let i = 0; i < id_array.length; i++) {
             $(id_array[i]).keypress(function(event) {
             if (event.which == 13) gen_click();
-            });   
-        }     
- 
+            });
+        }
+
         $("#generate-button").on("click", gen_click);
-        
+		$("#chk_coordinates").on("click", updateBoard);
         $(".board").on("click", "span", function() {
           var chk_edit = document.getElementById('editmode_function').checked;
           var $span = $(this);
           var r = $span.data("row");
           var c = $span.data("col");
-    
+
           var id = "#board-cell-" + r + "-" + c;
-  
           if (chk_edit) {
-            edit_array[r][c] = (edit_array[r][c] + 1) % colors;
+            edit_array[r][c] = (edit_array[r][c] + num_clicks) % colors;
           }
-  
+
           else{
-            $(id).data("clicks", ($(id).data("clicks") + 1) % colors);
+            $(id).data("clicks", ($(id).data("clicks") + num_clicks) % colors);
           }
-         
+
           updateBoard();
         });
-    
+
         $("#set-solution").on("click", function() {
-    
+
 		  // coords is an array of coordinates like (1, 2)
           var coords = $("#solution-input").val().match(/\s*\(\s*\d+\s*,\s*\d+\s*\)\s*/g);
           if (coords == null) {
             alert("The entered clicks are not valid.");
             return;
           }
-		  
+
           for (var r = 0; r < rows; r++) {
             for (var c = 0; c < cols; c++){
 			  var $span = $("#board-cell-" + r + "-" + c);
-			  $span.data("clicks", 0);	
+			  $span.data("clicks", 0);
 			}
 		  }
-		  
+
           for (var i = 0; i < coords.length; i++) {
 		    // coord is a list of three things: coord[0] is not used, coord[1] = row, coord[2] = column
             var coord = coords[i].match(/\s*\(\s*(\d+)\s*,\s*(\d+).*/);
@@ -367,29 +377,29 @@
               return;
             }
             var $span = $("#board-cell-" + r + "-" + c);
-			$span.data("clicks", ($span.data("clicks") + 1) % colors);	
+			$span.data("clicks", ($span.data("clicks") + 1) % colors);
           }
           updateBoard();
         });
-    
+
         function updateBoard() {
-          $("#solution-input").val("");         
-    
+          $("#solution-input").val("");
+
           // Variables used to check if we've produced a solution or a quiet pattern
           var nontrivial = false;
           //log.console(variation)
-    
+
 		  // Find the state of each square
 		  var state;
           for (var r = 0; r < rows; r++) {
             for (var c = 0; c < cols; c++){
               state = edit_array[r][c];
-  
+
               if (affect_self) {
                 state += timesClicked(r, c);
               }
-  
-              if (knight_moves){                
+
+              if (knight_moves){
 				state += timesClicked(r-2, c+1);
                 state += timesClicked(r-2, c-1);
                 state += timesClicked(r+2, c+1);
@@ -398,9 +408,9 @@
 				state += timesClicked(r-1, c+2);
                 state += timesClicked(r+1, c-2);
                 state += timesClicked(r+1, c+2);
-              } 
-                           
-  
+              }
+
+
 			  // Determine the state of the current cell (on or off)
 			  for(var i = 1; i <= D; i++)
 			    state += timesClicked(r-i, c);
@@ -411,39 +421,48 @@
 			  for(var i = 1; i <= R; i++)
 			    state += timesClicked(r, c-i);
 			  for(var i = 1; i <= Diag; i++){
-			    state += timesClicked(r-i, c-i);  
-			    state += timesClicked(r+i, c-i);  
-			    state += timesClicked(r+i, c+i);  
-			    state += timesClicked(r-i, c+i);  
-			  } 
- 
+			    state += timesClicked(r-i, c-i);
+			    state += timesClicked(r+i, c-i);
+			    state += timesClicked(r+i, c+i);
+			    state += timesClicked(r-i, c+i);
+			  }
+
 			  // Change the background of the current cell
               var id = "#board-cell-" + r + "-" + c;
               $(id).css("background-color", back_colors[state % colors]);
 			  $(id).data("state", state % colors);
-          
+
 			  // Change the text of the current cell
 			  clicks = $(id).data("clicks");
-			  if(clicks) {
-			  $(id).text("(" + r + ", " + c + ")x" + clicks);
-			  $(id).css("font-weight", "bold");}
-			  else {
-			  $(id).text("(" + r + ", " + c + ")");
-			  $(id).css("font-weight", "normal"); }
-      
+        if ($('#chk_coordinates').is(':checked')) {
+			if(clicks)
+			{
+				$(id).text("(" + r + ", " + c + ")x" + clicks);
+				$(id).css("font-weight", "bold");
+			}
+			else
+			{
+				$(id).text("(" + r + ", " + c + ")");
+				$(id).css("font-weight", "normal");
+			}
+		}
+		else {
+            $(id).text(clicks);
+			$(id).css("font-weight", "bold");
+          }
               // Add the coordinate of the current cell to the "Your clicks" textbox if the current cell has been clicked
               for (var i = 0; i < clicks; i++)
                 $("#solution-input").val($("#solution-input").val() + "(" + r + ", " + c + ")");
-           
+
               if (timesClicked(r, c))
-                nontrivial = true;	
+                nontrivial = true;
         }
       }
-      
+
       // Check if we've produced a quiet pattern or a solution, unless user doesn't want that
       if(!document.getElementById('chk_congrats').checked)
           return;
-		  
+
 	  // Check if the edit array has been changed; if so, set triv_sol = true and don't check if we have produced a solution or a quiet pattern
       var triv_sol = false;
       for (var i = 0; i < rows; i++){
@@ -473,7 +492,7 @@
         }
       }
     }
-   
+
         function timesClicked(r, c) {
           if (!top_bottom){
             if(r < 0 || r > rows - 1){
@@ -485,23 +504,23 @@
               r = rows + r;
             }
           }
-  
-  
+
+
           if (!left_right) {
             if(c < 0 || c > cols - 1) {
               return 0;
             }
           }
-          else {          
+          else {
             if (c < 0) {
               c = cols + c;
             }
-          }        
-  
+          }
+
           var id = "#board-cell-" + (r % rows) + "-" + (c % cols);
           return $(id).data("clicks");
         }
-      
+
       </script>
     </body>
     </html>
