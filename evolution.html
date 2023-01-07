@@ -33,15 +33,16 @@
     <br>
       <section class="controls", text-align="center">
         <label for="row-input">Rows:</label>
-        <input type="text" id="row-input" value="5" />
+        <input type="text" id="row-input" value="1" />
         <label for="col-input">Columns:</label>
-        <input type="text" id="col-input" value="5" />
+        <input type="text" id="col-input" value="1" />
         <label for="color-input">No. of Colors:</label>
         <input type="text" id="color-input" value="2" /> 
         <label for="size-input">Size (pixels):</label>
-        <input type="text" id="size-input" value="80" />
+        <input type="text" id="size-input" value="20" />
         <input type="button" id="generate-button" value="Generate/Reset Puzzle" />
 		<input type="button" id="evolve-button" value="EVOLVE" />
+		<input type="button" id="erase-button" value="ERASE" />
 
       </section>
 	  
@@ -286,7 +287,13 @@
 	}
       
 	$("#evolve-button").on("click", function() {
+		if(rows*colors + colors > 101 || cols*colors + colors > 101)
+		{
+			alert("The size is too large to evolve further.");
+			return;
+		}
 		// Save the clicks made in the array original_clicks
+		colors = parseInt($("#color-input").val());
 		var original_clicks = [];
 		var orig_rows = rows;
 		var orig_cols = cols;
@@ -369,6 +376,52 @@
 		}*/
 		updateBoard();
 	});
+	
+		$("#erase-button").on("click", function() {
+		if(rows < colors || cols < colors)
+		{
+			alert("The size is too small.");
+			return;
+		}
+		// Save the clicks made in the rows and columns of indices -1 (mod colors) in the array new_clicks
+		colors = parseInt($("#color-input").val());
+		var new_clicks = [];
+		var row, r, c, id;
+		for (r = 0; r < rows; r++){
+			if (r % colors == colors-1)
+			{
+				row = [];
+				for (c = 0; c < cols; c++){
+					if (c % colors == colors-1)
+						row.push(timesClicked(r, c));
+						//alert("r: " + r + ", c: " + c + ", pushed: " + timesClicked(r, c))}
+					}
+				new_clicks.push(row);
+			}
+		}
+
+		// Set the new sizes in the Rows and Columns 
+		var new_rows = parseInt(rows/colors);
+		var new_cols = parseInt(cols/colors);		
+		$("#row-input").val(new_rows);
+		$("#col-input").val(new_cols);
+
+		// Generate the new grid
+		gen_click();
+		
+		var id;
+		//alert("rows: " + new_rows + ", cols: " + new_cols);
+				
+		for (r = 0; r < new_rows; r++){
+			for (c = 0; c < new_cols; c++){					
+				//alert("r: " + r + ", c: " + c + ", " + new_clicks[r][c]);
+				id = "#board-cell-" + r + "-" + c;
+				$(id).data("clicks", new_clicks[r][c]);		
+				}
+			}
+		updateBoard();
+	});
+
 	
       </script>
     </body>
