@@ -5,6 +5,10 @@ var nodes = [];
 var edges = [];
 var clicks = 1;
 
+let groupType = "cyclical";
+let groupOrder = 2;
+let groupMultiplier = 1;
+
 const colors = ['#FFFFFF', "#ffc800", '#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#46f0f0',
   '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#ffe119', '#9a6324', '#fffac8',
   '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'];
@@ -192,15 +196,15 @@ function draw() {
   }
 }
 function move(e) {
-    if (node_dragged && e.buttons) {
-      var pos = getMousePos(e);
-      if (pos.x > 0 && pos.x <= canvas.width && pos.y > 0 && pos.y <= canvas.height) {
-        node_dragged.x = e.offsetX;
-        node_dragged.y = e.offsetY;
-        node_dragged.moving = true;
-        draw();
-      }
+  if (node_dragged && e.buttons) {
+    var pos = getMousePos(e);
+    if (pos.x > 0 && pos.x <= canvas.width && pos.y > 0 && pos.y <= canvas.height) {
+      node_dragged.x = e.offsetX;
+      node_dragged.y = e.offsetY;
+      node_dragged.moving = true;
+      draw();
     }
+  }
 }
 function find_edge(fromNode, toNode) {
   return edges.find(e => {
@@ -208,11 +212,11 @@ function find_edge(fromNode, toNode) {
   });
 }
 function down(e) {
-    let target = within(e.offsetX, e.offsetY);
-    if (target) {
-      node_dragged = target;
-      node_dragged.moving = false;
-    }
+  let target = within(e.offsetX, e.offsetY);
+  if (target) {
+    node_dragged = target;
+    node_dragged.moving = false;
+  }
 }
 function up(e) {
   var num_colors = parseInt(document.getElementById('num_colors_input').value);
@@ -220,36 +224,36 @@ function up(e) {
   if (btn_mode.textContent == 'Editing') {
     let target = within(e.offsetX, e.offsetY);
     // deselect selected node
-    if (target && selection == target) 
+    if (target && selection == target)
       selection = undefined;
-    
+
     // if there is nothing selected, then select the node
-    else if (target && !selection) 
-        selection = target; 
-      
+    else if (target && !selection)
+      selection = target;
+
     // create node where you clicked if clicked away from existing nodes (i.e. no target)
-    if (!target) { 
-      if (pos.x > 0 && pos.x <= canvas.width && pos.y > 0 && pos.y <= canvas.height){
+    if (!target) {
+      if (pos.x > 0 && pos.x <= canvas.width && pos.y > 0 && pos.y <= canvas.height) {
         selection = undefined;
         create_node(e.offsetX, e.offsetY);
       }
     }
 
     // create or remove an edge 
-    if (target && selection && selection !== target && !node_dragged.moving) { 
-        var edge = find_edge(target, selection);
-        if (!edge){ // make the edge
-          edges.push({ from: selection, to: target, round: false, dash: false });
-        }
-        else { // remove the edge
-          for (let j = 0; j < edges.length; j++) {
-            if (edges[j] == edge) {
-              edges.splice(j, 1);
-              j = j - 1;
-            }
+    if (target && selection && selection !== target && !node_dragged.moving) {
+      var edge = find_edge(target, selection);
+      if (!edge) { // make the edge
+        edges.push({ from: selection, to: target, round: false, dash: false });
+      }
+      else { // remove the edge
+        for (let j = 0; j < edges.length; j++) {
+          if (edges[j] == edge) {
+            edges.splice(j, 1);
+            j = j - 1;
           }
         }
-        selection = undefined;
+      }
+      selection = undefined;
     }
     draw();
   }
@@ -269,9 +273,9 @@ function up(e) {
       }
       draw();
       congratulate();
-      
+
     }
-    
+
   }
   node_dragged = undefined;
 }
@@ -417,3 +421,84 @@ function generate_puzzle() {
   }
   draw();
 }
+
+function save_puzzle() {
+  save();
+  updateSavedPuzzles();
+  alert("Successfully saved puzzle!");
+}
+
+function updateSavedPuzzles() {
+  let graphStorage = JSON.parse(localStorage.getItem("graphStorage"));
+  let selector = document.getElementById("loadSelector");
+  selector.innerHTML = "";
+  for (let i = 0; i < graphStorage.length; i++) {
+    let option = document.createElement("option");
+    option.value = i;
+    option.innerHTML = "Graph " + i;
+    selector.appendChild(option);
+  }
+}
+
+function load_puzzle() {
+  let selector = document.getElementById("loadSelector");
+  let graph = load(selector.value);
+  if (graph) {
+    nodes = graph.nodes;
+    edges = graph.edges;
+    draw();
+  }
+}
+
+function save() {
+  let graphStorage = JSON.parse(localStorage.getItem("graphStorage"));
+  if (!graphStorage) {
+    graphStorage = [];
+  }
+  graphStorage.push({
+    nodes: nodes,
+    edges: edges
+  });
+  localStorage.setItem("graphStorage", JSON.stringify(graphStorage));
+}
+
+function load(index) {
+  let graphStorage = JSON.parse(localStorage.getItem("graphStorage"));
+  if (graphStorage[index]) {
+    return graphStorage[index];
+  } else {
+    return null;
+  }
+}
+
+function delete_puzzle() {
+  let selector = document.getElementById("loadSelector");
+  let graphStorage = JSON.parse(localStorage.getItem("graphStorage"));
+  if (!graphStorage) {
+    return;
+  }
+  graphStorage.splice(selector.value, 1);
+  localStorage.setItem("graphStorage", JSON.stringify(graphStorage));
+  updateSavedPuzzles();
+}
+
+function puzzle_type() {
+  let buttons = document.querySelectorAll("input[name='groupType']");
+  for (const button of buttons) {
+    if (button.checked) {
+      groupType = button.value;
+      break;
+    }
+  }
+}
+
+function group_order() {
+  // todo: add input validation
+  groupOrder = parseInt(document.getElementById("groupOrder").value);
+}
+
+function group_multiplier() {
+  // todo: add input validation
+  groupMultiplier = parseInt(document.getElementById("groupMultiplier").value);
+}
+
