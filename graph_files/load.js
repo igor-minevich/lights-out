@@ -213,27 +213,29 @@ function up(e) {
   var pos = getMousePos(e);
   if (btn_mode.textContent == 'Editing') {
     let target = within(e.offsetX, e.offsetY);
-    if (target && selection == target) { //deselect selected node
+    // deselect selected node
+    if (target && selection == target) 
       selection = undefined;
-    }
-    else if (target && !selection) { //if there is nothing selected, then select the node
+    
+    // if there is nothing selected, then select the node
+    else if (target && !selection) 
         selection = target; 
-    }
       
-    if (!target) { //create node where you clicked if there is no selection
+    // create node where you clicked if clicked away from existing nodes (i.e. no target)
+    if (!target) { 
       if (pos.x > 0 && pos.x <= canvas.width && pos.y > 0 && pos.y <= canvas.height){
         selection = undefined;
         create_node(e.offsetX, e.offsetY);
       }
     }
 
-    if (target && selection && selection !== target && !node_dragged.moving) { //create or remove an edge 
+    // create or remove an edge 
+    if (target && selection && selection !== target && !node_dragged.moving) { 
         var edge = find_edge(target, selection);
-        if (!edge){
+        if (!edge){ // make the edge
           edges.push({ from: selection, to: target, round: false, dash: false });
-          selection = undefined;
         }
-        else { //remove the edge
+        else { // remove the edge
           for (let j = 0; j < edges.length; j++) {
             if (edges[j] == edge) {
               edges.splice(j, 1);
@@ -241,6 +243,7 @@ function up(e) {
             }
           }
         }
+        selection = undefined;
     }
     draw();
   }
