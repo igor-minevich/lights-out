@@ -109,7 +109,7 @@ function create_node(x_0, y_0) {
   return node;
 }
 
-function connect_to_all() {
+function connect_to_all() { //Connects all existing vertices to the selected vertex
   console.log(selection)
   if (btn_mode.textContent == 'Editing' && selection) {
     nodes.forEach(node => {
@@ -121,6 +121,12 @@ function connect_to_all() {
   }
 }
 
+function disconnect_from_all() { //Disconnects all existing vertices from the selected vertex
+  if (btn_mode.textContent == 'Editing' && selection) {
+    edges = edges.filter(edge => edge.from !== selection && edge.to !== selection);
+    draw();
+  }
+}
 
 function create_edge(fromNode, toNode, round, dash) {
   if (dash)
