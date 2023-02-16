@@ -35,16 +35,14 @@ document.getElementById("instructions_button").addEventListener("click", functio
   alert("Instructions for using the canvas go here.");
 });
 
-
+// Code for the Editing/Playing mode button
 btn_mode.addEventListener('click', function handleClick() {
   if (btn_mode.textContent === 'Editing') {
     for (i = 0; i < nodes.length; i++)
       nodes[i].value = 0;
     btn_mode.textContent = 'Playing';
     btn_clear.textContent = 'Reset Puzzle';
-    if (document.getElementById("legend") != null)
-      document.getElementById("legend").remove();
-    addElement();
+    addLegend();
   }
   else {
     btn_mode.textContent = 'Editing';
@@ -62,7 +60,9 @@ var set_num_clicks = function (c) {
   clicks = c;
 };
 
-function addElement() {
+function addLegend() {
+  if (document.getElementById("legend") != null)
+    document.getElementById("legend").remove();
   var newDiv = document.createElement("div");
   newDiv.setAttribute("id", "legend");
   var title = document.createTextNode("Legend: ");
@@ -113,7 +113,8 @@ function create_node(x_0, y_0) {
   return node;
 }
 
-function connect_to_all() { //Connects all existing vertices to the selected vertex
+// Connects all existing vertices to the selected vertex
+function connect_to_all() { 
   console.log(selection)
   if (btn_mode.textContent == 'Editing' && selection) {
     nodes.forEach(node => {
@@ -125,7 +126,8 @@ function connect_to_all() { //Connects all existing vertices to the selected ver
   }
 }
 
-function disconnect_from_all() { //Disconnects all existing vertices from the selected vertex
+// Disconnects all existing vertices from the selected vertex
+function disconnect_from_all() { 
   if (btn_mode.textContent == 'Editing' && selection) {
     edges = edges.filter(edge => edge.from !== selection && edge.to !== selection);
     draw();
