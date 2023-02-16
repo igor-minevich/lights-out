@@ -258,7 +258,7 @@ function up(e) {
     }
     draw();
   }
-  else {
+  else { // if Playing mode selected
     let target = within(e.offsetX, e.offsetY);
     if (target) {
       target.value = (target.value + clicks) % num_colors;
@@ -320,14 +320,18 @@ function congratulate() {
   if (document.getElementById("congratulate").checked) {
     var val = nodes[0].value;
     var solved = true;
+    var nontrivial = false;
     var message = ""
     for (i = 1; i < nodes.length; i++) {
       if (nodes[i].value != val)
         solved = false;
+      if (nodes[i].clicks != 0)
+        nontrivial = true;
     }
+    
     if (solved) {
-      if (val == 0) {
-        message = "Congratulations, you've found a quiet pattern!";
+      if (val == 0 && nontrivial) {
+        message = "Congratulations, you've found a nontrivial quiet pattern!";
       }
       else
         message = "Congratulations, you've found a solution for " + colors_dict[colors[val]] + "!";
