@@ -339,7 +339,7 @@ function congratulate() {
 function generate_puzzle() {
   if (document.getElementById("legend") != null)
     document.getElementById("legend").remove();
-  addElement();
+  addLegend();
   nodes = [];
   edges = [];
   var all_nodes = [];
