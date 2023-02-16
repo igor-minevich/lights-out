@@ -225,11 +225,11 @@ function up(e) {
   if (btn_mode.textContent == 'Editing') {
     let target = within(e.offsetX, e.offsetY);
     // deselect selected node
-    if (target && selection == target)
+    if (target && selection == target && !node_dragged.moving)
       selection = undefined;
 
     // if there is nothing selected, then select the node
-    else if (target && !selection)
+    else if (target && !selection && !node_dragged.moving)
       selection = target;
 
     // create node where you clicked and select it (if clicked away from existing nodes, i.e. no target)
