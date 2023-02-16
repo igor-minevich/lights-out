@@ -42,6 +42,7 @@ btn_mode.addEventListener('click', function handleClick() {
       nodes[i].value = 0;
     btn_mode.textContent = 'Playing';
     btn_clear.textContent = 'Reset Puzzle';
+    draw();
     addLegend();
   }
   else {
@@ -50,9 +51,7 @@ btn_mode.addEventListener('click', function handleClick() {
     for (i = 0; i < nodes.length; i++)
       nodes[i].value = 0;
     draw();
-    if (document.getElementById("legend") != null)
-      document.getElementById("legend").remove();
-
+    addLegend();
   }
 });
 
