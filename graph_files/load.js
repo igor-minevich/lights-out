@@ -231,11 +231,11 @@ function up(e) {
     else if (target && !selection)
       selection = target;
 
-    // create node where you clicked if clicked away from existing nodes (i.e. no target)
+    // create node where you clicked and select it (if clicked away from existing nodes, i.e. no target)
     if (!target) {
       if (pos.x > 0 && pos.x <= canvas.width && pos.y > 0 && pos.y <= canvas.height) {
-        selection = undefined;
         create_node(e.offsetX, e.offsetY);
+        selection = within(e.offsetX, e.offsetY);
       }
     }
 
