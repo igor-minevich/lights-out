@@ -1,4 +1,4 @@
-class CyclicalNode {
+class CyclicNode {
     constructor(n) {
         this.n = n;
         this.selected = false;

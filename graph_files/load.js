@@ -38,20 +38,30 @@ document.getElementById("instructions_button").addEventListener("click", functio
 // Code for the Editing/Playing mode button
 btn_mode.addEventListener('click', function handleClick() {
   if (btn_mode.textContent === 'Editing') {
-    for (i = 0; i < nodes.length; i++)
-      nodes[i].value = 0;
+    for (const vertex of nodes) {
+      switch (groupType) {
+        case "cyclic":
+          vertex.node = new CyclicNode(groupOrder);
+          break;
+        case "dihedral":
+          vertex.node = new DihedralNode(groupOrder);
+          break;
+        default:
+          alert("Something went wrong setting the group modes.");
+      }
+    }
     btn_mode.textContent = 'Playing';
     btn_clear.textContent = 'Reset Puzzle';
-    draw();
     addLegend();
   }
   else {
     btn_mode.textContent = 'Editing';
     btn_clear.textContent = 'Clear Puzzle';
-    for (i = 0; i < nodes.length; i++)
-      nodes[i].value = 0;
+    //for (i = 0; i < nodes.length; i++)
+    //nodes[i].node.value = 0;
     draw();
     addLegend();
+
   }
 });
 
@@ -113,7 +123,7 @@ function create_node(x_0, y_0) {
 }
 
 // Connects all existing vertices to the selected vertex
-function connect_to_all() { 
+function connect_to_all() {
   console.log(selection)
   if (btn_mode.textContent == 'Editing' && selection) {
     nodes.forEach(node => {
@@ -126,7 +136,7 @@ function connect_to_all() {
 }
 
 // Disconnects all existing vertices from the selected vertex
-function disconnect_from_all() { 
+function disconnect_from_all() {
   if (btn_mode.textContent == 'Editing' && selection) {
     edges = edges.filter(edge => edge.from !== selection && edge.to !== selection);
     draw();
@@ -166,10 +176,11 @@ function draw() {
       let node = nodes[i];
       context.setLineDash([]);
       context.beginPath();
-      if (node == selection)
+      if (node.selected) {
         context.fillStyle = SELECTED;
-      else
-        context.fillStyle = colors[node.value];
+      } else {
+        context.fillStyle = colors[node.node ? node.node.value : 0];
+      }
       context.arc(node.x, node.y, node.radius, 0, Math.PI * 2, true);
       context.fill();
       context.stroke();
@@ -180,18 +191,19 @@ function draw() {
       let node = nodes[i];
       context.setLineDash([]);
       context.beginPath();
-      context.fillStyle = colors[node.value];
+      context.fillStyle = colors[node.node ? node.node.value : 0];
       context.arc(node.x, node.y, node.radius, 0, Math.PI * 2, true);
       context.fill();
       context.stroke();
       context.font = "12px Verdana";
       context.beginPath();
       context.fillStyle = "#000000";
-      if (node.clicks.toString().length > 1) {
-        context.fillText(node.clicks.toString(), node.x - 8, node.y + 4);
+      let string = node.node.toString();
+      if (string.length > 1) {
+        context.fillText(string, node.x - 8, node.y + 4);
       }
       else
-        context.fillText(node.clicks.toString(), node.x - 3, node.y + 4);
+        context.fillText(string, node.x - 3, node.y + 4);
       context.fill();
     }
   }
@@ -261,16 +273,27 @@ function up(e) {
   else { // if Playing mode selected
     let target = within(e.offsetX, e.offsetY);
     if (target) {
-      target.value = (target.value + clicks) % num_colors;
-      target.clicks = (target.clicks + clicks) % num_colors;
+      //alert(target.node);
+      target.node.multiply(groupMultiplier, true);
+      if (groupType === "dihedral") {
+        let index;
+        for (let i = 0; i < nodes.length; i++) {
+          if (nodes[i] === target) {
+            index = i;
+            break;
+          }
+        }
+        console.log("Node: " + index + " clicked with " + groupMultiplier + ", new value: " + target.value);
+      }
       for (let i = 0; i < edges.length; i++) {
         var other = undefined;
         if (edges[i].from == target)
           other = edges[i].to;
         else if (edges[i].to == target)
           other = edges[i].from;
-        if (other)
-          other.value = (other.value + clicks) % num_colors;
+        if (other) {
+          other.node.multiply(groupMultiplier, false);
+        }
       }
       draw();
       congratulate();
@@ -328,7 +351,7 @@ function congratulate() {
       if (nodes[i].clicks != 0)
         nontrivial = true;
     }
-    
+
     if (solved) {
       if (val == 0 && nontrivial) {
         message = "Congratulations, you've found a nontrivial quiet pattern!";
@@ -437,7 +460,7 @@ function updateSavedPuzzles() {
   let graphStorage = JSON.parse(localStorage.getItem("graphStorage"));
   let selector = document.getElementById("loadSelector");
   selector.innerHTML = "";
-  for (let i = 0; i < graphStorage.length; i++) {
+  for (let i = 0; graphStorage && i < graphStorage.length; i++) {
     let option = document.createElement("option");
     option.value = i;
     option.innerHTML = "Graph " + i;
@@ -497,12 +520,12 @@ function puzzle_type() {
   }
 }
 
-function group_order() {
+function set_group_order() {
   // todo: add input validation
   groupOrder = parseInt(document.getElementById("groupOrder").value);
 }
 
-function group_multiplier() {
+function set_group_multiplier() {
   // todo: add input validation
   groupMultiplier = parseInt(document.getElementById("groupMultiplier").value);
 }
