@@ -5,7 +5,7 @@ var nodes = [];
 var edges = [];
 var clicks = 1;
 
-let groupType = "cyclical";
+let groupType = "cyclic";
 let groupOrder = 2;
 let groupMultiplier = 1;
 
@@ -48,17 +48,19 @@ btn_mode.addEventListener('click', function handleClick() {
           break;
         default:
           alert("Something went wrong setting the group modes.");
+          break;
       }
     }
     btn_mode.textContent = 'Playing';
     btn_clear.textContent = 'Reset Puzzle';
+    draw(); // Displays default values of nodes when editing mode is clicked.
     addLegend();
   }
   else {
     btn_mode.textContent = 'Editing';
     btn_clear.textContent = 'Clear Puzzle';
-    //for (i = 0; i < nodes.length; i++)
-    //nodes[i].node.value = 0;
+    for (i = 0; i < nodes.length; i++)
+      nodes[i].node.value = 0;
     draw();
     addLegend();
 
@@ -97,50 +99,27 @@ function getMousePos(evt) {
     y: (evt.clientY - rect.top) * scaleY
   }
 }
+
 var selection = undefined;
+
 var node_dragged = undefined;
+
 function within(x, y) {
   return nodes.find(n => {
     return (x - n.x) ** 2 + (y - n.y) ** 2 <= n.radius ** 2;
   });
 }
+
 window.onmousemove = move;
 window.onmousedown = down;
 window.onmouseup = up;
 window.onkeyup = key_up;
-function create_node(x_0, y_0) {
-  let node = {
-    x: x_0,
-    y: y_0,
-    radius: 12,
-    selected: false,
-    value: 0,
-    clicks: 0
-  };
+
+function create_node(x, y) {
+  let node = new GraphicalNode(x, y, 12);
   nodes.push(node);
   draw();
   return node;
-}
-
-// Connects all existing vertices to the selected vertex
-function connect_to_all() {
-  console.log(selection)
-  if (btn_mode.textContent == 'Editing' && selection) {
-    nodes.forEach(node => {
-      if (node !== selection) {
-        edges.push({ from: selection, to: node, round: false, dash: false });
-      }
-    });
-    draw();
-  }
-}
-
-// Disconnects all existing vertices from the selected vertex
-function disconnect_from_all() {
-  if (btn_mode.textContent == 'Editing' && selection) {
-    edges = edges.filter(edge => edge.from !== selection && edge.to !== selection);
-    draw();
-  }
 }
 
 function create_edge(fromNode, toNode, round, dash) {
@@ -167,6 +146,7 @@ function create_edge(fromNode, toNode, round, dash) {
     context.stroke();
   }
 }
+
 function draw() {
   context.clearRect(0, 0, window.innerWidth, window.innerHeight);
   for (let i = 0; i < edges.length; i++)
@@ -208,6 +188,7 @@ function draw() {
     }
   }
 }
+
 function move(e) {
   if (node_dragged && e.buttons) {
     var pos = getMousePos(e);
@@ -219,11 +200,13 @@ function move(e) {
     }
   }
 }
+
 function find_edge(fromNode, toNode) {
   return edges.find(e => {
     return (e.from == fromNode && e.to == toNode) || (e.from == toNode && e.to == fromNode);
   });
 }
+
 function down(e) {
   let target = within(e.offsetX, e.offsetY);
   if (target) {
@@ -231,6 +214,7 @@ function down(e) {
     node_dragged.moving = false;
   }
 }
+
 function up(e) {
   var num_colors = parseInt(document.getElementById('num_colors_input').value);
   var pos = getMousePos(e);
@@ -269,6 +253,31 @@ function up(e) {
       selection = undefined;
     }
     draw();
+    //added this code to fix the fillstyle of 'selected' nodes when in editing mode.
+    //previously encountered a bug when merging Alejandro's code where the nodes in editing mode were selected, but not filled with a color.
+    if (btn_mode.textContent == 'Editing') {
+      for (let i = 0; i < nodes.length; i++) {
+        let node = nodes[i];
+        if (node.selected) {
+          node.selected = false;
+          if (within(node.x, node.y) !== selection) {
+            context.beginPath();
+            context.fillStyle = colors[node.node ? node.node.value : 0];
+            context.arc(node.x, node.y, node.radius, 0, Math.PI * 2, true);
+            context.fill();
+            context.stroke();
+          }
+        }
+      }
+      if (selection) {
+        selection.selected = true;
+        context.beginPath();
+        context.fillStyle = SELECTED;
+        context.arc(selection.x, selection.y, selection.radius, 0, Math.PI * 2, true);
+        context.fill();
+        context.stroke();
+      }
+    }
   }
   else { // if Playing mode selected
     let target = within(e.offsetX, e.offsetY);
@@ -296,13 +305,15 @@ function up(e) {
         }
       }
       draw();
-      congratulate();
+      //The current implementation of the congratulate function displays a message each time a node is clicked, which is not desirable.
+      //congratulate();
 
     }
 
   }
   node_dragged = undefined;
 }
+
 function key_up(e) {
   if (btn_mode.textContent == 'Editing') {
     if (e.code == 'Backspace' || e.code == 'Delete') {
@@ -326,6 +337,7 @@ function key_up(e) {
     }
   }
 }
+
 function clear_puzzle() {
   if (btn_mode.textContent == 'Editing') {
     nodes = [];
@@ -339,6 +351,7 @@ function clear_puzzle() {
   }
   draw();
 }
+
 function congratulate() {
   if (document.getElementById("congratulate").checked) {
     var val = nodes[0].value;
@@ -363,6 +376,7 @@ function congratulate() {
     }
   }
 }
+
 function generate_puzzle() {
   if (document.getElementById("legend") != null)
     document.getElementById("legend").remove();
@@ -530,3 +544,23 @@ function set_group_multiplier() {
   groupMultiplier = parseInt(document.getElementById("groupMultiplier").value);
 }
 
+// Connects all existing vertices to the selected vertex
+function connect_to_all() {
+  console.log(selection)
+  if (btn_mode.textContent == 'Editing' && selection) {
+    nodes.forEach(node => {
+      if (node !== selection) {
+        edges.push({ from: selection, to: node, round: false, dash: false });
+      }
+    });
+    draw();
+  }
+}
+
+// Disconnects all existing vertices from the selected vertex
+function disconnect_from_all() {
+  if (btn_mode.textContent == 'Editing' && selection) {
+    edges = edges.filter(edge => edge.from !== selection && edge.to !== selection);
+    draw();
+  }
+}
