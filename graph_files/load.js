@@ -326,6 +326,7 @@ function up(e) {
     }
   }
   else { // if Playing mode selected
+    set_group_order();
     let target = within(e.offsetX, e.offsetY);
     if (target) {
       //alert(target.node);
@@ -815,6 +816,10 @@ function toggleEditingPlayingMode() {
     const rowInput = document.getElementById("row_input");
     const colInput = document.getElementById("col_input");
     const verticesDiv = document.getElementById("verticesDiv");
+    const topBottom = document.getElementById("top_bottom");
+    const topLabel = document.getElementById("top_bottom_label");
+    const sides = document.getElementById("sides");
+    const sidesLabel = document.getElementById("sides_label");
 
     // Update visibility of rows, columns, and vertices elements based on the current graph
     if (variation === "complete" || variation === "wheel" || variation === "star" || variation === "cycle") {
@@ -823,18 +828,30 @@ function toggleEditingPlayingMode() {
       colLabel.style.display = "none";
       rowInput.style.display = "none";
       colInput.style.display = "none";
+      topBottom.style.display = "none";
+      topLabel.style.display = "none";
+      sides.style.display = "none";
+      sidesLabel.style.display = "none";
     } else if (variation === "peterson") {
       verticesDiv.style.display = "none";
       rowLabel.style.display = "none";
       colLabel.style.display = "none";
       rowInput.style.display = "none";
       colInput.style.display = "none";
+      topBottom.style.display = "none";
+      topLabel.style.display = "none";
+      sides.style.display = "none";
+      sidesLabel.style.display = "none";
     } else {
       verticesDiv.style.display = "none";
       rowLabel.style.display = "inline-block";
       colLabel.style.display = "inline-block";
       rowInput.style.display = "inline-block";
       colInput.style.display = "inline-block";
+      topBottom.style.display = "inline-block";
+      topLabel.style.display = "inline-block";
+      sides.style.display = "inline-block";
+      sidesLabel.style.display = "inline-block";
     }
   }
 }
@@ -870,6 +887,10 @@ document.getElementById("choose_variation").addEventListener("change", function 
   const colLabel = document.getElementById("col_label");
   const rowInput = document.getElementById("row_input");
   const colInput = document.getElementById("col_input");
+  const topBottom = document.getElementById("top_bottom");
+  const topLabel = document.getElementById("top_bottom_label");
+  const sides = document.getElementById("sides");
+  const sidesLabel = document.getElementById("sides_label");
 
   if (variation === "complete" || variation === "wheel" || variation === "star" || variation === "cycle") {
     document.getElementById("verticesDiv").style.display = "block";
@@ -877,6 +898,10 @@ document.getElementById("choose_variation").addEventListener("change", function 
     colLabel.style.display = "none";
     rowInput.style.display = "none";
     colInput.style.display = "none";
+    topBottom.style.display = "none";
+    topLabel.style.display = "none";
+    sides.style.display = "none";
+    sidesLabel.style.display = "none";
   }
   else if (variation === "peterson") {
     document.getElementById("verticesDiv").style.display = "none";
@@ -884,6 +909,10 @@ document.getElementById("choose_variation").addEventListener("change", function 
     colLabel.style.display = "none";
     rowInput.style.display = "none";
     colInput.style.display = "none";
+    topBottom.style.display = "none";
+    topLabel.style.display = "none";
+    sides.style.display = "none";
+    sidesLabel.style.display = "none";
   }
   else {
     document.getElementById("verticesDiv").style.display = "none";
@@ -891,6 +920,11 @@ document.getElementById("choose_variation").addEventListener("change", function 
     colLabel.style.display = "block";
     rowInput.style.display = "block";
     colInput.style.display = "block";
+    topBottom.style.display = "inline-block";
+    topLabel.style.display = "inline-block";
+    sides.style.display = "inline-block";
+    sidesLabel.style.display = "inline-block";
+    
   }
 });
 
