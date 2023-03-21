@@ -168,3 +168,16 @@ a:hover {
   font-size: 1.5em;
   margin-right: 10px;
 }
+
+#row_input,
+#col_input {
+  width: 50px;
+  margin-left: 5px;
+
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

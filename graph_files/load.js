@@ -102,8 +102,6 @@ btn_mode.addEventListener('click', function handleClick() {
     }
   }
 
-
-
   // Call the toggleEditingPlayingMode function
   toggleEditingPlayingMode();
 
