@@ -83,13 +83,17 @@
       </div>
 
       <div class="controls group-controls" id="groupcontrols">
-        <label for="groupOrder">Group order:</label>
-        <input type="text" id="groupOrder" value="2" onchange="set_group_order()" />
-        <label for="groupTypeSelect" id="group_type_label">Group type:</label>
-        <select id="groupTypeSelect" onchange="updateGroupType()">
-          <option value="cyclic">Cyclic</option>
-          <option value="dihedral">Dihedral</option>
-        </select>
+        <div>
+          <label for="groupOrder">Group order:</label>
+          <input type="text" id="groupOrder" value="2" onchange="set_group_order()" />
+        </div>
+        <div>
+          <label for="groupTypeSelect" id="group_type_label">Group type:</label>
+          <select id="groupTypeSelect" onchange="updateGroupType()">
+            <option value="cyclic">Cyclic</option>
+            <option value="dihedral">Dihedral</option>
+          </select>
+        </div>
         <div>
           <button id="clear" onclick="clear_puzzle()" type="button">Clear puzzle</button>
           <button id="save" onclick="save_puzzle()" type="button">Save puzzle</button>
