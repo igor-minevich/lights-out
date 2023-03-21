@@ -26,9 +26,12 @@ const SELECTED = '#88aaaa';
 const btn_mode = document.getElementById('play_button');
 const btn_clear = document.getElementById('clear');
 
-var text = document.createTextNode('Mode: ');
+var text = document.createTextNode('');
 var child = document.getElementById('play_button');
 child.parentNode.insertBefore(text, child);
+
+const modeLabel = document.getElementById("mode_label");
+const modeSlider = document.getElementById("mode_slider");
 
 //selects "instruction" button and adds an event listener that displays an alert when clicked
 document.getElementById("instructions_button").addEventListener("click", function () {
@@ -37,6 +40,19 @@ document.getElementById("instructions_button").addEventListener("click", functio
 
 // Code for the Editing/Playing mode button
 btn_mode.addEventListener('click', function handleClick() {
+  // Get the selected group type from the dropdown menu
+  const groupTypeSelect = document.getElementById('groupTypeSelect');
+  const groupType = groupTypeSelect.value;
+
+  const variation = document.getElementById("choose_variation").value;
+  const rowLabel = document.getElementById("row_label");
+  const colLabel = document.getElementById("col_label");
+  const rowInput = document.getElementById("row_input");
+  const colInput = document.getElementById("col_input");
+  const verticesDiv = document.getElementById("verticesDiv");
+
+
+
   if (btn_mode.textContent === 'Editing') {
     for (const vertex of nodes) {
       switch (groupType) {
@@ -64,8 +80,35 @@ btn_mode.addEventListener('click', function handleClick() {
     draw();
     addLegend();
 
+    // Update visibility of rows, columns, and vertices elements based on the current graph
+    if (variation === "complete" || variation === "wheel" || variation === "star" || variation === "cycle") {
+      verticesDiv.style.display = "block";
+      rowLabel.style.display = "none";
+      colLabel.style.display = "none";
+      rowInput.style.display = "none";
+      colInput.style.display = "none";
+    } else if (variation === "peterson") {
+      verticesDiv.style.display = "none";
+      rowLabel.style.display = "none";
+      colLabel.style.display = "none";
+      rowInput.style.display = "none";
+      colInput.style.display = "none";
+    } else {
+      verticesDiv.style.display = "none";
+      rowLabel.style.display = "block";
+      colLabel.style.display = "block";
+      rowInput.style.display = "block";
+      colInput.style.display = "block";
+    }
   }
+
+
+
+  // Call the toggleEditingPlayingMode function
+  toggleEditingPlayingMode();
+
 });
+
 
 var set_num_clicks = function (c) {
   clicks = c;
@@ -79,7 +122,7 @@ function addLegend() {
   var title = document.createTextNode("Legend: ");
   newDiv.style.fontSize = "15px";
   newDiv.appendChild(title);
-  var num_colors = parseInt(document.getElementById('num_colors_input').value);
+  var num_colors = parseInt(document.getElementById('groupOrder').value);
   for (var c = 1; c < num_colors; c++) {
     var content = document.createElement("span");
     const inner_str = "<button value =" + c + " style='color:" + colors[c] + "; font-weight:bold; font-size:15px' onclick = set_num_clicks(" + c + ")>" + c.toString() + "</button>";
@@ -87,7 +130,6 @@ function addLegend() {
     newDiv.appendChild(content);
   }
   const currentDiv = document.getElementById("d1");
-  document.body.insertBefore(newDiv, currentDiv);
 }
 
 function getMousePos(evt) {
@@ -116,11 +158,13 @@ window.onmouseup = up;
 window.onkeyup = key_up;
 
 function create_node(x, y) {
-  let node = new GraphicalNode(x, y, 12);
+  let node;
+  node = new GraphicalNode(x, y, 12);
   nodes.push(node);
   draw();
   return node;
 }
+
 
 function create_edge(fromNode, toNode, round, dash) {
   if (dash)
@@ -216,7 +260,7 @@ function down(e) {
 }
 
 function up(e) {
-  var num_colors = parseInt(document.getElementById('num_colors_input').value);
+  var num_colors = parseInt(document.getElementById('groupOrder').value);
   var pos = getMousePos(e);
   if (btn_mode.textContent == 'Editing') {
     let target = within(e.offsetX, e.offsetY);
@@ -233,6 +277,10 @@ function up(e) {
       if (pos.x > 0 && pos.x <= canvas.width && pos.y > 0 && pos.y <= canvas.height) {
         create_node(e.offsetX, e.offsetY);
         selection = within(e.offsetX, e.offsetY);
+        // Add the following condition to connect the new node to all existing nodes
+        if (document.getElementById("choose_variation").value == "complete") {
+          connect_to_all();
+        }
       }
     }
 
@@ -292,7 +340,7 @@ function up(e) {
             break;
           }
         }
-        console.log("Node: " + index + " clicked with " + groupMultiplier + ", new value: " + target.value);
+        //console.log("Node: " + index + " clicked with " + groupMultiplier + ", new value: " + target.value);
       }
       for (let i = 0; i < edges.length; i++) {
         var other = undefined;
@@ -342,15 +390,16 @@ function clear_puzzle() {
   if (btn_mode.textContent == 'Editing') {
     nodes = [];
     edges = [];
-  }
-  else {
+    selection = undefined; // Unselect the selected node
+  } else {
     for (i = 0; i < nodes.length; i++) {
-      nodes[i].value = 0;
-      nodes[i].clicks = 0;
+      nodes[i].node.value = 0;
+      nodes[i].node.clicks = 0;
     }
   }
   draw();
 }
+
 
 function congratulate() {
   if (document.getElementById("congratulate").checked) {
@@ -358,6 +407,7 @@ function congratulate() {
     var solved = true;
     var nontrivial = false;
     var message = ""
+
     for (i = 1; i < nodes.length; i++) {
       if (nodes[i].value != val)
         solved = false;
@@ -421,6 +471,140 @@ function generate_puzzle() {
       }
     }
   }
+
+  // Conditional statement for cycle graphs
+  else if (variation == "cycle") {
+    const vertices = parseInt(document.getElementById("vertices").value);
+    const angle = 2 * Math.PI / vertices;
+
+    // Create the nodes
+    const cycleNodes = [];
+    for (let i = 0; i < vertices; i++) {
+      const x = 400 + 200 * Math.cos(angle * i);
+      const y = 250 + 200 * Math.sin(angle * i);
+      const newNode = create_node(x, y);
+      all_nodes.push(newNode);
+      cycleNodes.push(newNode);
+    }
+
+    // Connect the nodes in a cycle
+    for (let i = 0; i < cycleNodes.length; i++) {
+      const fromNode = cycleNodes[i];
+      const toNode = cycleNodes[(i + 1) % cycleNodes.length];
+      edges.push({ from: fromNode, to: toNode, round: false, dash: false });
+    }
+  }
+
+  // Conditional statement for the star graph
+  else if (variation == "star") {
+    const vertices = parseInt(document.getElementById("vertices").value);
+    const angle = 2 * Math.PI / (vertices - 1);
+
+    // Create the central node
+    const centralNode = create_node(400, 250);
+    all_nodes.push(centralNode);
+
+    // Create the surrounding nodes and connect them to the central node
+    for (let i = 0; i < vertices - 1; i++) {
+      const x = 400 + 200 * Math.cos(angle * i);
+      const y = 250 + 200 * Math.sin(angle * i);
+      const newNode = create_node(x, y);
+      all_nodes.push(newNode);
+      edges.push({ from: centralNode, to: newNode, round: false, dash: false });
+    }
+  }
+
+  // Conditional statement for wheel graph
+  else if (variation == "wheel") {
+    const vertices = parseInt(document.getElementById("vertices").value);
+    const angle = 2 * Math.PI / (vertices - 1);
+
+    // Create the central node
+    const centralNode = create_node(400, 250);
+    all_nodes.push(centralNode);
+
+    // Create the surrounding nodes and connect them to the central node and their neighbors
+    const surroundingNodes = [];
+    for (let i = 0; i < vertices - 1; i++) {
+      const x = 400 + 200 * Math.cos(angle * i);
+      const y = 250 + 200 * Math.sin(angle * i);
+      const newNode = create_node(x, y);
+      all_nodes.push(newNode);
+      surroundingNodes.push(newNode);
+      edges.push({ from: centralNode, to: newNode, round: false, dash: false });
+    }
+
+    // Connect the surrounding nodes in a cycle
+    for (let i = 0; i < surroundingNodes.length; i++) {
+      const fromNode = surroundingNodes[i];
+      const toNode = surroundingNodes[(i + 1) % surroundingNodes.length];
+      edges.push({ from: fromNode, to: toNode, round: false, dash: false });
+    }
+  }
+  // Conditional statement for the complete graph.
+  else if (variation == "complete") {
+    const vertices = parseInt(document.getElementById("vertices").value);
+    const angle = 2 * Math.PI / vertices;
+
+    for (let i = 0; i < vertices; i++) {
+      const x = 400 + 200 * Math.cos(angle * i);
+      const y = 250 + 200 * Math.sin(angle * i);
+      all_nodes.push(create_node(x, y));
+    }
+
+    // Connect each node to every other node
+    for (let i = 0; i < vertices; i++) {
+      for (let j = i + 1; j < vertices; j++) {
+        edges.push({ from: all_nodes[i], to: all_nodes[j], round: false, dash: false });
+      }
+    }
+  }
+  // Conditional statement for peterson graph
+  else if (variation == "peterson") {
+    const outerAngle = 2 * Math.PI / 5;
+    const innerAngle = 2 * Math.PI / 5;
+
+    // Create the outer nodes (pentagon)
+    const outerNodes = [];
+    for (let i = 0; i < 5; i++) {
+      const x = 400 + 200 * Math.cos(outerAngle * i);
+      const y = 250 + 200 * Math.sin(outerAngle * i);
+      const newNode = create_node(x, y);
+      all_nodes.push(newNode);
+      outerNodes.push(newNode);
+    }
+
+    // Create the inner nodes (star)
+    const innerNodes = [];
+    for (let i = 0; i < 5; i++) {
+      const x = 400 + 100 * Math.cos(innerAngle * i + innerAngle / 2);
+      const y = 250 + 100 * Math.sin(innerAngle * i + innerAngle / 2);
+      const newNode = create_node(x, y);
+      all_nodes.push(newNode);
+      innerNodes.push(newNode);
+    }
+
+    // Connect the outer nodes in a cycle (pentagon)
+    for (let i = 0; i < outerNodes.length; i++) {
+      const fromNode = outerNodes[i];
+      const toNode = outerNodes[(i + 1) % outerNodes.length];
+      edges.push({ from: fromNode, to: toNode, round: false, dash: false });
+    }
+
+    // Connect the inner nodes in a star pattern
+    for (let i = 0; i < innerNodes.length; i++) {
+      const fromNode = innerNodes[i];
+      const toNode = innerNodes[(i + 2) % innerNodes.length];
+      edges.push({ from: fromNode, to: toNode, round: false, dash: false });
+    }
+
+    // Connect the outer nodes to the inner nodes
+    for (let i = 0; i < outerNodes.length; i++) {
+      const fromNode = outerNodes[i];
+      const toNode = innerNodes[i];
+      edges.push({ from: fromNode, to: toNode, round: false, dash: false });
+    }
+  }
   else if (variation == "diagonal") {
     for (let y = 50; y <= num_rows * 50; y += 50) {
       var nodeRow = [];
@@ -465,10 +649,18 @@ function generate_puzzle() {
 }
 
 function save_puzzle() {
-  save();
-  updateSavedPuzzles();
-  alert("Successfully saved puzzle!");
+  // When a puzzle is being saved, user will be prompted to enter a name.
+  let graphName = prompt("Enter a name for the puzzle:");
+  if (graphName) {
+    save(graphName, groupType);
+    updateSavedPuzzles();
+    alert("Successfully saved puzzle!");
+  } else {
+    // if user cancels the naming prompt, puzzle will not be saved.
+    alert("Saving cancelled.");
+  }
 }
+
 
 function updateSavedPuzzles() {
   let graphStorage = JSON.parse(localStorage.getItem("graphStorage"));
@@ -477,7 +669,7 @@ function updateSavedPuzzles() {
   for (let i = 0; graphStorage && i < graphStorage.length; i++) {
     let option = document.createElement("option");
     option.value = i;
-    option.innerHTML = "Graph " + i;
+    option.innerHTML = graphStorage[i].name + " (" + graphStorage[i].groupType + ")";
     selector.appendChild(option);
   }
 }
@@ -488,16 +680,32 @@ function load_puzzle() {
   if (graph) {
     nodes = graph.nodes;
     edges = graph.edges;
+
+    //Re-establish edge connections (bug fix)
+    edges.forEach(edge => {
+      edge.from = nodes.find(node => node.x === edge.from.x && node.y === edge.from.y);
+      edge.to = nodes.find(node => node.x === edge.to.x && node.y === edge.to.y);
+    });
+
     draw();
+    // Update the groupType variable and dropdown menu (bug fix)
+    if (graph.groupType) {
+      groupType = graph.groupType;
+      let groupTypeDropdown = document.getElementById("groupTypeSelect");
+      groupTypeDropdown.value = groupType;
+    }
   }
 }
 
-function save() {
+
+function save(graphName, groupType) {
   let graphStorage = JSON.parse(localStorage.getItem("graphStorage"));
   if (!graphStorage) {
     graphStorage = [];
   }
   graphStorage.push({
+    name: graphName,
+    groupType: groupType,
     nodes: nodes,
     edges: edges
   });
@@ -522,16 +730,6 @@ function delete_puzzle() {
   graphStorage.splice(selector.value, 1);
   localStorage.setItem("graphStorage", JSON.stringify(graphStorage));
   updateSavedPuzzles();
-}
-
-function puzzle_type() {
-  let buttons = document.querySelectorAll("input[name='groupType']");
-  for (const button of buttons) {
-    if (button.checked) {
-      groupType = button.value;
-      break;
-    }
-  }
 }
 
 function set_group_order() {
@@ -564,3 +762,147 @@ function disconnect_from_all() {
     draw();
   }
 }
+
+// Updates grouptype when choosing in dropdown menu
+function updateGroupType() {
+  let groupTypeDropdown = document.getElementById("groupTypeSelect");
+  groupType = groupTypeDropdown.value;
+}
+
+updateGroupType();
+
+document.getElementById("play_button").addEventListener("click", toggleEditingPlayingMode);
+function toggleEditingPlayingMode() {
+  const playButton = document.getElementById("play_button");
+  const mode = btn_mode.textContent;
+
+  const elementsToHide = [
+    "generate",
+    "connect_all_btn",
+    "disconnect_all_btn",
+    "top_bottom",
+    "top_bottom_label",
+    "sides",
+    "sides_label",
+    "congratulate",
+    "congratulate_label",
+    "row_input",
+    "row_label",
+    "col_input",
+    "col_label",
+    "choose_variation",
+    "choose_variation_label",
+    "group_type_label",
+    "groupTypeSelect",
+    "save",
+    "load",
+    "load_selector_label",
+    "loadSelector",
+    "delete",
+    "verticesDiv"
+  ];
+
+  if (mode === "Editing") {
+    playButton.value = "Playing";
+    playButton.textContent = "Playing";
+    hideShowElements(elementsToHide, "none");
+  } else {
+    playButton.value = "Editing";
+    playButton.textContent = "Editing";
+    hideShowElements(elementsToHide, "inline-block");
+
+    const variation = document.getElementById("choose_variation").value;
+    const rowLabel = document.getElementById("row_label");
+    const colLabel = document.getElementById("col_label");
+    const rowInput = document.getElementById("row_input");
+    const colInput = document.getElementById("col_input");
+    const verticesDiv = document.getElementById("verticesDiv");
+
+    // Update visibility of rows, columns, and vertices elements based on the current graph
+    if (variation === "complete" || variation === "wheel" || variation === "star" || variation === "cycle") {
+      verticesDiv.style.display = "block";
+      rowLabel.style.display = "none";
+      colLabel.style.display = "none";
+      rowInput.style.display = "none";
+      colInput.style.display = "none";
+    } else if (variation === "peterson") {
+      verticesDiv.style.display = "none";
+      rowLabel.style.display = "none";
+      colLabel.style.display = "none";
+      rowInput.style.display = "none";
+      colInput.style.display = "none";
+    } else {
+      verticesDiv.style.display = "none";
+      rowLabel.style.display = "inline-block";
+      colLabel.style.display = "inline-block";
+      rowInput.style.display = "inline-block";
+      colInput.style.display = "inline-block";
+    }
+  }
+}
+
+
+document.getElementById("play_button").addEventListener("click", function () {
+  const multiplierLabel = document.getElementById("groupMultiplier_label");
+  const multiplierInput = document.getElementById("groupMultiplier");
+
+  if (this.value === "Playing") {
+    multiplierLabel.style.display = "inline-block";
+    multiplierInput.style.display = "inline-block";
+  } else {
+    multiplierLabel.style.display = "none";
+    multiplierInput.style.display = "none";
+  }
+});
+
+
+function hideShowElements(elementIds, displayStyle) {
+  elementIds.forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.style.display = displayStyle;
+    }
+  });
+}
+
+document.getElementById("choose_variation").addEventListener("change", function () {
+  const variation = document.getElementById("choose_variation").value;
+
+  const rowLabel = document.getElementById("row_label");
+  const colLabel = document.getElementById("col_label");
+  const rowInput = document.getElementById("row_input");
+  const colInput = document.getElementById("col_input");
+
+  if (variation === "complete" || variation === "wheel" || variation === "star" || variation === "cycle") {
+    document.getElementById("verticesDiv").style.display = "block";
+    rowLabel.style.display = "none";
+    colLabel.style.display = "none";
+    rowInput.style.display = "none";
+    colInput.style.display = "none";
+  }
+  else if (variation === "peterson") {
+    document.getElementById("verticesDiv").style.display = "none";
+    rowLabel.style.display = "none";
+    colLabel.style.display = "none";
+    rowInput.style.display = "none";
+    colInput.style.display = "none";
+  }
+  else {
+    document.getElementById("verticesDiv").style.display = "none";
+    rowLabel.style.display = "block";
+    colLabel.style.display = "block";
+    rowInput.style.display = "block";
+    colInput.style.display = "block";
+  }
+});
+
+
+
+
+
+
+
+
+
+
+

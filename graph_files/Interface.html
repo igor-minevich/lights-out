@@ -1,74 +1,119 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
   <meta charset="utf-8">
   <title>Map</title>
   <link rel="stylesheet" href="index.css">
-  <script type="text/javascript" src="CyclicNode.js"></script>
-  <script type="text/javascript" src="DihedralNode.js"></script>
-  <script type="text/javascript" src="GraphicalNode.js"></script>
-  <script defer type="text/javascript" src="load.js"></script>
+  <script src="CyclicNode.js"></script>
+  <script src="DihedralNode.js"></script>
+  <script src="GraphicalNode.js"></script>
+  <script defer src="load.js"></script>
+
+  <!-- Include the SageCell CSS -->
+  <link rel="stylesheet" href="https://sagecell.sagemath.org/static/embedded_sagecell.css">
+  <!-- Include the SageCell JavaScript -->
+  <script src="https://sagecell.sagemath.org/static/embedded_sagecell.js"></script>
 </head>
 
 <body onload="updateSavedPuzzles()">
-  <a href="../index.html">Main page</a>
-  <section class="controls">
-    <p>
-      <button id="play_button" , value="Editing" , type="button">Editing</button>
-      <input type="checkbox" id="top_bottom">
-      <label for="top_bottom">Top and bottom connected</label>
-      <input type="checkbox" id="sides">
-      <label for="sides">Sides connected</label>
-      <input type="checkbox" id="congratulate" checked>
-      <label for="sides">Congratulate achievements</label>
-    </p>
-    <p>
-      <label for="row_input">Rows:</label>
-      <input type="text" width=20px id="row_input" value="5" />
-      <label for="col_input">Columns:</label>
-      <input type="text" width=20px id="col_input" value="5" />
-      <label for="num_colors_input">Number of Colors</label>
-      <input type="text" width=20px id="num_colors_input" value="2" />
-      <label for="variation">Choose a variation:</label>
-      <select name="variation" id="choose_variation"
-        title="Changing the variation and clicking 'Generate' changes the settings below.">
-        <option value="standard">Standard</option>
-        <option value="diagonal">Diagonal</option>
-      </select>
-    </p>
-    <p>
-    <div id="creatingMode">
-      <button id="generate" , onclick="generate_puzzle()" , type="button">Generate puzzle</button>
-      <button id="connect_all_btn" onclick="connect_to_all()" type="button">Connect to all</button>
-      <button id="disconnect_all_btn" onclick="disconnect_from_all()" type="button">Disconnect from all</button>
-      <button id="clear" , onclick="clear_puzzle()" , type="button">Clear puzzle</button>
-
-      <label for="groupOrder">Group order:</label>
-      <input type="text" width="20px" id="groupOrder" value="2" onchange="set_group_order()" />
-
-      <label for="cyclicRadio">Cyclic</label>
-      <input id="cyclicRadio" type="radio" name="groupType" value="cyclic" onclick="puzzle_type()" />
-      <label for="dihedralRadio">Dihedral:</label>
-      <input id="dihedralRadio" type="radio" name="groupType" value="dihedral" onclick="puzzle_type()" />
+  <div class="container">
+    <div class="top-controls">
+      <label for="play_toggle" id="current_mode_label">Current mode:</label>
+      <button id="play_button" type="button">Editing</button>
+      <button id="instructions_button" type="button">Instructions</button>
+      <a href="../index.html">Main page</a>
     </div>
-    <button id="save" onclick="save_puzzle()" type="button">Save puzzle</button>
-    <button id="load" onclick="load_puzzle()" type="button">Load puzzle</button>
-    <label for="loadSelector">Select a saved graph to load:</label>
-    <select id="loadSelector"></select>
-    <button id="delete" onclick="delete_puzzle()" type="button">Delete puzzle</button>
-    <label for="groupMultiplier">Multiplier:</label>
-    <input id="groupMultiplier" type="text" width="20px" value="1" onchange="set_group_multiplier()" />
-    </p>
-  </section>
-  <div id='d1' style=" top:0; left:0; z-index:1">
-    </p>
-    <p>
-      <canvas id="myCanvas" , width="800" , height="500"></canvas>
-    <p>
-      <button id="instructions_button" value="Instructions" type="button">Instructions</button>
-    </p>
-  </div>
+
+    <div class="controls-wrapper">
+      <div class="controls graph-controls" id="graphcontrols">
+        <div>
+          <button id="generate" onclick="generate_puzzle()" type="button">Generate puzzle</button>
+          <button id="connect_all_btn" onclick="connect_to_all()" type="button">Connect to all</button>
+          <button id="disconnect_all_btn" onclick="disconnect_from_all()" type="button">Disconnect from all</button>
+        </div>
+
+        <div>
+          <input type="checkbox" id="top_bottom">
+          <label for="top_bottom" id="top_bottom_label">Top and bottom connected</label>
+          <input type="checkbox" id="sides">
+          <label for="sides" id="sides_label">Sides connected</label>
+          <input type="checkbox" id="congratulate" checked>
+          <label for="congratulate" id="congratulate_label">Congratulate achievements</label>
+        </div>
+        <div id="verticesDiv" style="display: none;">
+          <label for="vertices">Vertices:</label>
+          <input type="text" id="vertices" value="5" />
+        </div>
+
+        <div>
+          <label id="row_label">Rows:</label>
+          <input type="text" id="row_input" value="5" />
+          <label id="col_label">Columns:</label>
+          <input type="text" id="col_input" value="5" />
+        </div>
+
+        <div>
+          <label for="variation" id="choose_variation_label">Graph type:</label>
+          <select name="variation" id="choose_variation">
+            <option value="standard">Standard Grid</option>
+            <option value="diagonal">Diagonal Grid</option>
+            <option value="circulant">Circulant Graph</option>
+            <option value="complete">Complete Graph</option>
+            <option value="completebipartite">Complete Bipartite Graph</option>
+            <option value="cycle">Cycle Graph</option>
+            <option value="peterson">Peterson Graph</option>
+            <option value="star">Star Graph</option>
+            <option value="wheel">
+              Wheel Graph</option>
+          </select>
+        </div>
+        <div id='divMultiply'>
+          <label for="groupMultiplier" id="groupMultiplier_label" style="display: none;">Multiplier:</label>
+          <input id="groupMultiplier" type="text" width="20px" value="1" onchange="set_group_multiplier()"
+            style="display: none;" />
+        </div>
+      </div>
+
+      <div id='d1'>
+        <p>
+          <canvas id="myCanvas" width="800" height="500"></canvas>
+        <div id="sagecell"></div>
+        </p>
+      </div>
+
+      <div class="controls group-controls" id="groupcontrols">
+        <label for="groupOrder">Group order:</label>
+        <input type="text" id="groupOrder" value="2" onchange="set_group_order()" />
+        <label for="groupTypeSelect" id="group_type_label">Group type:</label>
+        <select id="groupTypeSelect" onchange="updateGroupType()">
+          <option value="cyclic">Cyclic</option>
+          <option value="dihedral">Dihedral</option>
+        </select>
+        <div>
+          <button id="clear" onclick="clear_puzzle()" type="button">Clear puzzle</button>
+          <button id="save" onclick="save_puzzle()" type="button">Save puzzle</button>
+          <button id="load" onclick="load_puzzle()" type="button">Load puzzle</button>
+        </div>
+        <label for="loadSelector" id="load_selector_label">Select a saved graph to load:</label>
+        <br>
+        <select id="loadSelector"></select>
+        <br>
+        <button id="delete" onclick="delete_puzzle()" type="button">Delete puzzle</button>
+      </div>
+    </div>
+
+    <script>
+      $(function () {
+        sagecell.makeSagecell({
+          inputLocation: '#sagecell',
+          evalButtonText: 'Enter',
+          linked: true,
+          autoeval: true
+        });
+      });
+    </script>
+
 </body>
 
 </html>
