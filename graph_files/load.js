@@ -40,6 +40,7 @@ document.getElementById("instructions_button").addEventListener("click", functio
 
 // Code for the Editing/Playing mode button
 btn_mode.addEventListener('click', function handleClick() {
+
   // Get the selected group type from the dropdown menu
   const groupTypeSelect = document.getElementById('groupTypeSelect');
   const groupType = groupTypeSelect.value;
@@ -338,7 +339,6 @@ function up(e) {
             break;
           }
         }
-        //console.log("Node: " + index + " clicked with " + groupMultiplier + ", new value: " + target.value);
       }
       for (let i = 0; i < edges.length; i++) {
         var other = undefined;
