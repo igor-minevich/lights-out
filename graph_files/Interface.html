@@ -8,6 +8,7 @@
   <script src="CyclicNode.js"></script>
   <script src="DihedralNode.js"></script>
   <script src="GraphicalNode.js"></script>
+  <script src="graphFunctions.js"></script>
   <script defer src="load.js"></script>
 
   <!-- Include the SageCell CSS -->
@@ -48,9 +49,25 @@
           <label for="congratulate" id="congratulate_label">Congratulate achievements</label>
         </div>
 
+        <div id="set1div" style="display: none;">
+          <label for="set1">Set 1 size:</label>
+          <input type="number" id="set1" value="3" min="0">
+        </div>
+
+        <div id="set2div" style="display: none;">
+          <label for="set2">Set 2 size:</label>
+          <input type="number" id="set2" value="3" min="0">
+        </div>
+
+
         <div id="verticesDiv" style="display: none;">
           <label for="vertices">Vertices:</label>
           <input type="text" id="vertices" value="5" />
+        </div>
+
+        <div id="connectionsDiv" style="display: none;">
+          <label for="connections">Connections:</label>
+          <input type="text" id="connections" name="connections" value="1,2,3">
         </div>
 
         <div class="input-wrapper">
@@ -70,13 +87,14 @@
             <option value="diagonal">Diagonal Grid</option>
             <option value="circulant">Circulant Graph</option>
             <option value="complete">Complete Graph</option>
-            <option value="completebipartite">Complete Bipartite Graph</option>
+            <option value="bipartite">Complete Bipartite Graph</option>
             <option value="cycle">Cycle Graph</option>
             <option value="peterson">Peterson Graph</option>
             <option value="star">Star Graph</option>
             <option value="wheel">Wheel Graph</option>
           </select>
         </div>
+
         <div id='divMultiply'>
           <label for="groupMultiplier" id="groupMultiplier_label" style="display: none;">Multiplier:</label>
           <input id="groupMultiplier" type="text" width="20px" value="1" onchange="set_group_multiplier()"
@@ -102,6 +120,13 @@
             <option value="cyclic">Cyclic</option>
             <option value="dihedral">Dihedral</option>
           </select>
+        </div>
+        <div id="multiplicationOptions" style="display:none">
+          <label id="multiplication_label">Side to Multiply:</label>
+          <input type="radio" id="left" name="multiplication" value="left" checked>
+          <label for="left">Left</label>
+          <input type="radio" id="right" name="multiplication" value="right">
+          <label for="right">Right</label>
         </div>
         <div>
           <button id="clear" onclick="clear_puzzle()" type="button">Clear puzzle</button>
