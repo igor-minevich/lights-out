@@ -137,10 +137,10 @@ function create_node(x, y, labelType) {
   let label;
 
   if (labelType === "uNode") {
-    label = "uNode(" + uNodeCounter + ")";
+    label = "u" + uNodeCounter;
     uNodeCounter++;
   } else {
-    label = "Node(" + nodeCounter + ")";
+    label = nodeCounter;
     nodeCounter++;
   }
 
@@ -209,9 +209,6 @@ function draw() {
       let string = node.node.toString();
       if (string.length > 1) {
         context.fillText(string, node.x - 8, node.y + 4);
-      }
-      if (node.showLabel) {
-        ctx.fillText(node.label, node.x, node.y + radius + 15);
       }
       else
         context.fillText(string, node.x - 3, node.y + 4);
@@ -321,7 +318,7 @@ function up(e) {
 
     if (target) {
       //alert(target.node);
-      target.node.multiply(groupMultiplier, true, leftMultiply);
+      target.node.multiply(groupMultiplier, leftMultiply);
       if (groupType === "dihedral") {
         let index;
         for (let i = 0; i < nodes.length; i++) {
@@ -339,7 +336,7 @@ function up(e) {
         else if (edges[i].to == target)
           other = edges[i].from;
         if (other) {
-          other.node.multiply(groupMultiplier, false, leftMultiply);
+          other.node.multiply(groupMultiplier, leftMultiply);
         }
       }
       draw();
@@ -622,8 +619,6 @@ function toggleEditingPlayingMode() {
     "top_bottom_label",
     "sides",
     "sides_label",
-    "congratulate",
-    "congratulate_label",
     "row_input",
     "row_label",
     "col_input",
@@ -731,28 +726,21 @@ document.getElementById("play_button").addEventListener("click", function () {
   const multiplierLabel = document.getElementById("groupMultiplier_label");
   const multiplierInput = document.getElementById("groupMultiplier");
   const sideMultiplier = document.getElementById("multiplicationOptions");
+  const congratulate = document.getElementById("congratdiv")
 
   if (this.value === "Playing") {
     multiplierLabel.style.display = "inline-block";
     multiplierInput.style.display = "inline-block";
     sideMultiplier.style.display = "inline-block";
+    congratulate.style.display = "inline-block";
   } else {
     multiplierLabel.style.display = "none";
     multiplierInput.style.display = "none";
     sideMultiplier.style.display = "none";
+    congratulate.style.display = "none";
   }
 });
 
-function toggleNodeLabels() {
-  var toggle_labels = document.getElementById("toggle_labels");
-  var showLabels = toggle_labels.checked;
-
-  for (var i = 0; i < nodes.length; i++) {
-    nodes[i].showLabel = showLabels;
-  }
-
-  draw();
-}
 
 
 
@@ -760,22 +748,7 @@ function toggleNodeLabels() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// Below are the functions for creating different graphs
 
 
 function standardGraph(all_nodes, num_rows, num_cols) {

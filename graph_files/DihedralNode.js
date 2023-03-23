@@ -5,16 +5,16 @@ class DihedralNode {
         this.value = 0;
     }
 
-    multiply(b, clicked, leftMultiply) {
+    multiply(b, leftMultiply) {
         let a = this.value;
         let n = this.n;
 
         if (leftMultiply) {
             // Left multiplication: sr (s = a, r = b)
-            this.value = (((a >= n ? 1 : 0) === (b >= n ? 1 : 0)) ? 0 : 1) * n + ((a * Math.pow(-1, (b >= n) ? 1 : 0) + b) % n);
+            this.value = (((a >= n ? 1 : 0) === (b >= n ? 1 : 0)) ? 0 : 1) * n + ((a + b * Math.pow(-1, (a >= n) ? 1 : 0)) % n);
         } else {
             // Right multiplication: rs (r = a, s = b)
-            this.value = (((a >= n ? 1 : 0) === (b >= n ? 1 : 0)) ? 0 : 1) * n + ((a + b * Math.pow(-1, (a >= n) ? 1 : 0)) % n);
+            this.value = (((a >= n ? 1 : 0) === (b >= n ? 1 : 0)) ? 0 : 1) * n + ((a * Math.pow(-1, (b >= n) ? 1 : 0) + b) % n);
         }
     }
     toString() {

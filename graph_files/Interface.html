@@ -44,7 +44,7 @@
           <input type="checkbox" id="sides">
           <label for="sides" id="sides_label">Sides connected</label>
         </div>
-        <div>
+        <div id="congratdiv" style="display: none;">
           <input type="checkbox" id="congratulate" checked>
           <label for="congratulate" id="congratulate_label">Congratulate achievements</label>
         </div>
@@ -100,7 +100,15 @@
           <input id="groupMultiplier" type="text" width="20px" value="1" onchange="set_group_multiplier()"
             style="display: none;" />
         </div>
+        <div id="multiplicationOptions" style="display:none">
+          <label id="multiplication_label">Side to Multiply:</label>
+          <input type="radio" id="left" name="multiplication" value="left" checked>
+          <label for="left">Left</label>
+          <input type="radio" id="right" name="multiplication" value="right">
+          <label for="right">Right</label>
+        </div>
       </div>
+
 
       <div id='d1'>
         <p>
@@ -120,13 +128,6 @@
             <option value="cyclic">Cyclic</option>
             <option value="dihedral">Dihedral</option>
           </select>
-        </div>
-        <div id="multiplicationOptions" style="display:none">
-          <label id="multiplication_label">Side to Multiply:</label>
-          <input type="radio" id="left" name="multiplication" value="left" checked>
-          <label for="left">Left</label>
-          <input type="radio" id="right" name="multiplication" value="right">
-          <label for="right">Right</label>
         </div>
         <div>
           <button id="clear" onclick="clear_puzzle()" type="button">Clear puzzle</button>
