@@ -275,10 +275,6 @@ function up(e) {
       if (pos.x > 0 && pos.x <= canvas.width && pos.y > 0 && pos.y <= canvas.height) {
         create_node(e.offsetX, e.offsetY);
         selection = within(e.offsetX, e.offsetY);
-        // Add the following condition to connect the new node to all existing nodes
-        if (document.getElementById("choose_variation").value == "complete") {
-          connect_to_all();
-        }
       }
     }
 
@@ -436,27 +432,6 @@ function generate_puzzle() {
   var variation = document.getElementById("choose_variation").value;
   var num_rows = parseInt(document.getElementById("row_input").value);
   var num_cols = parseInt(document.getElementById("col_input").value);
-  if (variation == "standard") {
-    for (let y = 50; y <= num_rows * 50; y += 50) {
-      var nodeRow = [];
-      for (let x = 50; x <= num_cols * 50; x += 50) {
-        nodeRow.push(create_node(x, y));
-      }
-      all_nodes.push(nodeRow);
-    }
-    // horizontal edges
-    for (let i = 0; i <= num_rows - 1; i++) {
-      for (let k = 0; k < num_cols - 1; k++) {
-        edges.push({ from: all_nodes[i][k], to: all_nodes[i][k + 1], round: false, dash: false });
-      }
-    }
-    // vertical edges
-    for (let i = 0; i < num_rows - 1; i++) {
-      for (let k = 0; k <= num_cols - 1; k++) {
-        edges.push({ from: all_nodes[i][k], to: all_nodes[i + 1][k], round: false, dash: false });
-      }
-    }
-    if (document.getElementById("top_bottom").checked) {
 
       // connecting top and bottom edges
       for (let i = 0; i <= num_cols - 1; i++) {
@@ -597,53 +572,6 @@ function generate_puzzle() {
       edges.push({ from: fromNode, to: toNode, round: false, dash: false });
     }
 
-    // Connect the outer nodes to the inner nodes
-    for (let i = 0; i < outerNodes.length; i++) {
-      const fromNode = outerNodes[i];
-      const toNode = innerNodes[i];
-      edges.push({ from: fromNode, to: toNode, round: false, dash: false });
-    }
-  }
-  else if (variation == "diagonal") {
-    for (let y = 50; y <= num_rows * 50; y += 50) {
-      var nodeRow = [];
-      for (let x = 50; x <= num_cols * 50; x += 50) {
-        nodeRow.push(create_node(x, y));
-      }
-      all_nodes.push(nodeRow);
-    }
-    // horizontal edges
-    for (let i = 0; i <= num_rows - 2; i++) {
-      for (let k = 0; k < num_cols - 1; k++) {
-        edges.push({ from: all_nodes[i][k], to: all_nodes[i + 1][k + 1], round: false, dash: false });
-      }
-    }
-    // vertical edges
-    for (let i = 0; i < num_rows - 1; i++) {
-      for (let k = 0; k <= num_cols - 2; k++) {
-        edges.push({ from: all_nodes[i + 1][k], to: all_nodes[i][k + 1], round: false, dash: false });
-      }
-    }
-    if (document.getElementById("sides").checked) {
-      //connecting sides
-      for (let i = 0; i < num_rows - 1; i++) {
-        edges.push({ from: all_nodes[i][0], to: all_nodes[i + 1][num_cols - 1], round: false, dash: false });
-        edges.push({ from: all_nodes[i][num_cols - 1], to: all_nodes[i + 1][0], round: false, dash: false });
-        console.log(i);
-      }
-    }
-    if (document.getElementById("top_bottom").checked) {
-      //connecting top and bottom edges
-      for (let i = 0; i < num_cols - 1; i++) {
-        edges.push({ from: all_nodes[0][i], to: all_nodes[num_rows - 1][i + 1], round: false, dash: false });
-        edges.push({ from: all_nodes[num_rows - 1][i], to: all_nodes[0][i + 1], round: false, dash: false });
-      }
-    }
-    if (document.getElementById("top_bottom").checked && document.getElementById("sides").checked) {
-      edges.push({ from: all_nodes[0][0], to: all_nodes[num_rows - 1][num_cols - 1], round: true, dash: true });
-      edges.push({ from: all_nodes[num_rows - 1][0], to: all_nodes[0][num_cols - 1], round: true, dash: true });
-    }
-  }
   draw();
 }
 
@@ -927,13 +855,3 @@ document.getElementById("choose_variation").addEventListener("change", function 
 
   }
 });
-
-
-
-
-
-
-
-
-
-
