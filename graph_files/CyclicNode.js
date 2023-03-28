@@ -13,7 +13,7 @@ class CyclicNode {
         this.value = (a + b) % n;
 
         if (clicked) {
-            this.clicks = ++this.clicks % n;
+            this.clicks = --this.clicks < 0 ? n - 1 : this.clicks;
         }
     }
 

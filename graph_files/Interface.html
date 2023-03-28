@@ -100,6 +100,12 @@
           <input id="groupMultiplier" type="text" width="20px" value="1" onchange="set_group_multiplier()"
             style="display: none;" />
         </div>
+
+        <div id="nodeLabels" style="display: none;">
+          <label for="toggleLabels">Toggle Node Labels:</label>
+          <input type="checkbox" id="toggleLabels">
+        </div>
+
         <div id="multiplicationOptions" style="display:none">
           <label id="multiplication_label">Side to Multiply:</label>
           <input type="radio" id="left" name="multiplication" value="left" checked>
@@ -109,6 +115,10 @@
         </div>
       </div>
 
+      <div>
+        <div id="historyContainer" style="display: none;"></div>
+        <button id="undoButton" style="display: none;">Undo</button>
+      </div>
 
       <div id='d1'>
         <p>
@@ -116,6 +126,7 @@
         <div id="sagecell"></div>
         </p>
       </div>
+
 
       <div class="controls group-controls" id="groupcontrols">
         <div>

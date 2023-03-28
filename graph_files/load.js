@@ -8,6 +8,7 @@ var clicks = 1;
 let groupType = "cyclic";
 let groupOrder = 2;
 let groupMultiplier = 1;
+let history = [];
 
 const colors = ['#FFFFFF', "#ffc800", '#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#46f0f0',
   '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#ffe119', '#9a6324', '#fffac8',
@@ -37,19 +38,18 @@ document.getElementById("instructions_button").addEventListener("click", functio
   alert("Instructions for using the canvas go here.");
 });
 
+const undoButton = document.getElementById("undoButton");
+undoButton.addEventListener("click", function () {
+  removeHistoryEvent();
+  updateNodesFromHistory();
+});
+
+
 // Code for the Editing/Playing mode button
 btn_mode.addEventListener('click', function handleClick() {
   // Get the selected group type from the dropdown menu
   const groupTypeSelect = document.getElementById('groupTypeSelect');
   const groupType = groupTypeSelect.value;
-
-  const variation = document.getElementById("choose_variation").value;
-  const rowLabel = document.getElementById("row_label");
-  const colLabel = document.getElementById("col_label");
-  const rowInput = document.getElementById("row_input");
-  const colInput = document.getElementById("col_input");
-  const verticesDiv = document.getElementById("verticesDiv");
-
 
 
   if (btn_mode.textContent === 'Editing') {
@@ -66,6 +66,7 @@ btn_mode.addEventListener('click', function handleClick() {
           break;
       }
     }
+
     btn_mode.textContent = 'Playing';
     btn_clear.textContent = 'Reset Puzzle';
     draw(); // Displays default values of nodes when editing mode is clicked.
@@ -81,7 +82,6 @@ btn_mode.addEventListener('click', function handleClick() {
   }
   // Call the toggleEditingPlayingMode function
   toggleEditingPlayingMode();
-
 });
 
 
@@ -174,11 +174,16 @@ function create_edge(fromNode, toNode, round, dash) {
     context.stroke();
   }
 }
+const toggleLabelsCheckbox = document.getElementById('toggleLabels');
+toggleLabelsCheckbox.addEventListener('change', draw);
 
 function draw() {
   context.clearRect(0, 0, window.innerWidth, window.innerHeight);
   for (let i = 0; i < edges.length; i++)
     create_edge(edges[i].from, edges[i].to, edges[i].round, edges[i].dash);
+  const toggleLabelsCheckbox = document.getElementById('toggleLabels');
+  const showLabels = toggleLabelsCheckbox.checked;
+
   if (btn_mode.textContent == 'Editing') {
     for (let i = 0; i < nodes.length; i++) {
       let node = nodes[i];
@@ -203,19 +208,24 @@ function draw() {
       context.arc(node.x, node.y, node.radius, 0, Math.PI * 2, true);
       context.fill();
       context.stroke();
-      context.font = "12px Verdana";
-      context.beginPath();
-      context.fillStyle = "#000000";
-      let string = node.node.toString();
-      if (string.length > 1) {
-        context.fillText(string, node.x - 8, node.y + 4);
+
+      if (!showLabels) {
+        context.font = "12px Verdana";
+        context.beginPath();
+        context.fillStyle = "#000000";
+        let string = node.node.toString();
+        if (string.length > 1) {
+          context.fillText(string, node.x - 8, node.y + 4);
+        }
+        else
+          context.fillText(string, node.x - 3, node.y + 4);
+        context.fill();
       }
-      else
-        context.fillText(string, node.x - 3, node.y + 4);
-      context.fill();
+
       // Draw the labels for each node
-      drawLabel(node);
+      drawLabel(node, showLabels);
     }
+
   }
 }
 
@@ -317,7 +327,7 @@ function up(e) {
     let leftMultiply = selectedMultiplication === "left";
 
     if (target) {
-      //alert(target.node);
+      addHistoryEvent(target.label, groupMultiplier, leftMultiply);
       target.node.multiply(groupMultiplier, leftMultiply);
       if (groupType === "dihedral") {
         let index;
@@ -374,6 +384,9 @@ function key_up(e) {
 }
 
 function clear_puzzle() {
+  nodeCounter = 0;
+  uNodeCounter = 0;
+  history = [];
   if (btn_mode.textContent == 'Editing') {
     nodes = [];
     edges = [];
@@ -402,6 +415,7 @@ function clear_puzzle() {
       }
     }
   }
+  displayHistory();
   draw();
 }
 
@@ -435,6 +449,8 @@ function congratulate() {
 }
 
 function generate_puzzle() {
+  nodeCounter = 0;
+  uNodeCounter = 0;
   if (document.getElementById("legend") != null) {
     document.getElementById("legend").remove();
   }
@@ -638,17 +654,27 @@ function toggleEditingPlayingMode() {
     "connectionsDiv"
   ];
 
+  const graphControls = document.getElementById("graphcontrols");
+  const groupControls = document.getElementById("groupcontrols");
+
   if (mode === "Editing") {
     playButton.value = "Playing";
     playButton.textContent = "Playing";
     hideShowElements(elementsToHide, "none");
+    // Move the graph controls above group controls
+    groupControls.insertAdjacentElement("beforebegin", graphControls);
   } else {
     playButton.value = "Editing";
     playButton.textContent = "Editing";
     hideShowElements(elementsToHide, "inline-block");
     updateLayout();
+    // Move the graph controls back to its original position
+    const controlsWrapper = document.querySelector(".controls-wrapper");
+    controlsWrapper.insertBefore(graphControls, controlsWrapper.firstChild);
   }
 }
+
+
 
 document.getElementById("choose_variation").addEventListener("change", updateLayout);
 
@@ -663,7 +689,6 @@ function hideShowElements(ids, displayStyle) {
 
 function updateLayout() {
   const variation = document.getElementById("choose_variation").value;
-
   const elementsToHide = [
     "verticesDiv",
     "connectionsDiv",
@@ -716,34 +741,107 @@ function getSelectedMultiplication() {
   }
 }
 
-function drawLabel(node) {
-  context.font = "14px Verdana";
-  context.fillStyle = "#000000";
-  context.fillText(node.label, node.x - node.radius, node.y - node.radius);
+function drawLabel(node, showLabels) {
+  if (showLabels) {
+    context.font = "14px Verdana";
+    context.fillStyle = "#000000";
+    context.fillText(node.label, node.x - node.radius / 2, node.y + node.radius / 2);
+  }
 }
 
+// Function to show elements when playing
 document.getElementById("play_button").addEventListener("click", function () {
   const multiplierLabel = document.getElementById("groupMultiplier_label");
   const multiplierInput = document.getElementById("groupMultiplier");
   const sideMultiplier = document.getElementById("multiplicationOptions");
   const congratulate = document.getElementById("congratdiv")
+  const nodeLabel = document.getElementById("nodeLabels")
+  const historyElement = document.getElementById("historyContainer");
+  const undoBt = document.getElementById("undoButton")
 
   if (this.value === "Playing") {
     multiplierLabel.style.display = "inline-block";
     multiplierInput.style.display = "inline-block";
     sideMultiplier.style.display = "inline-block";
     congratulate.style.display = "inline-block";
+    nodeLabel.style.display = "block";
+    historyElement.style.display = "block"
+    undoBt.style.display = "block"
   } else {
     multiplierLabel.style.display = "none";
     multiplierInput.style.display = "none";
     sideMultiplier.style.display = "none";
     congratulate.style.display = "none";
+    nodeLabel.style.display = "none";
+    historyElement.style.display = "none"
+    undoBt.style.display = "none"
   }
 });
 
 
+function addHistoryEvent(label, multiplier, left) {
+  const event = {
+    order: history.length + 1,
+    label: label,
+    multiplier: multiplier,
+    direction: left ? "left" : "right",
+  };
 
+  history.push(event);
+  displayHistory();
+}
 
+function displayHistory() {
+  const historyContainer = document.getElementById("historyContainer");
+  historyContainer.innerHTML = "";
+
+  history.forEach((event) => {
+    const eventString = `Event ${event.order}: Node: [${event.label}], Multiplier: [${event.multiplier}], Side: [${event.direction}]`;
+    const eventElement = document.createElement("p");
+    eventElement.textContent = eventString;
+    historyContainer.appendChild(eventElement);
+  });
+}
+
+function removeHistoryEvent() {
+  if (history.length > 0) {
+    history.pop();
+  }
+}
+
+function updateNodesFromHistory() {
+  // Reset the nodes
+  for (let i = 0; i < nodes.length; i++) {
+    nodes[i].node.value = 0;
+    nodes[i].node.clicks = 0;
+  }
+
+  // Re-apply history events
+  history.forEach((event) => {
+    const target = nodes.find((node) => node.label === event.label);
+    const leftMultiply = event.direction === "left";
+
+    if (target) {
+      target.node.multiply(event.multiplier, leftMultiply);
+
+      for (let i = 0; i < edges.length; i++) {
+        let other = undefined;
+        if (edges[i].from === target) {
+          other = edges[i].to;
+        } else if (edges[i].to === target) {
+          other = edges[i].from;
+        }
+        if (other) {
+          other.node.multiply(event.multiplier, leftMultiply);
+        }
+      }
+    }
+  });
+
+  // Redraw the canvas
+  draw();
+  displayHistory();
+}
 
 
 
