@@ -39,6 +39,9 @@ document.getElementById("instructions_button").addEventListener("click", functio
 });
 
 
+groupTypeSelect.addEventListener('change', function () {
+  set_group_order();
+});
 
 // Code for the Editing/Playing mode button
 btn_mode.addEventListener('click', function handleClick() {
@@ -569,14 +572,16 @@ function delete_puzzle() {
 }
 
 function set_group_order() {
+  const groupOrderInput = document.getElementById("groupOrder");
   const groupTypeSelect = document.getElementById('groupTypeSelect');
   const groupType = groupTypeSelect.value;
 
   if (groupType === "quaternion") {
-    groupOrder = 8;
+    groupOrderInput.value = 8;
+    groupOrderInput.disabled = true;
   } else {
-    // todo: add input validation
-    groupOrder = parseInt(document.getElementById("groupOrder").value);
+    groupOrderInput.value = 2;
+    groupOrderInput.disabled = false;
   }
 }
 

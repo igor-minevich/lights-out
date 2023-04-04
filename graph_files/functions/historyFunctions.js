@@ -63,7 +63,11 @@ function selectHistoryItem(index) {
 function applyHistory(index) {
     // Reset all nodes to their initial states
     for (let node of nodes) {
-        node.node.value = 0;
+        if (node.node instanceof QuaternionNode) {
+            node.node.value = 1;
+        } else {
+            node.node.value = 0;
+        }
         node.node.clicks = 0;
     }
 
