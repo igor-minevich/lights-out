@@ -5,10 +5,13 @@
   <meta charset="utf-8">
   <title>Map</title>
   <link rel="stylesheet" href="index.css">
-  <script src="CyclicNode.js"></script>
-  <script src="DihedralNode.js"></script>
-  <script src="GraphicalNode.js"></script>
-  <script src="graphFunctions.js"></script>
+  <script defer src="./groups/CyclicNode.js"></script>
+  <script defer src="./groups/DihedralNode.js"></script>
+  <script defer src="./groups/QuaternionNode.js"></script>
+  <script defer src="./groups/ZNode.js"></script>
+  <script defer src="./functions/historyFunctions.js"></script>
+  <script defer src="./functions/graphFunctions.js"></script>
+  <script defer src="GraphicalNode.js"></script>
   <script defer src="load.js"></script>
 
   <!-- Include the SageCell CSS -->
@@ -31,6 +34,7 @@
         <div>
           <button id="generate" onclick="generate_puzzle()" type="button">Generate puzzle</button>
         </div>
+
         <div>
           <button id="connect_all_btn" onclick="connect_to_all()" type="button">Connect to all</button>
           <button id="disconnect_all_btn" onclick="disconnect_from_all()" type="button">Disconnect from all</button>
@@ -40,10 +44,12 @@
           <input type="checkbox" id="top_bottom">
           <label for="top_bottom" id="top_bottom_label">Top and bottom connected</label>
         </div>
+
         <div>
           <input type="checkbox" id="sides">
           <label for="sides" id="sides_label">Sides connected</label>
         </div>
+
         <div id="congratdiv" style="display: none;">
           <input type="checkbox" id="congratulate" checked>
           <label for="congratulate" id="congratulate_label">Congratulate achievements</label>
@@ -58,7 +64,6 @@
           <label for="set2">Set 2 size:</label>
           <input type="number" id="set2" value="3" min="0">
         </div>
-
 
         <div id="verticesDiv" style="display: none;">
           <label for="vertices">Vertices:</label>
@@ -115,9 +120,37 @@
         </div>
       </div>
 
-      <div>
-        <div id="historyContainer" style="display: none;"></div>
-        <button id="undoButton" style="display: none;">Undo</button>
+      <div id="history" style="display:none">
+        <h3>History</h3>
+        <ul id="historyList"></ul>
+        <div>
+          <button id="updateButton">Update</button>
+          <button id="insertButton">Insert</button>
+          <button id="deleteButton" disabled>Delete</button>
+        </div>
+
+        <div id="eventEditor">
+          <div>
+            <label for="nodeLabelInput">Node:</label>
+            <input type="text" id="nodeLabelInput" />
+          </div>
+          <div>
+            <label for="multiplierInput">Multiplier:</label>
+            <input type="number" id="multiplierInput" />
+          </div>
+
+          <div>
+            <label>Side:</label>
+            <label>
+              <input type="radio" id="sideRadioLeft" name="sideRadio" value="Left" checked /> Left
+            </label>
+            <label>
+              <input type="radio" id="sideRadioRight" name="sideRadio" value="Right" /> Right
+            </label>
+          </div>
+        </div>
+
+
       </div>
 
       <div id='d1'>
@@ -138,6 +171,7 @@
           <select id="groupTypeSelect" onchange="updateGroupType()">
             <option value="cyclic">Cyclic</option>
             <option value="dihedral">Dihedral</option>
+            <option value="quaternion">Quaternion</option>
           </select>
         </div>
         <div>
@@ -158,17 +192,18 @@
         </div>
       </div>
     </div>
+  </div>
 
-    <script>
-      $(function () {
-        sagecell.makeSagecell({
-          inputLocation: '#sagecell',
-          evalButtonText: 'Enter',
-          linked: true,
-          autoeval: true
-        });
+  <script>
+    $(function () {
+      sagecell.makeSagecell({
+        inputLocation: '#sagecell',
+        evalButtonText: 'Enter',
+        linked: true,
+        autoeval: true
       });
-    </script>
+    });
+  </script>
 
 </body>
 

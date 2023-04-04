@@ -181,3 +181,28 @@ a:hover {
   align-items: center;
   justify-content: center;
 }
+
+#history {
+  padding: 1rem;
+  border: 1px solid #000;
+  margin-bottom: 1rem;
+}
+
+#historyList {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+#historyList li {
+  padding: 0.5rem;
+  border: 1px solid #000;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+}
+
+#historyList li.selected {
+  background-color: #ccc;
+}
