@@ -40,7 +40,15 @@ document.getElementById("instructions_button").addEventListener("click", functio
 
 
 groupTypeSelect.addEventListener('change', function () {
-  set_group_order();
+  const groupOrderInput = document.getElementById("groupOrder");
+  const groupTypeSelect = document.getElementById('groupTypeSelect');
+  const groupType = groupTypeSelect.value;
+  if (groupType === "quaternion") {
+    groupOrderInput.value = 8;
+    groupOrderInput.disabled = true;
+  } else {
+    groupOrderInput.disabled = false;
+  }
 });
 
 // Code for the Editing/Playing mode button
@@ -48,7 +56,6 @@ btn_mode.addEventListener('click', function handleClick() {
   // Get the selected group type from the dropdown menu
   const groupTypeSelect = document.getElementById('groupTypeSelect');
   const groupType = groupTypeSelect.value;
-
   set_group_order();
 
   if (btn_mode.textContent === 'Editing') {
@@ -61,7 +68,7 @@ btn_mode.addEventListener('click', function handleClick() {
           vertex.node = new DihedralNode(groupOrder);
           break;
         case "quaternion":
-          vertex.node = new QuaternionNode();
+          vertex.node = new QuaternionNode(groupOrder);
           break;
         default:
           alert("Something went wrong setting the group modes.");
@@ -146,7 +153,7 @@ function create_node(x, y, labelType) {
     nodeCounter++;
   }
 
-  node = new GraphicalNode(x, y, 12, label);
+  node = new GraphicalNode(x, y, 20, label);
   nodes.push(node);
   draw();
   return node;
@@ -572,17 +579,7 @@ function delete_puzzle() {
 }
 
 function set_group_order() {
-  const groupOrderInput = document.getElementById("groupOrder");
-  const groupTypeSelect = document.getElementById('groupTypeSelect');
-  const groupType = groupTypeSelect.value;
-
-  if (groupType === "quaternion") {
-    groupOrderInput.value = 8;
-    groupOrderInput.disabled = true;
-  } else {
-    groupOrderInput.value = 2;
-    groupOrderInput.disabled = false;
-  }
+  groupOrder = parseInt(document.getElementById("groupOrder").value);
 }
 
 
@@ -642,8 +639,6 @@ function toggleVisuals() {
     "col_label",
     "choose_variation",
     "choose_variation_label",
-    "group_type_label",
-    "groupTypeSelect",
     "save",
     "load",
     "load_selector_label",
@@ -746,12 +741,7 @@ function drawLabel(node, showLabels) {
   context.fillStyle = "#000000";
   let string = showLabels ? node.label.toString() : node.node.toString();
   // context.fillText(node.label, node.x - node.radius / 2, node.y + node.radius / 2);
-  if (string.length === 1)
-    context.fillText(string, node.x - 3, node.y + 4);
-  else if (string.length === 2)
-    context.fillText(string, node.x - 8, node.y + 4);
-  else
-    context.fillText(string, node.x - 12, node.y + 4);
+  context.fillText(string, node.x + 1 - 4 * string.length, node.y + 4);
   context.fill();
 }
 

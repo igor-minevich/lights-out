@@ -32,6 +32,6 @@ class CyclicNode {
     }
 
     toString() {
-        return this.clicks.toString();
+        return this.value.toString();
     }
 }
