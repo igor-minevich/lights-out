@@ -280,7 +280,7 @@ function move(e) {
 
       let tooltipText = "";
 
-      if (groupType === "cyclic") {
+      if (groupType === "cyclic" || groupType === "freeabgroup") {
         if (showLabels && showClicks) {
           tooltipText = "Value: " + target.node.toString();
         } else if (showLabels) {
