@@ -85,6 +85,9 @@ btn_mode.addEventListener('click', function handleClick() {
         case "quaternion":
           vertex.node = new QuaternionNode(groupOrder);
           break;
+        case "freegroup":
+          vertex.node = new FreeGroupNode();
+          break;
         default:
           alert("Something went wrong setting the group modes.");
           break;
@@ -457,6 +460,9 @@ function clear_puzzle() {
         case "quaternion":
           vertex.node = new QuaternionNode(groupOrder);
           break;
+        case "freegroup":
+          vertex.node = new FreeGroupNode();
+          break;
 
         default:
           alert("Something went wrong setting the group modes.");
@@ -635,9 +641,21 @@ function set_group_order() {
 
 
 function set_group_multiplier() {
-  // todo: add input validation
-  groupMultiplier = parseInt(document.getElementById("groupMultiplier").value);
+  const groupMultiplierInput = document.getElementById("groupMultiplier").value;
+
+  if (groupType === "freegroup") {
+    // Validate and parse the input
+    const regex = /^([a-zA-Z]\d*)*$/;
+    if (!regex.test(groupMultiplierInput)) {
+      alert("Invalid input. Please enter a combination of letters and numbers.");
+      return;
+    }
+    groupMultiplier = groupMultiplierInput.replace(/([a-zA-Z])(?![0-9])/g, '$11');
+  } else {
+    groupMultiplier = parseInt(groupMultiplierInput);
+  }
 }
+
 
 // Connects all existing vertices to the selected vertex
 function connect_to_all() {
@@ -666,7 +684,15 @@ function disconnect_from_all() {
 function updateGroupType() {
   let groupTypeDropdown = document.getElementById("groupTypeSelect");
   groupType = groupTypeDropdown.value;
+
+  const groupMultiplierInput = document.getElementById("groupMultiplier");
+  if (groupType === "freegroup") {
+    groupMultiplierInput.placeholder = "Enter a combination of letters (e.g. aB3bC4)";
+  } else {
+    groupMultiplierInput.placeholder = "Enter a number";
+  }
 }
+
 
 updateGroupType();
 
@@ -867,6 +893,7 @@ function edgeExists(fromNode, toNode) {
 
 // function to draw tooltips
 function drawTooltip(node, text) {
+  context.save();
   const offsetX = 10;
   const offsetY = 10;
   const padding = 5;
@@ -878,4 +905,5 @@ function drawTooltip(node, text) {
   context.textBaseline = "middle";
   context.fillStyle = "#ffffff";
   context.fillText(text, node.x + offsetX + padding, node.y - offsetY - tooltipHeight / 2);
+  context.restore();
 }

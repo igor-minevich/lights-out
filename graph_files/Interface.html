@@ -8,12 +8,13 @@
   <script defer src="./groups/CyclicNode.js"></script>
   <script defer src="./groups/DihedralNode.js"></script>
   <script defer src="./groups/QuaternionNode.js"></script>
-  <script defer src="./groups/FreeGroupNode.js"></script>
   <script defer src="./groups/ZNode.js"></script>
+  <script defer src="./groups/FreeGroupNode.js"></script>
   <script defer src="./functions/historyFunctions.js"></script>
   <script defer src="./functions/graphFunctions.js"></script>
   <script defer src="GraphicalNode.js"></script>
   <script defer src="load.js"></script>
+
 
   <!-- Include the SageCell CSS -->
   <link rel="stylesheet" href="https://sagecell.sagemath.org/static/embedded_sagecell.css">
@@ -151,6 +152,7 @@
             <option value="cyclic">Cyclic</option>
             <option value="dihedral">Dihedral</option>
             <option value="quaternion">Quaternion</option>
+            <option value="freegroup">Free Group</option>
           </select>
         </div>
 
@@ -171,6 +173,8 @@
           <button id="delete" onclick="delete_puzzle()" type="button">Delete puzzle</button>
         </div>
       </div>
+
+
 
       <div class="controls graph-controls" id="mergedcontrols" style="display:none">
         <div>
