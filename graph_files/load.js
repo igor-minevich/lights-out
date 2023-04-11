@@ -40,15 +40,23 @@ document.getElementById("instructions_button").addEventListener("click", functio
 
 
 groupTypeSelect.addEventListener('change', function () {
-  const groupOrderInput = document.getElementById("groupOrder");
+  const groupOrderInput1 = document.getElementById("groupOrder1");
+  const groupOrderInput2 = document.getElementById("groupOrder2");
   const groupTypeSelect = document.getElementById('groupTypeSelect');
   const groupType = groupTypeSelect.value;
   updateGroupTypeDisplay();
   if (groupType === "quaternion") {
-    groupOrderInput.value = 8;
-    groupOrderInput.disabled = true;
-  } else {
-    groupOrderInput.disabled = false;
+    groupOrderInput1.value = 8;
+    groupOrderInput2.value = 8;
+    groupOrderInput1.disabled = true;
+    groupOrderInput2.disabled = true;
+  } else if (groupType === "freegroup") {
+    groupOrderInput1.disabled = true;
+    groupOrderInput2.disabled = true;
+  }
+  else {
+    groupOrderInput1.disabled = false;
+    groupOrderInput2.disabled = false;
   }
 });
 
@@ -123,7 +131,7 @@ function addLegend() {
   var title = document.createTextNode("Legend: ");
   newDiv.style.fontSize = "15px";
   newDiv.appendChild(title);
-  var num_colors = parseInt(document.getElementById('groupOrder').value);
+  var num_colors = parseInt(document.getElementById('groupOrder1').value);
   for (var c = 1; c < num_colors; c++) {
     var content = document.createElement("span");
     const inner_str = "<button value =" + c + " style='color:" + colors[c] + "; font-weight:bold; font-size:15px' onclick = set_num_clicks(" + c + ")>" + c.toString() + "</button>";
@@ -636,7 +644,13 @@ function delete_puzzle() {
 }
 
 function set_group_order() {
-  groupOrder = parseInt(document.getElementById("groupOrder").value);
+  if (btn_mode.textContent === 'Editing') {
+    groupOrder = parseInt(document.getElementById("groupOrder1").value);
+    document.getElementById("groupOrder2").value = groupOrder;
+  }
+  else {
+    groupOrder = parseInt(document.getElementById("groupOrder2").value);
+  }
 }
 
 
