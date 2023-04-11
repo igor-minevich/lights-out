@@ -43,6 +43,7 @@ groupTypeSelect.addEventListener('change', function () {
   const groupOrderInput = document.getElementById("groupOrder");
   const groupTypeSelect = document.getElementById('groupTypeSelect');
   const groupType = groupTypeSelect.value;
+  updateGroupTypeDisplay();
   if (groupType === "quaternion") {
     groupOrderInput.value = 8;
     groupOrderInput.disabled = true;
@@ -50,6 +51,20 @@ groupTypeSelect.addEventListener('change', function () {
     groupOrderInput.disabled = false;
   }
 });
+
+document.addEventListener('DOMContentLoaded', function () {
+  updateGroupTypeDisplay();
+});
+
+
+
+function updateGroupTypeDisplay() {
+  const groupTypeSelect = document.getElementById('groupTypeSelect');
+  const groupTypeDisplay = document.getElementById('groupTypeDisplay');
+  const groupType = groupTypeSelect.value;
+  groupTypeDisplay.innerText = 'Group Type: ' + groupType.charAt(0).toUpperCase() + groupType.slice(1);
+}
+
 
 // Code for the Editing/Playing mode button
 btn_mode.addEventListener('click', function handleClick() {
@@ -186,6 +201,8 @@ function create_edge(fromNode, toNode, round, dash) { //check if an edge already
 
 const toggleLabelsCheckbox = document.getElementById('toggleLabels');
 toggleLabelsCheckbox.addEventListener('change', draw);
+const toggleClicksCheckbox = document.getElementById('toggleClicks');
+toggleClicksCheckbox.addEventListener('change', draw);
 
 function draw() {
   context.clearRect(0, 0, window.innerWidth, window.innerHeight);
@@ -193,6 +210,8 @@ function draw() {
     create_edge(edges[i].from, edges[i].to, edges[i].round, edges[i].dash);
   const toggleLabelsCheckbox = document.getElementById('toggleLabels');
   const showLabels = toggleLabelsCheckbox.checked;
+  const toggleClicksCheckbox = document.getElementById('toggleClicks');
+  const showClicks = toggleClicksCheckbox.checked;
 
   if (btn_mode.textContent == 'Editing') {
     for (let i = 0; i < nodes.length; i++) {
@@ -219,8 +238,11 @@ function draw() {
       context.fill();
       context.stroke();
 
-      // Draw the labels for each node
-      drawLabel(node, showLabels);
+      if (showClicks) {
+        drawClicks(node, true);
+      } else {
+        drawLabel(node, showLabels);
+      }
     }
 
   }
@@ -235,8 +257,39 @@ function move(e) {
       node_dragged.moving = true;
       draw();
     }
+  } else {
+    const target = within(e.offsetX, e.offsetY);
+    draw();
+    if (target && btn_mode.textContent === "Playing") {
+      const groupTypeSelect = document.getElementById('groupTypeSelect');
+      const groupType = groupTypeSelect.value;
+      const showLabels = document.getElementById("toggleLabels").checked;
+      const showClicks = document.getElementById("toggleClicks").checked;
+
+      let tooltipText = "";
+
+      if (groupType === "cyclic") {
+        if (showLabels && showClicks) {
+          tooltipText = "Value: " + target.node.toString();
+        } else if (showLabels) {
+          tooltipText = "Value: " + target.node.toString() + " | Clicks: " + target.node.clicks;
+        } else if (showClicks) {
+          tooltipText = "Label: " + target.label + " | Value: " + target.node.toString();
+        } else {
+          tooltipText = "Label: " + target.label + " | Clicks: " + target.node.clicks;
+        }
+      } else {
+        if (showLabels) {
+          tooltipText = "Value: " + target.node.toString();
+        } else {
+          tooltipText = "Label: " + target.label;
+        }
+      }
+      drawTooltip(target, tooltipText);
+    }
   }
 }
+
 
 function find_edge(fromNode, toNode) {
   return edges.find(e => {
@@ -404,9 +457,7 @@ function clear_puzzle() {
         case "quaternion":
           vertex.node = new QuaternionNode(groupOrder);
           break;
-        // case "Z":
-        //   vertex.node = new ZNode();
-        //   break;
+
         default:
           alert("Something went wrong setting the group modes.");
           break;
@@ -647,7 +698,9 @@ function toggleVisuals() {
     "verticesDiv",
     "set1div",
     "set2div",
-    "connectionsDiv"
+    "connectionsDiv",
+    "graphcontrols",
+    "groupcontrols"
   ];
 
   const graphControls = document.getElementById("graphcontrols");
@@ -657,20 +710,20 @@ function toggleVisuals() {
     playButton.value = "Playing";
     playButton.textContent = "Playing";
     hideShowElements(elementsToHide, "none");
-    // Move the graph controls above group controls
-    groupControls.insertAdjacentElement("beforebegin", graphControls);
+    // Move the graph controls inside group controls
+    // groupControls.prepend(graphControls);
+
   } else {
     playButton.value = "Editing";
     playButton.textContent = "Editing";
     hideShowElements(elementsToHide, "inline-block");
     updateLayout();
     // Move the graph controls back to its original position
-    const controlsWrapper = document.querySelector(".controls-wrapper");
-    controlsWrapper.insertBefore(graphControls, controlsWrapper.firstChild);
+    // const controlsWrapper = document.querySelector(".controls-wrapper");
+    // controlsWrapper.insertBefore(graphControls, controlsWrapper.firstChild);
+
   }
 }
-
-document.getElementById("choose_variation").addEventListener("change", updateLayout);
 
 function hideShowElements(ids, displayStyle) {
   ids.forEach(id => {
@@ -681,6 +734,10 @@ function hideShowElements(ids, displayStyle) {
   });
 }
 
+
+
+
+document.getElementById("choose_variation").addEventListener("change", updateLayout);
 function updateLayout() {
   const variation = document.getElementById("choose_variation").value;
   const elementsToHide = [
@@ -735,6 +792,7 @@ function getSelectedMultiplication() {
   }
 }
 
+// function to show node labeling
 function drawLabel(node, showLabels) {
   context.font = "12px Verdana";
   context.beginPath();
@@ -745,15 +803,36 @@ function drawLabel(node, showLabels) {
   context.fill();
 }
 
+function drawClicks(node, showClicks) {
+  context.font = "12px Verdana";
+  context.beginPath();
+  context.fillStyle = "#000000";
+  let string = showClicks ? node.node.clicks.toString() : node.node.toString();
+  const textMetrics = context.measureText(string);
+  const textWidth = textMetrics.width;
+  const textHeight = parseInt(context.font, 10);
+
+  // Calculate the x and y positions to center the text
+  const xPos = node.x - textWidth / 2;
+  const yPos = node.y + textHeight / 4;
+
+  context.fillText(string, xPos, yPos);
+  context.fill();
+}
+
 // Function to show elements when playing
 document.getElementById("play_button").addEventListener("click", function () {
   const multiplierLabel = document.getElementById("groupMultiplier_label");
   const multiplierInput = document.getElementById("groupMultiplier");
   const sideMultiplier = document.getElementById("multiplicationOptions");
-  const congratulate = document.getElementById("congratdiv")
-  const nodeLabel = document.getElementById("nodeLabels")
-  const historyList = document.getElementById("history")
-
+  const congratulate = document.getElementById("congratdiv");
+  const nodeLabel = document.getElementById("nodeLabels");
+  const historyList = document.getElementById("history");
+  const mergedContent = document.getElementById("mergedcontrols");
+  const groupTypeDisplay = document.getElementById("groupTypeDisplay");
+  const nodeClick = document.getElementById("nodeClicks");
+  const groupTypeSelect = document.getElementById('groupTypeSelect');
+  const groupType = groupTypeSelect.value;
 
   if (this.value === "Playing") {
     multiplierLabel.style.display = "inline-block";
@@ -762,13 +841,21 @@ document.getElementById("play_button").addEventListener("click", function () {
     congratulate.style.display = "inline-block";
     nodeLabel.style.display = "block";
     historyList.style.display = "block"
-  } else {
+    mergedContent.style.display = "inline-block"
+    groupTypeDisplay.style.display = "inline-block"
+    if (groupType === "cyclic")
+      nodeClick.style.display = "block"
+  }
+  else {
     multiplierLabel.style.display = "none";
     multiplierInput.style.display = "none";
     sideMultiplier.style.display = "none";
     congratulate.style.display = "none";
     nodeLabel.style.display = "none";
     historyList.style.display = "none"
+    mergedContent.style.display = "none"
+    groupTypeDisplay.style.display = "none"
+    nodeClick.style.display = "none"
   }
 });
 
@@ -778,4 +865,17 @@ function edgeExists(fromNode, toNode) {
   return edges.some(edge => (edge.from === fromNode && edge.to === toNode) || (edge.from === toNode && edge.to === fromNode));
 }
 
+// function to draw tooltips
+function drawTooltip(node, text) {
+  const offsetX = 10;
+  const offsetY = 10;
+  const padding = 5;
+  const tooltipWidth = context.measureText(text).width + 2 * padding;
+  const tooltipHeight = 20;
 
+  context.fillStyle = "rgba(0, 0, 0, 0.7)";
+  context.fillRect(node.x + offsetX, node.y - offsetY - tooltipHeight, tooltipWidth, tooltipHeight);
+  context.textBaseline = "middle";
+  context.fillStyle = "#ffffff";
+  context.fillText(text, node.x + offsetX + padding, node.y - offsetY - tooltipHeight / 2);
+}

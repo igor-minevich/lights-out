@@ -8,6 +8,7 @@
   <script defer src="./groups/CyclicNode.js"></script>
   <script defer src="./groups/DihedralNode.js"></script>
   <script defer src="./groups/QuaternionNode.js"></script>
+  <script defer src="./groups/FreeGroupNode.js"></script>
   <script defer src="./groups/ZNode.js"></script>
   <script defer src="./functions/historyFunctions.js"></script>
   <script defer src="./functions/graphFunctions.js"></script>
@@ -30,6 +31,7 @@
     </div>
 
     <div class="controls-wrapper">
+      <!-- DIV FOR GRAPH CONTROLS-->
       <div class="controls graph-controls" id="graphcontrols">
         <div>
           <button id="generate" onclick="generate_puzzle()" type="button">Generate puzzle</button>
@@ -49,12 +51,6 @@
           <input type="checkbox" id="sides">
           <label for="sides" id="sides_label">Sides connected</label>
         </div>
-
-        <div id="congratdiv" style="display: none;">
-          <input type="checkbox" id="congratulate" checked>
-          <label for="congratulate" id="congratulate_label">Congratulate achievements</label>
-        </div>
-
         <div id="set1div" style="display: none;">
           <label for="set1">Set 1 size:</label>
           <input type="number" id="set1" value="3" min="0">
@@ -100,24 +96,6 @@
           </select>
         </div>
 
-        <div id='divMultiply'>
-          <label for="groupMultiplier" id="groupMultiplier_label" style="display: none;">Multiplier:</label>
-          <input id="groupMultiplier" type="text" width="20px" value="1" onchange="set_group_multiplier()"
-            style="display: none;" />
-        </div>
-
-        <div id="nodeLabels" style="display: none;">
-          <label for="toggleLabels">Toggle Node Labels:</label>
-          <input type="checkbox" id="toggleLabels">
-        </div>
-
-        <div id="multiplicationOptions" style="display:none">
-          <label id="multiplication_label">Side to Multiply:</label>
-          <input type="radio" id="left" name="multiplication" value="left" checked>
-          <label for="left">Left</label>
-          <input type="radio" id="right" name="multiplication" value="right">
-          <label for="right">Right</label>
-        </div>
       </div>
 
       <div id="history" style="display:none">
@@ -160,12 +138,13 @@
         </p>
       </div>
 
-
+      <!-- DIV FOR GROUP CONTROLS-->
       <div class="controls group-controls" id="groupcontrols">
         <div>
           <label for="groupOrder">Group order:</label>
           <input type="text" id="groupOrder" value="2" onchange="set_group_order()" />
         </div>
+
         <div>
           <label for="groupTypeSelect" id="group_type_label">Group type:</label>
           <select id="groupTypeSelect" onchange="updateGroupType()">
@@ -174,6 +153,7 @@
             <option value="quaternion">Quaternion</option>
           </select>
         </div>
+
         <div>
           <button id="clear" onclick="clear_puzzle()" type="button">Clear puzzle</button>
         </div>
@@ -191,7 +171,54 @@
           <button id="delete" onclick="delete_puzzle()" type="button">Delete puzzle</button>
         </div>
       </div>
+
+      <div class="controls graph-controls" id="mergedcontrols" style="display:none">
+        <div>
+          <button id="clear" onclick="clear_puzzle()" type="button">Clear puzzle</button>
+        </div>
+        <div id="groupTypeDisplay"></div>
+        <div>
+          <label for="groupOrder">Group order:</label>
+          <input type="text" id="groupOrder" value="2" onchange="set_group_order()" />
+        </div>
+        <div id='divMultiply'>
+          <label for="groupMultiplier" id="groupMultiplier_label" style="display: none;">Multiplier:</label>
+          <input id="groupMultiplier" type="text" width="20px" value="1" onchange="set_group_multiplier()"
+            style="display: none;" />
+        </div>
+        <div id="multiplicationOptions" style="display:none">
+          <label id="multiplication_label">Side to Multiply:</label>
+          <input type="radio" id="left" name="multiplication" value="left" checked>
+          <label for="left">Left</label>
+          <input type="radio" id="right" name="multiplication" value="right">
+          <label for="right">Right</label>
+        </div>
+        <div id="nodeLabels" style="display: none;">
+          <label for="toggleLabels">Toggle Node Labels:</label>
+          <input type="checkbox" id="toggleLabels">
+        </div>
+        <div id="nodeClicks" style="display: none;">
+          <label for="toggleClicks">Toggle Node Clicks:</label>
+          <input type="checkbox" id="toggleClicks">
+        </div>
+        <div id="congratdiv" style="display: none;">
+          <input type="checkbox" id="congratulate" checked>
+          <label for="congratulate" id="congratulate_label">Congratulate achievements</label>
+        </div>
+        <div id="multiplicationOptions" style="display:none">
+          <label id="multiplication_label">Side to Multiply:</label>
+          <input type="radio" id="left" name="multiplication" value="left" checked>
+          <label for="left">Left</label>
+          <input type="radio" id="right" name="multiplication" value="right">
+          <label for="right">Right</label>
+        </div>
+
+      </div>
+
+
     </div>
+
+  </div>
   </div>
 
   <script>
