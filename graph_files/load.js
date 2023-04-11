@@ -50,7 +50,7 @@ groupTypeSelect.addEventListener('change', function () {
     groupOrderInput2.value = 8;
     groupOrderInput1.disabled = true;
     groupOrderInput2.disabled = true;
-  } else if (groupType === "freegroup") {
+  } else if (groupType === "freeabgroup") {
     groupOrderInput1.disabled = true;
     groupOrderInput2.disabled = true;
   }
@@ -93,8 +93,8 @@ btn_mode.addEventListener('click', function handleClick() {
         case "quaternion":
           vertex.node = new QuaternionNode(groupOrder);
           break;
-        case "freegroup":
-          vertex.node = new FreeGroupNode();
+        case "freeabgroup":
+          vertex.node = new FreeAbelianNode();
           break;
         default:
           alert("Something went wrong setting the group modes.");
@@ -103,6 +103,7 @@ btn_mode.addEventListener('click', function handleClick() {
     }
     btn_mode.textContent = 'Playing';
     btn_clear.textContent = 'Reset Puzzle';
+    clear_puzzle();
     draw(); // Displays default values of nodes when editing mode is clicked.
     addLegend();
   }
@@ -468,8 +469,8 @@ function clear_puzzle() {
         case "quaternion":
           vertex.node = new QuaternionNode(groupOrder);
           break;
-        case "freegroup":
-          vertex.node = new FreeGroupNode();
+        case "freeabgroup":
+          vertex.node = new FreeAbelianNode();
           break;
 
         default:
@@ -657,7 +658,7 @@ function set_group_order() {
 function set_group_multiplier() {
   const groupMultiplierInput = document.getElementById("groupMultiplier").value;
 
-  if (groupType === "freegroup") {
+  if (groupType === "freeabgroup") {
     // Validate and parse the input
     const regex = /^([a-zA-Z]\d*)*$/;
     if (!regex.test(groupMultiplierInput)) {
@@ -700,7 +701,7 @@ function updateGroupType() {
   groupType = groupTypeDropdown.value;
 
   const groupMultiplierInput = document.getElementById("groupMultiplier");
-  if (groupType === "freegroup") {
+  if (groupType === "freeabgroup") {
     groupMultiplierInput.placeholder = "Enter a combination of letters (e.g. aB3bC4)";
   } else {
     groupMultiplierInput.placeholder = "Enter a number";
@@ -743,8 +744,6 @@ function toggleVisuals() {
     "groupcontrols"
   ];
 
-  const graphControls = document.getElementById("graphcontrols");
-  const groupControls = document.getElementById("groupcontrols");
 
   if (mode === "Editing") {
     playButton.value = "Playing";
@@ -880,22 +879,28 @@ document.getElementById("play_button").addEventListener("click", function () {
     sideMultiplier.style.display = "inline-block";
     congratulate.style.display = "inline-block";
     nodeLabel.style.display = "block";
-    historyList.style.display = "block"
-    mergedContent.style.display = "inline-block"
-    groupTypeDisplay.style.display = "inline-block"
-    if (groupType === "cyclic")
-      nodeClick.style.display = "block"
-  }
+    historyList.style.display = "block";
+    mergedContent.style.display = "inline-block";
+    groupTypeDisplay.style.display = "inline-block";
+    if (groupType === "cyclic") {
+      sideMultiplier.style.display = "none";
+      nodeClick.style.display = "block";
+    }
+    if (groupType === "freeabgroup") {
+    sideMultiplier.style.display = "none";
+    nodeClick.style.display = "none";
+      }
+    }
   else {
     multiplierLabel.style.display = "none";
     multiplierInput.style.display = "none";
     sideMultiplier.style.display = "none";
     congratulate.style.display = "none";
     nodeLabel.style.display = "none";
-    historyList.style.display = "none"
-    mergedContent.style.display = "none"
-    groupTypeDisplay.style.display = "none"
-    nodeClick.style.display = "none"
+    historyList.style.display = "none";
+    mergedContent.style.display = "none";
+    groupTypeDisplay.style.display = "none";
+    nodeClick.style.display = "none";
   }
 });
 

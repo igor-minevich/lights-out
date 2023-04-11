@@ -1,6 +1,14 @@
-class FreeGroupNode {
+class FreeAbelianNode {
     constructor() {
         this.value = '';
+    }
+    
+    defaultMultiplier() {
+        return "a";
+    }
+
+    identity() {
+        return "1";
     }
 
     multiply(input, leftMultiply, clicked) {
@@ -52,7 +60,8 @@ class FreeGroupNode {
             }
         });
 
-        return result.length === 0 ? '1' : result;
+        // return result.length === 0 ? this.identity() : result;
+        return result;
     }
 
 
@@ -84,6 +93,6 @@ class FreeGroupNode {
     }
 
     toString() {
-        return this.value === '' ? '1' : this.value;
+        return this.value === '' ? this.identity() : this.value;
     }
 }
