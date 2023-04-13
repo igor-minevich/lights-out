@@ -2,7 +2,7 @@ class FreeAbelianNode {
     constructor() {
         this.value = '';
     }
-    
+
     defaultMultiplier() {
         return "a";
     }

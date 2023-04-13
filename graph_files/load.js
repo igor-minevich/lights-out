@@ -50,7 +50,7 @@ groupTypeSelect.addEventListener('change', function () {
     groupOrderInput2.value = 8;
     groupOrderInput1.disabled = true;
     groupOrderInput2.disabled = true;
-  } else if (groupType === "freeabgroup") {
+  } else if (groupType === "freeabgroup" || groupType === "freegroup") {
     groupOrderInput1.disabled = true;
     groupOrderInput2.disabled = true;
   }
@@ -76,7 +76,9 @@ function updateGroupTypeDisplay() {
 
 // Code for the Editing/Playing mode button
 btn_mode.addEventListener('click', function handleClick() {
+  document.getElementById("displayValues").checked = true;
   // Get the selected group type from the dropdown menu
+
   const groupTypeSelect = document.getElementById('groupTypeSelect');
   const groupType = groupTypeSelect.value;
   set_group_order();
@@ -96,6 +98,9 @@ btn_mode.addEventListener('click', function handleClick() {
         case "freeabgroup":
           vertex.node = new FreeAbelianNode();
           break;
+        case "freegroup":
+          vertex.node = new FreeGroupNode();
+          break;
         default:
           alert("Something went wrong setting the group modes.");
           break;
@@ -106,6 +111,7 @@ btn_mode.addEventListener('click', function handleClick() {
     clear_puzzle();
     draw(); // Displays default values of nodes when editing mode is clicked.
     addLegend();
+    document.getElementById("right").checked = true;
   }
   else {
     btn_mode.textContent = 'Editing';
@@ -211,19 +217,24 @@ function create_edge(fromNode, toNode, round, dash) { //check if an edge already
   }
 }
 
-const toggleLabelsCheckbox = document.getElementById('toggleLabels');
-toggleLabelsCheckbox.addEventListener('change', draw);
-const toggleClicksCheckbox = document.getElementById('toggleClicks');
-toggleClicksCheckbox.addEventListener('change', draw);
+const displayOptions = document.getElementsByName("displayOption");
+for (const option of displayOptions) {
+  option.addEventListener("change", draw);
+}
+
 
 function draw() {
   context.clearRect(0, 0, window.innerWidth, window.innerHeight);
   for (let i = 0; i < edges.length; i++)
     create_edge(edges[i].from, edges[i].to, edges[i].round, edges[i].dash);
-  const toggleLabelsCheckbox = document.getElementById('toggleLabels');
-  const showLabels = toggleLabelsCheckbox.checked;
-  const toggleClicksCheckbox = document.getElementById('toggleClicks');
-  const showClicks = toggleClicksCheckbox.checked;
+  let showOption = "";
+  for (const option of displayOptions) {
+    if (option.checked) {
+      showOption = option.value;
+      break;
+    }
+  }
+
 
   if (btn_mode.textContent == 'Editing') {
     for (let i = 0; i < nodes.length; i++) {
@@ -250,10 +261,16 @@ function draw() {
       context.fill();
       context.stroke();
 
-      if (showClicks) {
+      if (showOption === "clicks" && (groupType === "cyclic" || groupType === "freeabgroup" || groupType === "freegroup")) {
+
         drawClicks(node, true);
       } else {
-        drawLabel(node, showLabels);
+        if (showOption === "labels") {
+          drawLabel(node, true);
+        } else if (showOption === "values") {
+          drawLabel(node, false);
+        }
+
       }
     }
 
@@ -275,28 +292,32 @@ function move(e) {
     if (target && btn_mode.textContent === "Playing") {
       const groupTypeSelect = document.getElementById('groupTypeSelect');
       const groupType = groupTypeSelect.value;
-      const showLabels = document.getElementById("toggleLabels").checked;
-      const showClicks = document.getElementById("toggleClicks").checked;
+      let showOption = "";
+      for (const option of displayOptions) {
+        if (option.checked) {
+          showOption = option.value;
+          break;
+        }
+      }
 
       let tooltipText = "";
 
-      if (groupType === "cyclic" || groupType === "freeabgroup") {
-        if (showLabels && showClicks) {
-          tooltipText = "Value: " + target.node.toString();
-        } else if (showLabels) {
+      if (groupType === "cyclic") {
+        if (showOption === "labels") {
           tooltipText = "Value: " + target.node.toString() + " | Clicks: " + target.node.clicks;
-        } else if (showClicks) {
-          tooltipText = "Label: " + target.label + " | Value: " + target.node.toString();
-        } else {
+        } else if (showOption === "values") {
           tooltipText = "Label: " + target.label + " | Clicks: " + target.node.clicks;
+        } else if (showOption === "clicks") {
+          tooltipText = "Label: " + target.label + " | Value: " + target.node.toString();
         }
       } else {
-        if (showLabels) {
+        if (showOption === "labels") {
           tooltipText = "Value: " + target.node.toString();
-        } else {
+        } else if (showOption === "values") {
           tooltipText = "Label: " + target.label;
         }
       }
+
       drawTooltip(target, tooltipText);
     }
   }
@@ -471,6 +492,9 @@ function clear_puzzle() {
           break;
         case "freeabgroup":
           vertex.node = new FreeAbelianNode();
+          break;
+        case "freegroup":
+          vertex.node = new FreeGroupNode();
           break;
 
         default:
@@ -658,7 +682,7 @@ function set_group_order() {
 function set_group_multiplier() {
   const groupMultiplierInput = document.getElementById("groupMultiplier").value;
 
-  if (groupType === "freeabgroup") {
+  if (groupType === "freeabgroup" || groupType === "freegroup") {
     // Validate and parse the input
     const regex = /^([a-zA-Z]\d*)*$/;
     if (!regex.test(groupMultiplierInput)) {
@@ -701,7 +725,7 @@ function updateGroupType() {
   groupType = groupTypeDropdown.value;
 
   const groupMultiplierInput = document.getElementById("groupMultiplier");
-  if (groupType === "freeabgroup") {
+  if (groupType === "freeabgroup" || groupType === "freegroup") {
     groupMultiplierInput.placeholder = "Enter a combination of letters (e.g. aB3bC4)";
   } else {
     groupMultiplierInput.placeholder = "Enter a number";
@@ -865,11 +889,14 @@ document.getElementById("play_button").addEventListener("click", function () {
   const multiplierInput = document.getElementById("groupMultiplier");
   const sideMultiplier = document.getElementById("multiplicationOptions");
   const congratulate = document.getElementById("congratdiv");
-  const nodeLabel = document.getElementById("nodeLabels");
   const historyList = document.getElementById("history");
   const mergedContent = document.getElementById("mergedcontrols");
   const groupTypeDisplay = document.getElementById("groupTypeDisplay");
-  const nodeClick = document.getElementById("nodeClicks");
+  const nodeClick = document.getElementById("displayClicks");
+  const nodeLabel = document.getElementById("displayLabels");
+  const nodeClickInput = document.getElementById("displayClicksInput");
+  const nodeLabelInput = document.getElementById("displayLabelsInput");
+  const nodeDisplay = document.getElementById("nodeDisplayOptions");
   const groupTypeSelect = document.getElementById('groupTypeSelect');
   const groupType = groupTypeSelect.value;
 
@@ -878,19 +905,23 @@ document.getElementById("play_button").addEventListener("click", function () {
     multiplierInput.style.display = "inline-block";
     sideMultiplier.style.display = "inline-block";
     congratulate.style.display = "inline-block";
-    nodeLabel.style.display = "block";
+    nodeDisplay.style.display = "block";
     historyList.style.display = "block";
     mergedContent.style.display = "inline-block";
     groupTypeDisplay.style.display = "inline-block";
     if (groupType === "cyclic") {
       sideMultiplier.style.display = "none";
-      nodeClick.style.display = "block";
+      nodeLabel.style.display = "inline-block";
+      nodeClick.style.display = "inline-block";
+      nodeClickInput.style.display = "inline-block";
     }
-    if (groupType === "freeabgroup") {
-    sideMultiplier.style.display = "none";
-    nodeClick.style.display = "none";
-      }
+    if (groupType === "dihedral" || groupType === "quaternion" || groupType === "freegroup" || groupType === "freeabgroup") {
+      nodeLabel.style.display = "inline-block";
+      nodeLabelInput.style.display = "inline-block";
+      nodeClick.style.display = "none";
+      nodeClickInput.style.display = "none";
     }
+  }
   else {
     multiplierLabel.style.display = "none";
     multiplierInput.style.display = "none";
@@ -900,7 +931,7 @@ document.getElementById("play_button").addEventListener("click", function () {
     historyList.style.display = "none";
     mergedContent.style.display = "none";
     groupTypeDisplay.style.display = "none";
-    nodeClick.style.display = "none";
+    nodeDisplay.style.display = "none";
   }
 });
 

@@ -10,6 +10,7 @@
   <script defer src="./groups/QuaternionNode.js"></script>
   <script defer src="./groups/ZNode.js"></script>
   <script defer src="./groups/FreeAbelianNode.js"></script>
+  <script defer src="./groups/FreeGroupNode.js"></script>
   <script defer src="./functions/historyFunctions.js"></script>
   <script defer src="./functions/graphFunctions.js"></script>
   <script defer src="GraphicalNode.js"></script>
@@ -153,6 +154,7 @@
             <option value="dihedral">Dihedral</option>
             <option value="quaternion">Quaternion</option>
             <option value="freeabgroup">Free Abelian Group</option>
+            <option value="freegroup">Free Group</option>
           </select>
         </div>
 
@@ -197,13 +199,14 @@
           <input type="radio" id="right" name="multiplication" value="right">
           <label for="right">Right</label>
         </div>
-        <div id="nodeLabels" style="display: none;">
-          <label for="toggleLabels">Toggle Node Labels:</label>
-          <input type="checkbox" id="toggleLabels">
-        </div>
-        <div id="nodeClicks" style="display: none;">
-          <label for="toggleClicks">Toggle Node Clicks:</label>
-          <input type="checkbox" id="toggleClicks">
+        <div id="nodeDisplayOptions" style="display: none;">
+          <span>Show:</span>
+          <input type="radio" id="displayValues" name="displayOption" value="values">
+          <label for="displayValues" id="displayValuesInput">Values</label>
+          <input type="radio" id="displayLabels" name="displayOption" value="labels">
+          <label for="displayLabels" id="displayLabelsInput">Labels</label>
+          <input type="radio" id="displayClicks" name="displayOption" value="clicks">
+          <label for="displayClicks" id="displayClicksInput">Clicks</label>
         </div>
         <div id="congratdiv" style="display: none;">
           <input type="checkbox" id="congratulate" checked>
