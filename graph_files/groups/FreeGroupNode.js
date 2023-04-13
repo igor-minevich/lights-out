@@ -60,7 +60,6 @@ class FreeGroupNode {
                 let current = L[i];
                 let next = L[i + 1];
                 if (current[0].toUpperCase() === next[0].toUpperCase()) {
-                    // Check if the letters are inverses
                     if (
                         (current[0].toLowerCase() === current[0] && next[0].toUpperCase() === next[0]) ||
                         (current[0].toUpperCase() === current[0] && next[0].toLowerCase() === next[0])
@@ -69,7 +68,9 @@ class FreeGroupNode {
                         if (newExponent === 0) {
                             L.splice(i, 2);
                         } else {
-                            current[1] = newExponent;
+                            current[1] = Math.abs(newExponent);
+                            // Update the generator to have the correct case
+                            current[0] = newExponent > 0 ? current[0].toLowerCase() : current[0].toUpperCase();
                             L.splice(i + 1, 1);
                         }
                     } else {
@@ -84,6 +85,7 @@ class FreeGroupNode {
     }
 
 
+
     color() {
         return 'white';
     }
@@ -92,3 +94,5 @@ class FreeGroupNode {
         return this.value === '' ? this.identity() : this.value;
     }
 }
+
+

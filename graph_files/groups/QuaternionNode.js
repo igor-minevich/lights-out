@@ -13,6 +13,7 @@ class QuaternionNode {
             [4, 3, -2, -1]
         ];
 
+
         const getIndex = val => {
             if (val < 0) {
                 return (Math.abs(val) - 1 + 4) % 4;
@@ -21,7 +22,7 @@ class QuaternionNode {
         };
 
         const getValue = index => {
-            if (index > 3) {
+            if (index >= 4) {
                 return (index - 3) * -1;
             }
             return index + 1;
@@ -34,8 +35,9 @@ class QuaternionNode {
             ? multTable[aIndex][bIndex]
             : multTable[bIndex][aIndex];
 
-        this.value = getValue(result);
+        this.value = getValue((result + 8) % 8); // Add 8 before taking modulo to ensure positive result
     }
+
 
     color() {
         let colors = {
@@ -45,7 +47,8 @@ class QuaternionNode {
             '4': "rgb(0,0,255)",      // k: Blue
             '-1': "rgb(128,0,0)",     // -1: Dark Red
             '-2': "rgb(0,128,0)",     // -i: Dark Green
-            '-3': "rgb(0,0,128)"      // -j: Dark Blue
+            '-3': "rgb(0,0,128)",     // -j: Dark Blue
+            '-4': "rgb(128,128,255)"  // -k: Light Blue
         };
 
         return colors[this.value.toString()] || colors[(-this.value).toString()];

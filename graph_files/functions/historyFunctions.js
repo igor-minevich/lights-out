@@ -65,6 +65,8 @@ function applyHistory(index) {
     for (let node of nodes) {
         if (node.node instanceof QuaternionNode) {
             node.node.value = 1;
+        } else if (node.node instanceof FreeGroupNode || node.node instanceof FreeAbelianNode) {
+            node.node.reset();
         } else {
             node.node.value = 0;
         }
@@ -100,6 +102,7 @@ function applyHistory(index) {
     // Call draw() to update the canvas with the new node values
     draw();
 }
+
 
 const updateButton = document.getElementById("updateButton");
 

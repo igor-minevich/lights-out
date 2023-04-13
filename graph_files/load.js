@@ -75,10 +75,11 @@ function updateGroupTypeDisplay() {
 
 
 // Code for the Editing/Playing mode button
+
 btn_mode.addEventListener('click', function handleClick() {
+
   document.getElementById("displayValues").checked = true;
   // Get the selected group type from the dropdown menu
-
   const groupTypeSelect = document.getElementById('groupTypeSelect');
   const groupType = groupTypeSelect.value;
   set_group_order();
@@ -915,11 +916,18 @@ document.getElementById("play_button").addEventListener("click", function () {
       nodeClick.style.display = "inline-block";
       nodeClickInput.style.display = "inline-block";
     }
-    if (groupType === "dihedral" || groupType === "quaternion" || groupType === "freegroup" || groupType === "freeabgroup") {
+    if (groupType === "dihedral" || groupType === "quaternion" || groupType === "freegroup") {
       nodeLabel.style.display = "inline-block";
       nodeLabelInput.style.display = "inline-block";
       nodeClick.style.display = "none";
       nodeClickInput.style.display = "none";
+    }
+    if (groupType === "freeabgroup") {
+      nodeLabel.style.display = "inline-block";
+      nodeLabelInput.style.display = "inline-block";
+      nodeClick.style.display = "none";
+      nodeClickInput.style.display = "none";
+      sideMultiplier.style.display = "none";
     }
   }
   else {
