@@ -6,20 +6,30 @@ function addToHistory(label, groupMultiplier, leftRightMultiplier) {
     let historyItem = {
         label: label,
         groupMultiplier: groupMultiplier,
-        leftRightMultiplier: leftRightMultiplier,
         selected: false,
     };
+
+    if (groupType !== "freeabgroup" && groupType !== "cyclic") {
+        historyItem.leftRightMultiplier = leftRightMultiplier;
+    }
 
     historyData.push(historyItem);
     updateHistoryList();
 }
+
 
 function updateHistoryList() {
     historyList.innerHTML = '';
 
     historyData.forEach((item, index) => {
         const li = document.createElement('li');
-        li.textContent = `Node: [${item.label}], Multiplier: [${item.groupMultiplier}], Side: [${item.leftRightMultiplier}]`;
+        let itemText = `Node: [${item.label}], Multiplier: [${item.groupMultiplier}]`;
+
+        if (item.leftRightMultiplier) {
+            itemText += `, Side: [${item.leftRightMultiplier}]`;
+        }
+
+        li.textContent = itemText;
         li.addEventListener('click', () => {
             selectHistoryItem(index);
         });
@@ -31,6 +41,7 @@ function updateHistoryList() {
         historyList.appendChild(li);
     });
 }
+
 
 function selectHistoryItem(index) {
     historyData.forEach((item, idx) => {
@@ -50,7 +61,13 @@ function selectHistoryItem(index) {
 
     const selectedItem = historyData[index];
     nodeLabelInput.value = selectedItem.label;
+    if (groupType === "freegroup" || groupType === "freeabgroup") {
+        multiplierInput.type = "text";
+    } else {
+        multiplierInput.type = "number";
+    }
     multiplierInput.value = selectedItem.groupMultiplier;
+    // Set the side radio buttons
     if (selectedItem.leftRightMultiplier === 'Left') {
         sideRadioLeft.checked = true;
     } else {
@@ -60,13 +77,28 @@ function selectHistoryItem(index) {
     draw();
 }
 
+function validateHistoryMultiplier(multiplier) {
+    if (groupType === "freeabgroup" || groupType === "freegroup") {
+        const regex = /^([a-zA-Z]\d*|1)*$/;
+        if (!regex.test(multiplier)) {
+            return false;
+        }
+    } else {
+        if (isNaN(parseInt(multiplier))) {
+            return false;
+        }
+    }
+    return true;
+}
+
+
 function applyHistory(index) {
     // Reset all nodes to their initial states
     for (let node of nodes) {
         if (node.node instanceof QuaternionNode) {
             node.node.value = 1;
         } else if (node.node instanceof FreeGroupNode || node.node instanceof FreeAbelianNode) {
-            node.node.reset();
+            node.node.value = '';
         } else {
             node.node.value = 0;
         }
@@ -79,9 +111,17 @@ function applyHistory(index) {
         const targetNode = nodes.find((node) => node.label === historyItem.label);
 
         if (targetNode) {
-            const leftMultiply = historyItem.leftRightMultiplier === "Left";
-            const multiplier = parseInt(historyItem.groupMultiplier);
-            targetNode.node.multiply(multiplier, leftMultiply, true);
+            let leftMultiply = historyItem.leftRightMultiplier === "Left";
+            let multiplier = historyItem.groupMultiplier;
+            if (groupType === "freegroup" || groupType === "freeabgroup") {
+                if (targetNode.node instanceof FreeAbelianNode && multiplier === "a") {
+                    multiplier = targetNode.node.defaultMultiplier();
+                }
+                targetNode.node.multiply(multiplier, leftMultiply, true);
+            } else {
+                const multiplierInt = parseInt(multiplier);
+                targetNode.node.multiply(multiplierInt, leftMultiply, true);
+            }
 
             for (let edge of edges) {
                 let otherNode = undefined;
@@ -93,7 +133,15 @@ function applyHistory(index) {
                 }
 
                 if (otherNode) {
-                    otherNode.node.multiply(multiplier, leftMultiply, false);
+                    if (groupType === "freegroup" || groupType === "freeabgroup") {
+                        if (otherNode.node instanceof FreeAbelianNode && multiplier === "a") {
+                            multiplier = otherNode.node.defaultMultiplier();
+                        }
+                        otherNode.node.multiply(multiplier, leftMultiply, false);
+                    } else {
+                        const multiplierInt = parseInt(multiplier);
+                        otherNode.node.multiply(multiplierInt, leftMultiply, false);
+                    }
                 }
             }
         }
@@ -102,6 +150,7 @@ function applyHistory(index) {
     // Call draw() to update the canvas with the new node values
     draw();
 }
+
 
 
 const updateButton = document.getElementById("updateButton");
@@ -114,10 +163,14 @@ function updateSelectedHistoryItem() {
     const nodeLabelInput = document.getElementById("nodeLabelInput");
     const multiplierInput = document.getElementById("multiplierInput");
     const sideRadioLeft = document.querySelector('input[name="sideRadio"][value="Left"]');
-    const sideRadioRight = document.querySelector('input[name="sideRadio"][value="Right"]');
 
     const newLabel = nodeLabelInput.value;
-    const newMultiplier = parseInt(multiplierInput.value);
+    const newMultiplier = multiplierInput.value;
+
+    if (!validateHistoryMultiplier(newMultiplier)) {
+        alert("Invalid input for multiplier.");
+        return;
+    }
     const newLeftRightMultiplier = sideRadioLeft.checked ? "Left" : "Right";
 
     const selectedIndex = historyData.findIndex(item => item.selected);
@@ -126,7 +179,12 @@ function updateSelectedHistoryItem() {
         const selectedItem = historyData[selectedIndex];
         selectedItem.label = newLabel;
         selectedItem.groupMultiplier = newMultiplier;
-        selectedItem.leftRightMultiplier = newLeftRightMultiplier;
+
+        if (groupType !== "freeabgroup" && groupType !== "cyclic") {
+            selectedItem.leftRightMultiplier = newLeftRightMultiplier;
+        } else {
+            selectedItem.leftRightMultiplier = undefined;
+        }
 
         applyHistory(selectedIndex);
         updateHistoryList();
@@ -139,22 +197,35 @@ insertButton.addEventListener("click", function () {
     const nodeLabelInput = document.getElementById("nodeLabelInput");
     const multiplierInput = document.getElementById("multiplierInput");
     const sideRadioLeft = document.querySelector('input[name="sideRadio"][value="Left"]');
-    const sideRadioRight = document.querySelector('input[name="sideRadio"][value="Right"]');
 
     const newLabel = nodeLabelInput.value;
     const newMultiplier = parseInt(multiplierInput.value);
     const newLeftRightMultiplier = sideRadioLeft.checked ? "Left" : "Right";
 
-    insertToHistory(newLabel, newMultiplier, newLeftRightMultiplier);
+    if (groupType !== "freeabgroup" && groupType !== "cyclic") {
+        insertToHistory(newLabel, newMultiplier, newLeftRightMultiplier);
+    } else {
+        insertToHistory(newLabel, newMultiplier);
+    }
 });
 
+
 function insertToHistory(label, groupMultiplier, leftRightMultiplier) {
+    if (!validateHistoryMultiplier(groupMultiplier)) {
+        alert("Invalid input for multiplier.");
+        return;
+    }
     let historyItem = {
         label: label,
         groupMultiplier: groupMultiplier,
-        leftRightMultiplier: leftRightMultiplier,
         selected: false,
     };
+
+    if (groupType !== "freeabgroup" && groupType !== "cyclic") {
+        insertToHistory(newLabel, newMultiplier, newLeftRightMultiplier);
+    } else {
+        insertToHistory(newLabel, newMultiplier);
+    }
 
     const selectedIndex = historyData.findIndex(item => item.selected);
     if (selectedIndex >= 0) {

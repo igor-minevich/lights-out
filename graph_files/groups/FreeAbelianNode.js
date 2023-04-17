@@ -1,5 +1,6 @@
 class FreeAbelianNode {
     constructor() {
+        this.clicks = 0;
         this.value = '';
     }
 
@@ -20,6 +21,10 @@ class FreeAbelianNode {
         } else {
             this.value = this.performMultiplication(a, b);
         }
+        if (clicked) {
+            this.clicks++;
+        }
+
     }
 
     performMultiplication(a, b) {

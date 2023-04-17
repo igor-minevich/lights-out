@@ -127,6 +127,7 @@ btn_mode.addEventListener('click', function handleClick() {
 });
 
 
+
 var set_num_clicks = function (c) {
   clicks = c;
 };
@@ -279,6 +280,11 @@ function draw() {
 }
 
 function move(e) {
+  // Get the bounding rectangles of the canvas
+  const canvasRect = canvas.getBoundingClientRect();
+
+
+
   if (node_dragged && e.buttons) {
     var pos = getMousePos(e);
     if (pos.x > 0 && pos.x <= canvas.width && pos.y > 0 && pos.y <= canvas.height) {
@@ -290,7 +296,8 @@ function move(e) {
   } else {
     const target = within(e.offsetX, e.offsetY);
     draw();
-    if (target && btn_mode.textContent === "Playing") {
+    if (target && btn_mode.textContent === "Playing" && e.clientX >= canvasRect.left && e.clientX <= canvasRect.right
+      && e.clientY >= canvasRect.top && e.clientY <= canvasRect.bottom) {
       const groupTypeSelect = document.getElementById('groupTypeSelect');
       const groupType = groupTypeSelect.value;
       let showOption = "";
@@ -303,7 +310,7 @@ function move(e) {
 
       let tooltipText = "";
 
-      if (groupType === "cyclic") {
+      if (groupType === "cyclic" || groupType === "freeabgroup") {
         if (showOption === "labels") {
           tooltipText = "Value: " + target.node.toString() + " | Clicks: " + target.node.clicks;
         } else if (showOption === "values") {
@@ -323,6 +330,7 @@ function move(e) {
     }
   }
 }
+
 
 
 function find_edge(fromNode, toNode) {
@@ -409,31 +417,37 @@ function up(e) {
     const selectedMultiplication = getSelectedMultiplication();
     let leftMultiply = selectedMultiplication === "left";
 
+
+
     if (target) {
-      target.node.multiply(groupMultiplier, leftMultiply, true);
+      // Update group multiplier validation when a node is clicked
+      const isValidInput = set_group_multiplier(true);
 
-      // find other nodes connected to the clicked node and multiply them by the group element.
-      for (let i = 0; i < edges.length; i++) {
-        var other = undefined;
-        if (edges[i].from == target)
-          other = edges[i].to;
-        else if (edges[i].to == target)
-          other = edges[i].from;
-        if (other) {
-          other.node.multiply(groupMultiplier, leftMultiply, false);
+      if (isValidInput) {
+        target.node.multiply(groupMultiplier, leftMultiply, true);
+
+        // find other nodes connected to the clicked node and multiply them by the group element.
+        for (let i = 0; i < edges.length; i++) {
+          var other = undefined;
+          if (edges[i].from == target)
+            other = edges[i].to;
+          else if (edges[i].to == target)
+            other = edges[i].from;
+          if (other) {
+            other.node.multiply(groupMultiplier, leftMultiply, false);
+          }
         }
+        draw();
+
+        // Add the new event to the history list
+        const label = target.label;
+        const groupMultiplierUsed = groupMultiplier;
+        const leftRightMultiplierUsed = leftMultiply ? "Left" : "Right";
+        addToHistory(label, groupMultiplierUsed, leftRightMultiplierUsed);
+
+        //The current implementation of the congratulate function displays a message each time a node is clicked, which is not desirable.
+        //congratulate();
       }
-      draw();
-
-      // Add the new event to the history list
-      const label = target.label;
-      const groupMultiplierUsed = groupMultiplier;
-      const leftRightMultiplierUsed = leftMultiply ? "Left" : "Right";
-      addToHistory(label, groupMultiplierUsed, leftRightMultiplierUsed);
-
-      //The current implementation of the congratulate function displays a message each time a node is clicked, which is not desirable.
-      //congratulate();
-
     }
 
   }
@@ -680,21 +694,27 @@ function set_group_order() {
 }
 
 
-function set_group_multiplier() {
+function set_group_multiplier(validateInput = true) {
   const groupMultiplierInput = document.getElementById("groupMultiplier").value;
 
   if (groupType === "freeabgroup" || groupType === "freegroup") {
-    // Validate and parse the input
-    const regex = /^([a-zA-Z]\d*)*$/;
-    if (!regex.test(groupMultiplierInput)) {
-      alert("Invalid input. Please enter a combination of letters and numbers.");
-      return;
+    const regex = /^([a-zA-Z]\d*|1)*$/;
+    if (validateInput && !regex.test(groupMultiplierInput)) {
+      alert("Invalid input. Please enter a combination of letters and numbers or the identity element '1'.");
+      return false;
     }
-    groupMultiplier = groupMultiplierInput.replace(/([a-zA-Z])(?![0-9])/g, '$11');
+    groupMultiplier = groupMultiplierInput;
   } else {
+    if (validateInput && isNaN(parseInt(groupMultiplierInput))) {
+      alert("Invalid input. Please enter a numeric value.");
+      return false;
+    }
     groupMultiplier = parseInt(groupMultiplierInput);
   }
+  return true;
 }
+
+
 
 
 // Connects all existing vertices to the selected vertex
@@ -856,14 +876,19 @@ function getSelectedMultiplication() {
   }
 }
 
-// function to show node labeling
 function drawLabel(node, showLabels) {
   context.font = "12px Verdana";
   context.beginPath();
   context.fillStyle = "#000000";
   let string = showLabels ? node.label.toString() : node.node.toString();
-  // context.fillText(node.label, node.x - node.radius / 2, node.y + node.radius / 2);
-  context.fillText(string, node.x + 1 - 4 * string.length, node.y + 4);
+
+  // Center the text
+  const textMetrics = context.measureText(string);
+  const textWidth = textMetrics.width;
+  const xPos = node.x - textWidth / 2;
+  const yPos = node.y + 4;
+
+  context.fillText(string, xPos, yPos);
   context.fill();
 }
 
@@ -872,13 +897,12 @@ function drawClicks(node, showClicks) {
   context.beginPath();
   context.fillStyle = "#000000";
   let string = showClicks ? node.node.clicks.toString() : node.node.toString();
+
+  // Center the text
   const textMetrics = context.measureText(string);
   const textWidth = textMetrics.width;
-  const textHeight = parseInt(context.font, 10);
-
-  // Calculate the x and y positions to center the text
   const xPos = node.x - textWidth / 2;
-  const yPos = node.y + textHeight / 4;
+  const yPos = node.y + 4;
 
   context.fillText(string, xPos, yPos);
   context.fill();
@@ -899,6 +923,7 @@ document.getElementById("play_button").addEventListener("click", function () {
   const nodeLabelInput = document.getElementById("displayLabelsInput");
   const nodeDisplay = document.getElementById("nodeDisplayOptions");
   const groupTypeSelect = document.getElementById('groupTypeSelect');
+  const historySide = document.getElementById("historySide");
   const groupType = groupTypeSelect.value;
 
   if (this.value === "Playing") {
@@ -910,24 +935,19 @@ document.getElementById("play_button").addEventListener("click", function () {
     historyList.style.display = "block";
     mergedContent.style.display = "inline-block";
     groupTypeDisplay.style.display = "inline-block";
-    if (groupType === "cyclic") {
+    if (groupType === "cyclic" || groupType === "freeabgroup") {
       sideMultiplier.style.display = "none";
       nodeLabel.style.display = "inline-block";
       nodeClick.style.display = "inline-block";
       nodeClickInput.style.display = "inline-block";
+      historySide.style.display = "none"
     }
     if (groupType === "dihedral" || groupType === "quaternion" || groupType === "freegroup") {
       nodeLabel.style.display = "inline-block";
       nodeLabelInput.style.display = "inline-block";
       nodeClick.style.display = "none";
       nodeClickInput.style.display = "none";
-    }
-    if (groupType === "freeabgroup") {
-      nodeLabel.style.display = "inline-block";
-      nodeLabelInput.style.display = "inline-block";
-      nodeClick.style.display = "none";
-      nodeClickInput.style.display = "none";
-      sideMultiplier.style.display = "none";
+      historySide.style.display = "inline-block"
     }
   }
   else {

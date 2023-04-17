@@ -11,7 +11,7 @@ class FreeGroupNode {
         return '1';
     }
 
-    multiply(input, leftMultiply) {
+    multiply(input, leftMultiply, clicked) {
         let a = this.value;
         let b = input;
 
