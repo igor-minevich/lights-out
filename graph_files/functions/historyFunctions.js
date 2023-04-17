@@ -192,14 +192,20 @@ function updateSelectedHistoryItem() {
 }
 
 // Add event listener for insert button
-const insertButton = document.getElementById("insertButton");
 insertButton.addEventListener("click", function () {
     const nodeLabelInput = document.getElementById("nodeLabelInput");
     const multiplierInput = document.getElementById("multiplierInput");
     const sideRadioLeft = document.querySelector('input[name="sideRadio"][value="Left"]');
 
     const newLabel = nodeLabelInput.value;
-    const newMultiplier = parseInt(multiplierInput.value);
+    let newMultiplier;
+
+    if (groupType === "freegroup" || groupType === "freeabgroup") {
+        newMultiplier = multiplierInput.value;
+    } else {
+        newMultiplier = parseInt(multiplierInput.value);
+    }
+
     const newLeftRightMultiplier = sideRadioLeft.checked ? "Left" : "Right";
 
     if (groupType !== "freeabgroup" && groupType !== "cyclic") {
@@ -208,6 +214,7 @@ insertButton.addEventListener("click", function () {
         insertToHistory(newLabel, newMultiplier);
     }
 });
+
 
 
 function insertToHistory(label, groupMultiplier, leftRightMultiplier) {
@@ -220,13 +227,6 @@ function insertToHistory(label, groupMultiplier, leftRightMultiplier) {
         groupMultiplier: groupMultiplier,
         selected: false,
     };
-
-    if (groupType !== "freeabgroup" && groupType !== "cyclic") {
-        insertToHistory(newLabel, newMultiplier, newLeftRightMultiplier);
-    } else {
-        insertToHistory(newLabel, newMultiplier);
-    }
-
     const selectedIndex = historyData.findIndex(item => item.selected);
     if (selectedIndex >= 0) {
         historyData.splice(selectedIndex + 1, 0, historyItem);
@@ -236,6 +236,7 @@ function insertToHistory(label, groupMultiplier, leftRightMultiplier) {
 
     updateHistoryList();
 }
+
 
 // Add event listener for delete button
 const deleteButton = document.getElementById("deleteButton");
