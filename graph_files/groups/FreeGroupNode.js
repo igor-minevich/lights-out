@@ -30,8 +30,56 @@ class FreeGroupNode {
     reduceString(s) {
         let L = this.parseString(s);
         let reducedL = this.combineTuples(L);
+        let changed;
+
+        // Apply relations to the string
+        do {
+            changed = false;
+            for (const relation of relations) {
+                let result = this.applyRelation(reducedL, relation);
+                reducedL = result.reducedL;
+                if (result.changed) {
+                    changed = true;
+                }
+            }
+
+            // Re-combine tuples after applying relations
+            if (changed) {
+                reducedL = this.combineTuples(reducedL);
+            }
+        } while (changed);
+
         return this.unparseString(reducedL);
     }
+
+
+
+    applyRelation(reducedL, relation) {
+        let changed = false;
+        let relationParsed = this.parseString(relation);
+
+        for (let i = 0; i < reducedL.length - relationParsed.length + 1; i++) {
+            let match = true;
+            for (let j = 0; j < relationParsed.length; j++) {
+                if (
+                    reducedL[i + j][0] !== relationParsed[j][0] ||
+                    reducedL[i + j][1] !== relationParsed[j][1]
+                ) {
+                    match = false;
+                    break;
+                }
+            }
+            if (match) {
+                reducedL.splice(i, relationParsed.length);
+                changed = true;
+                break;
+            }
+        }
+
+        return { reducedL, changed };
+    }
+
+
 
     parseString(s) {
         let regex = /([a-zA-Z])(\d*)/g;
@@ -83,8 +131,6 @@ class FreeGroupNode {
         }
         return L;
     }
-
-
 
     color() {
         return 'white';

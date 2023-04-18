@@ -217,13 +217,26 @@
           <input type="radio" id="right" name="multiplication" value="right">
           <label for="right">Right</label>
         </div>
-
       </div>
+
+      <div id="relationsContainer" style="display:none;">
+        <h3>Relations</h3>
+        <input type="text" id="relationInput" placeholder="Enter relation" />
+        <div>
+          <button id="storeRelation" onclick="storeRelation()">Store</button>
+          <button id="editRelation" onclick="toggleEditMode()">Edit</button>
+          <button id="deleteRelation" onclick="deleteRelation()" style="display:none;">Delete</button>
+          <button id="backButton" onclick="toggleEditMode()" style="display:none;">Back</button>
+        </div>
+        <ul id="relationsList"></ul>
+      </div>
+
 
 
     </div>
 
   </div>
+
   </div>
 
   <script>

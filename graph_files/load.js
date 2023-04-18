@@ -1,6 +1,7 @@
 const canvas = document.getElementById("myCanvas");
 const context = canvas.getContext('2d');
 
+
 var nodes = [];
 var edges = [];
 var clicks = 1;
@@ -9,6 +10,8 @@ let groupType = "cyclic";
 let groupOrder = 2;
 let groupMultiplier = 1;
 let historyData = [];
+let relations = [];
+let selectedRelationIndex = -1;
 
 const colors = ['#FFFFFF', "#ffc800", '#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#46f0f0',
   '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#ffe119', '#9a6324', '#fffac8',
@@ -924,6 +927,7 @@ document.getElementById("play_button").addEventListener("click", function () {
   const nodeDisplay = document.getElementById("nodeDisplayOptions");
   const groupTypeSelect = document.getElementById('groupTypeSelect');
   const historySide = document.getElementById("historySide");
+  const relationsContainer = document.getElementById("relationsContainer");
   const groupType = groupTypeSelect.value;
 
   if (this.value === "Playing") {
@@ -942,7 +946,22 @@ document.getElementById("play_button").addEventListener("click", function () {
       nodeClickInput.style.display = "inline-block";
       historySide.style.display = "none"
     }
-    if (groupType === "dihedral" || groupType === "quaternion" || groupType === "freegroup") {
+
+    if (groupType === "freegroup") {
+      nodeLabel.style.display = "inline-block";
+      nodeLabelInput.style.display = "inline-block";
+      nodeClick.style.display = "none";
+      nodeClickInput.style.display = "none";
+      historySide.style.display = "inline-block"
+      relationsContainer.style.display = "inline-block"
+    }
+    if (groupType === "dihedral") {
+      nodeLabel.style.display = "inline-block";
+      nodeLabelInput.style.display = "inline-block";
+      nodeClick.style.display = "none";
+      nodeClickInput.style.display = "none";
+    }
+    if (groupType === "quaternion") {
       nodeLabel.style.display = "inline-block";
       nodeLabelInput.style.display = "inline-block";
       nodeClick.style.display = "none";
@@ -960,6 +979,7 @@ document.getElementById("play_button").addEventListener("click", function () {
     mergedContent.style.display = "none";
     groupTypeDisplay.style.display = "none";
     nodeDisplay.style.display = "none";
+    relationsContainer.style.display = "none"
   }
 });
 
@@ -985,3 +1005,87 @@ function drawTooltip(node, text) {
   context.fillText(text, node.x + offsetX + padding, node.y - offsetY - tooltipHeight / 2);
   context.restore();
 }
+
+// functions for relations
+function storeRelation() {
+  const relationInput = document.getElementById('relationInput');
+  const relation = relationInput.value.trim();
+
+  if (relation) {
+    relations.push(relation);
+    relationInput.value = '';
+    updateRelationsList();
+  }
+}
+
+function toggleEditMode() {
+  const editButton = document.getElementById('editRelation');
+  const backButton = document.getElementById('backButton');
+  const deleteButton = document.getElementById('deleteRelation');
+  const isEditMode = editButton.textContent === 'Update';
+
+  if (isEditMode) {
+    editRelation();
+  }
+
+  editButton.textContent = isEditMode ? 'Edit' : 'Update';
+  backButton.style.display = isEditMode ? 'none' : 'inline';
+  deleteButton.style.display = isEditMode ? 'none' : 'inline';
+  updateRelationsList();
+}
+
+function editRelation() {
+  const relationInput = document.getElementById('relationInput');
+  const relation = relationInput.value.trim();
+
+  if (relation && selectedRelationIndex > -1) {
+    relations[selectedRelationIndex] = relation;
+    relationInput.value = '';
+    selectedRelationIndex = -1;
+  }
+}
+
+function deleteRelation() {
+  const relationInput = document.getElementById('relationInput');
+  const relation = relationInput.value.trim();
+
+  if (relation) {
+    const index = relations.indexOf(relation);
+    if (index > -1) {
+      relations.splice(index, 1);
+      relationInput.value = '';
+      updateRelationsList();
+    }
+  }
+}
+
+function updateRelationsList() {
+  const relationsList = document.getElementById('relationsList');
+  relationsList.innerHTML = '';
+
+  const editButton = document.getElementById('editRelation');
+  const isEditMode = editButton.textContent === 'Update';
+
+  relations.forEach((relation, index) => {
+    const listItem = document.createElement('li');
+    listItem.textContent = relation;
+
+    if (isEditMode) {
+      listItem.style.cursor = 'pointer';
+      listItem.onclick = function () {
+        document.getElementById('relationInput').value = relation;
+        if (selectedRelationIndex > -1) {
+          relationsList.children[selectedRelationIndex].classList.remove('selected');
+        }
+        selectedRelationIndex = index;
+        listItem.classList.add('selected');
+      };
+    } else {
+      listItem.style.cursor = 'default';
+      listItem.onclick = null;
+    }
+
+    relationsList.appendChild(listItem);
+  });
+}
+
