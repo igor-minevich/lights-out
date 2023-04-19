@@ -12,6 +12,8 @@ let groupMultiplier = 1;
 let historyData = [];
 let relations = [];
 let selectedRelationIndex = -1;
+let selectedNode = null;
+
 
 const colors = ['#FFFFFF', "#ffc800", '#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#46f0f0',
   '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#ffe119', '#9a6324', '#fffac8',
@@ -230,6 +232,9 @@ for (const option of displayOptions) {
 
 function draw() {
   context.clearRect(0, 0, window.innerWidth, window.innerHeight);
+  // Reset the stroke style before drawing the edges
+  context.strokeStyle = "black";
+  context.lineWidth = 1;
   for (let i = 0; i < edges.length; i++)
     create_edge(edges[i].from, edges[i].to, edges[i].round, edges[i].dash);
   let showOption = "";
@@ -264,6 +269,13 @@ function draw() {
       context.fillStyle = node.node ? node.node.color() : colors[0];
       context.arc(node.x, node.y, node.radius, 0, Math.PI * 2, true);
       context.fill();
+      if (node.clicked) {
+        context.lineWidth = 5;
+        context.strokeStyle = "rgba(0, 255, 0, 0.5)";
+      } else {
+        context.lineWidth = 1;
+        context.strokeStyle = "black";
+      }
       context.stroke();
 
       if (showOption === "clicks" && (groupType === "cyclic" || groupType === "freeabgroup" || groupType === "freegroup")) {
@@ -421,8 +433,18 @@ function up(e) {
     let leftMultiply = selectedMultiplication === "left";
 
 
+    if (selectedNode) {
+      selectedNode.clicked = false;
+    }
 
     if (target) {
+      if (selectedNode !== target) {
+        if (selectedNode) {
+          selectedNode.clicked = false;
+        }
+        selectedNode = target;
+        selectedNode.clicked = true;
+      }
       // Update group multiplier validation when a node is clicked
       const isValidInput = set_group_multiplier(true);
 
@@ -939,12 +961,21 @@ document.getElementById("play_button").addEventListener("click", function () {
     historyList.style.display = "block";
     mergedContent.style.display = "inline-block";
     groupTypeDisplay.style.display = "inline-block";
-    if (groupType === "cyclic" || groupType === "freeabgroup") {
+    if (groupType === "cyclic") {
       sideMultiplier.style.display = "none";
       nodeLabel.style.display = "inline-block";
       nodeClick.style.display = "inline-block";
       nodeClickInput.style.display = "inline-block";
       historySide.style.display = "none"
+    }
+
+    if (groupType === "freeabgroup") {
+      sideMultiplier.style.display = "none";
+      nodeLabel.style.display = "inline-block";
+      nodeClick.style.display = "inline-block";
+      nodeClickInput.style.display = "inline-block";
+      historySide.style.display = "none"
+      relationsContainer.style.display = "inline-block"
     }
 
     if (groupType === "freegroup") {

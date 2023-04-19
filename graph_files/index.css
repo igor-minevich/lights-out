@@ -1,13 +1,13 @@
 :root {
-  --root-font-size: 12px;
+  --root-font-size: 1rem;
   --bg: #fafafa;
   --text-color: #333;
   --controls-bg: #f0f0f0;
-  --controls-box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.1);
-  --controls-border-radius: 4px;
+  --controls-box-shadow: 0px 0.08333rem 0.41667rem rgba(0, 0, 0, 0.1);
+  --controls-border-radius: 0.33333rem;
   --button-bg: #4CAF50;
   --button-color: white;
-  --button-border-radius: 4px;
+  --button-border-radius: 0.33333rem;
   --button-hover-bg: #45a049;
 }
 
@@ -38,10 +38,12 @@ body {
   background: var(--bg);
   height: 100%;
   width: 100%;
-  overflow: hidden;
+  /* This will enable the scrollbar when the content goes off screen */
+  overflow: auto;
   text-align: center;
   position: relative;
 }
+
 
 .controls input[type="text"] {
   margin-right: 10px;
@@ -130,7 +132,7 @@ a:hover {
   background-color: var(--button-hover-bg);
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 68rem) {
 
   .container {
     display: block;
