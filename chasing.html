@@ -46,6 +46,8 @@
 		<label for="target-color-input">Target color:</label>
         <input type="text" id="target-color-input" size=20 value="0"/>
 		<input type="button" id="chase-button" value="CHASE" />
+		<input type="checkbox", id="chk_coordinates">
+        <label for="coordinates">Show coordinates</label>
 	  </section>
       <section class="solution">
         <label for="solution-input">Your clicks:</label>
@@ -113,9 +115,15 @@
 				$span.text(c);
 				$span.css("width", 20);
 				$span.css("height", 20);
+				$span.css("text-align", "center");
 				$span.css("background-color", back_colors[c]);
 				$div.append($span);
 			}
+			$div.on("click", "span", function() {
+				var $span = $(this);
+				if($span.data("color") != 0)
+				num_clicks = $span.data("color");
+				});
 			$(".board").append($div);
 			$(".board").append("<p></p>");
 
@@ -136,7 +144,9 @@
 					$div.append($span);
 				}
                 $(".board").append($div);
-            }};
+				}
+            updateBoard();
+			};
 				
         var id_array = ['#row-input', '#col-input', '#color-input', '#size-input'];
 
@@ -147,7 +157,7 @@
         }     
  
         $("#generate-button").on("click", gen_click);
-        
+        $("#chk_coordinates").on("click", updateBoard);
         $(".board").on("click", "span", function() {
           var chk_edit = document.getElementById('editmode_function').checked;
           var $span = $(this);
@@ -232,12 +242,22 @@
           
 			  // Change the text of the current cell
 			  clicks = $(id).data("clicks");
-			  if(clicks) {
-				  $(id).text("(" + r + ", " + c + ")x" + clicks);
-				  $(id).css("font-weight", "bold");}
-			  else {
-				  $(id).text("(" + r + ", " + c + ")");
-				  $(id).css("font-weight", "normal"); }
+		   	  if ($('#chk_coordinates').is(':checked')) {
+		   	  	if(clicks)
+		   	  	{
+		   	  		$(id).text("(" + r + ", " + c + ")x" + clicks);
+		   	  		$(id).css("font-weight", "bold");
+		   	  	}
+		   	  	else
+		   	  	{
+		   	  		$(id).text("(" + r + ", " + c + ")");
+		   	  		$(id).css("font-weight", "normal");
+		   	  	}
+		   	  }
+		   	  else {
+		   	  	$(id).text(clicks);
+		   	  	$(id).css("font-weight", "bold");
+		   	  }
  		  
 				  // Add the coordinate of the current cell to the "Your clicks" textbox if the current cell has been clicked
 				  for (var i = 0; i < clicks; i++)
