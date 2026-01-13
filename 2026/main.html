@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lights-Out Puzzle</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Didact+Gothic&family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Julius+Sans+One&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet"> <!--Website fonts-->
+    <link rel="stylesheet" href="main.css"> <!--Embed CSS file-->
+    <!-- Include the SageCell CSS -->
+    <link rel="stylesheet" href="https://sagecell.sagemath.org/static/embedded_sagecell.css">
+    <!-- Include the SageCell JavaScript -->
+    <script src="https://sagecell.sagemath.org/static/embedded_sagecell.js"></script>
+</head>
+<body onload="updateSavedPuzzles()">
+    <div class="main_container">
+        <!--Top navigation menu including edit/play mode toggle-->
+        <div class="navbar">
+            <!--Left side title-->
+            <div>
+                <a href="index.html" id="title">Lights-Out Puzzle</a>
+            </div>
+            
+            <!--Right side info-->
+            <div id="right_side">
+                <a href="#">Instructions</a>
+                <a href="#">About</a>
+                <div class="edit_play">
+                    <button id="mode_switch" type="button" aria-pressed="false">
+                        <div class="toggle_track">
+                            <span class="toggle_label left">Editing</span>
+                            <span class="toggle_label right">Playing</span>
+                            <div class="toggle_window"></div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="controls-wrapper">
+            <div class="controls graph-controls" id="graphcontrols">
+                <button id="generate" onclick="generate_puzzle()" type="button">Generate puzzle</button>
+            
+                <!--Buttons/boxes for generating/altering a starting graph-->
+                <div>
+                    <button id="connect_all_btn" onclick="connect_to_all()" type="button">Connect to all</button>
+                    <button id="disconnect_all_btn" onclick="disconnect_from_all()" type="button">Disconnect from all</button>
+                </div>
+
+                <div>
+                    <input type="checkbox" id="top_bottom">
+                    <label for="top_bottom" id="top_bottom_label">Top and bottom connected</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="sides">
+                    <label for="sides" id="sides_label">Sides connected</label>
+                </div>
+
+                <!--For complete bipartite graph-->
+                <div id="set1div" style="display: none;">
+                    <label for="set1">Set 1 size:</label>
+                    <input type="number" id="set1" value="3" min="0">
+                </div>
+                <div id="set2div" style="display: none;">
+                    <label for="set2">Set 2 size:</label>
+                    <input type="number" id="set2" value="3" min="0">
+                </div>
+
+                <!--Vertices/connections and columns/rows-->
+                <div id="verticesDiv" style="display: none;">
+                    <label for="vertices">Vertices:</label>
+                    <input type="text" id="vertices" value="5" />
+                </div>
+                <div id="connectionsDiv" style="display: none;">
+                    <label for="connections">Connections:</label>
+                    <input type="text" id="connections" name="connections" value="1,2">
+                </div>
+    
+                <div class="input-wrapper">
+                    <label id="row_label" class="row_label">Rows:</label>
+                    <input type="text" id="row_input" value="5" />
+                </div>
+                <div class="input-wrapper">
+                    <label id="col_label" class="col_input">Columns:</label>
+                    <input type="text" id="col_input" value="5" />
+                </div>
+
+                <!--Graph selection-->
+                <div>
+                    <label for="variation" id="choose_variation_label">Graph type:</label>
+                    <select name="variation" id="choose_variation">
+                        <option value="standard">Standard Grid</option>
+                        <option value="diagonal">Diagonal Grid</option>
+                        <option value="circulant">Circulant Graph</option>
+                        <option value="complete">Complete Graph</option>
+                        <option value="bipartite">Complete Bipartite Graph</option>
+                        <option value="cycle">Cycle Graph</option>
+                        <option value="peterson">Peterson Graph</option>
+                        <option value="star">Star Graph</option>
+                        <option value="wheel">Wheel Graph</option>
+                    </select>
+                </div>
+            </div>
+
+            <!--Playing section for showing history of moves-->
+            <div id="history" style="display:none">
+                <h3>History</h3>
+                <ul id="historyList"></ul>
+                <div>
+                    <button id="updateButton">Update</button>
+                    <button id="insertButton">Insert</button>
+                    <button id="deleteButton" disabled>Delete</button>
+                </div>
+        
+                <div id="eventEditor">
+                    <div>
+                        <label for="nodeLabelInput">Node:</label>
+                        <input type="text" id="nodeLabelInput" />
+                    </div>
+                    <div>
+                        <label for="multiplierInput">Multiplier:</label>
+                        <input type="number" id="multiplierInput" />
+                    </div>
+        
+                    <div id="historySide">
+                        <label>Side:</label>
+                        <label>
+                            <input type="radio" id="sideRadioLeft" name="sideRadio" value="Left" checked /> Left
+                        </label>
+                        <label>
+                            <input type="radio" id="sideRadioRight" name="sideRadio" value="Right" /> Right
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!--Playing section for showing group types and inputs for them-->
+            <div class="controls group-controls" id="groupcontrols">
+                <div>
+                    <label for="groupOrder1">Group order:</label>
+                    <input type="text" id="groupOrder1" value="2" onchange="set_group_order()" />
+                </div>
+        
+                <div>
+                    <label for="groupTypeSelect" id="group_type_label">Group type:</label>
+                    <select id="groupTypeSelect" onchange="updateGroupType()">
+                        <option value="cyclic">Cyclic</option>
+                        <option value="dihedral">Dihedral</option>
+                        <option value="quaternion">Quaternion</option>
+                        <option value="freeabgroup">Free Abelian Group</option>
+                        <option value="freegroup">Free Group</option>
+                    </select>
+                </div>
+        
+                <div>
+                    <button id="clear" onclick="clear_puzzle()" type="button">Clear puzzle</button>
+                </div>
+                <div>
+                    <button id="save" onclick="save_puzzle()" type="button">Save puzzle</button>
+                    <button id="load" onclick="load_puzzle()" type="button">Load puzzle</button>
+                </div>
+                <div>
+                    <label for="loadSelector" id="load_selector_label">Select a saved graph to load:</label>
+                </div>
+                <div>
+                    <select id="loadSelector"></select>
+                </div>
+                <div>
+                    <button id="delete" onclick="delete_puzzle()" type="button">Delete puzzle</button>
+                </div>
+            </div>
+
+            <div class="controls graph-controls" id="mergedcontrols" style="display:none">
+                <div>
+                    <button id="clear" onclick="clear_puzzle()" type="button">Clear puzzle</button>
+                </div>
+                <div id="groupTypeDisplay"></div>
+                <div>
+                    <label for="groupOrder2">Group order:</label>
+                    <input type="text" id="groupOrder2" value="2" onchange="set_group_order()" />
+                </div>
+                <div id='divMultiply'>
+                    <label for="groupMultiplier" id="groupMultiplier_label" style="display: none;">Multiplier:</label>
+                    <input id="groupMultiplier" type="text" width="20px" value="1" onchange="set_group_multiplier()"
+                    style="display: none;"/>
+                </div>
+                <div id="multiplicationOptions" style="display:none">
+                    <label id="multiplication_label">Side to Multiply:</label>
+                    <input type="radio" id="left" name="multiplication" value="left" checked>
+                    <label for="left">Left</label>
+                    <input type="radio" id="right" name="multiplication" value="right">
+                    <label for="right">Right</label>
+                </div>
+                <div id="nodeDisplayOptions" style="display: none;">
+                    <span>Show:</span>
+                    <input type="radio" id="displayValues" name="displayOption" value="values">
+                    <label for="displayValues" id="displayValuesInput">Values</label>
+                    <input type="radio" id="displayLabels" name="displayOption" value="labels">
+                    <label for="displayLabels" id="displayLabelsInput">Labels</label>
+                    <input type="radio" id="displayClicks" name="displayOption" value="clicks">
+                    <label for="displayClicks" id="displayClicksInput">Clicks</label>
+                </div>
+                <div id="congratdiv" style="display: none;">
+                    <input type="checkbox" id="congratulate" checked>
+                    <label for="congratulate" id="congratulate_label">Congratulate achievements</label>
+                </div>
+                <div id="multiplicationOptions" style="display:none">
+                    <label id="multiplication_label">Side to Multiply:</label>
+                    <input type="radio" id="left" name="multiplication" value="left" checked>
+                    <label for="left">Left</label>
+                    <input type="radio" id="right" name="multiplication" value="right">
+                    <label for="right">Right</label>
+                </div>
+              </div>
+        
+              <!--Offshoot of group controls to set relations-->
+              <div id="relationsContainer" style="display:none;">
+                <h3>Relations</h3>
+                <input type="text" id="relationInput" placeholder="Enter relation" />
+                <div>
+                    <button id="storeRelation" onclick="storeRelation()">Store</button>
+                    <button id="editRelation" onclick="toggleEditMode()">Edit</button>
+                    <button id="deleteRelation" onclick="deleteRelation()" style="display:none;">Delete</button>
+                    <button id="backButton" onclick="toggleEditMode()" style="display:none;">Back</button>
+                </div>
+                <ul id="relationsList"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="main.js"></script> <!--Embed JS file-->
+    <script src="./groups/CyclicNode.js"></script>
+    <script src="./groups/DihedralNode.js"></script>
+    <script src="./groups/QuaternionNode.js"></script>
+    <script src="./groups/ZNode.js"></script>
+    <script src="./groups/FreeAbelianNode.js"></script>
+    <script src="./groups/FreeGroupNode.js"></script>
+    <script src="./functions/historyFunctions.js"></script>
+    <script src="./functions/graphFunctions.js"></script>
+    <script src="GraphicalNode.js"></script>
+</body>
+</html>
