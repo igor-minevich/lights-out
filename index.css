@@ -84,6 +84,7 @@ section {
   flex-wrap: wrap;
   width: 100%;
   background-color: #0B3948;
+  padding-bottom: 20px;
 }
 
 
@@ -222,6 +223,14 @@ button:hover{
   border: 1px solid #000;
 }
 
+#history button{
+  transition: 0.2s;
+}
+
+#history button:hover{
+  background-color: #563646;
+}
+
 #historyList li {
   padding: 0.5rem;
   cursor: pointer;
@@ -238,7 +247,12 @@ button:hover{
 }
 
 #relationsContainer button{
-  background-color: #51A3A3;
+  background-color: #75485E;
+  transition: 0.2s;
+}
+
+#relationsContainer button:hover{
+  background-color: #563646;
 }
 
 #relationsList {
@@ -294,8 +308,25 @@ button:hover{
   box-shadow: 5px 5px 8px #000;
 }
 
+#clear{
+  transition: 0.2s;
+}
+
+#reset{
+  background-color: #75485E;
+}
+
+#reset:hover{
+  background-color: #563646;
+}
+
 .bottom_buttons button{
   background-color: #51A3A3;
+  transition: 0.2s;
+}
+
+.bottom_buttons button:hover{
+  background-color: #448888;
 }
 
 .graph-controls, .group-controls, #editing_group, #relationsContainer{
@@ -312,15 +343,16 @@ button:hover{
 }
 
 .graph-controls button:hover{
-  background-color: #335f5f;
+  background-color: #448888;
 }
 
 #groupcontrols button{
+  background-color: #51A3A3;
   transition: 0.2s;
 }
 
 #groupcontrols button:hover{
-  background-color: rgb(59, 37, 49)
+  background-color: #448888;
 }
 
 .line, .input-wrapper{
@@ -353,8 +385,8 @@ button:hover{
 }
 
 #sagecell button{
-  color: #75485E;
-  background-color: #DFCC74;
+  color: white;
+  background-color: #51A3A3;
   border: none;
   border-radius: 0.5rem;
   padding: 8px;
@@ -367,8 +399,8 @@ button:hover{
 
 #sagecell button:hover{
   cursor: pointer;
-  color: #75485E;
-  background-color: #988b52;
+  color: white;
+  background-color: #448888;
 }
 
 .CodeMirror-sizer{
@@ -384,4 +416,74 @@ button:hover{
   font-weight: bold;
 }
 
+#playing_toggle{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  padding: 20px 20px;
+  background-color: #D9DBF1;
+  border-radius: 0.5rem;
+  box-shadow: 5px 5px 8px #000;
+}
 
+#editState {
+  padding: 0;
+  width: 200px; 
+  height: 36px;
+  background: none;
+  border-radius: 0.5rem;
+  position: relative;
+  margin-left: 17px;
+}
+
+.toggle_track {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #75485E;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  display: flex;
+}
+
+.toggle_label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #997788;
+  z-index: 2;
+  pointer-events: none;
+  font-size: 1rem;
+}
+
+.toggle_window {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(50% - 4px);
+  height: calc(100% - 4px);
+  background: #51A3A3;
+  border-radius: 0.4rem;
+  transition: left 0.3s ease;
+  z-index: 1;
+}
+
+.toggle_window:hover{
+  background: #448888;
+  transition: 0.2s;
+}
+
+#editState:not(.editing) .left,
+#editState.editing .right {
+  color: white;
+}
+
+#editState.editing .toggle_window {
+  left: calc(50% + 2px);
+}
+
+#divMultiply_dihedral button{
+  background-color: #75485E;
+}
