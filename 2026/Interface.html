@@ -154,6 +154,9 @@
         <div>
           <button id="clear" onclick="clear_puzzle()" type="button">Clear graph</button>
         </div>
+        <div>
+          <button id="reset" onclick="clear_puzzle()" type="button" style="display: none;">Reset graph</button>
+        </div>
       </div>
 
       <div id="editing_group">
@@ -197,16 +200,14 @@
           <input type="text" id="groupOrder2" value="2" onchange="set_group_order()" />
         </div>
         <div id="divMultiply_dihedral" class="line" style="display: none;">
-          <button id="r" type="button">r</button>
-          <button id="R" type="button">R</button>
-          <button id="s" type="button">s</button>
-          <div class="inner_button_menu">
-            <div>
-            <label for="dihedralMultDisplay" id="dihedralMultLabel">Multiplier:</label>
-            <input id="dihedralMultDisplay" type="text" width="20px" value="e"/>
+            <div class="line">
+              <label for="dihedralMultDisplay" id="dihedralMultLabel">Multiplier:</label>
+              <input id="dihedralMultDisplay" type="text" width="20px" value="e"/>
             </div>
-            <button id="dihedral_reset" type="button">Reset</button>
-          </div>
+            <div>
+              <button id="dihedral_simplify" type="button">Simplify</button>
+              <button id="dihedral_reset" type="button">Reset</button>
+            </div>
         </div>
         <div id='divMultiply' class="line">
           <label for="groupMultiplier" id="groupMultiplier_label" style="display: none;">Multiplier:</label>
@@ -256,20 +257,21 @@
         <ul id="relationsList"></ul>
       </div>
 
-      <!-- <div id="editingModeSwitch">
-        <button id="mode_switch" type="button" aria-pressed="false">
+      <div id="playing_toggle" style="display: none;">
+        <button id="editState" type="button" aria-pressed="false">
           <div class="toggle_track">
-              <span class="toggle_label left">Editing graph</span>
-              <span class="toggle_label right">Editing values</span>
+              <span class="toggle_label left">Playing</span>
+              <span class="toggle_label right">Edit state</span>
               <div class="toggle_window"></div>
           </div>
       </button>
-      </div> -->
+      </div>
+
     </div>
 
       <div id='d1'>
         <p>
-          <canvas id="myCanvas" width="800" height="500"></canvas>
+          <canvas id="myCanvas" width="800" height="600"></canvas>
         <div id="sagecell"></div>
         </p>
       </div>

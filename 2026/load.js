@@ -70,6 +70,7 @@ const EDGE = '#009999';
 const SELECTED = '#88aaaa';
 const btn_mode = document.getElementById('play_button');
 const btn_clear = document.getElementById('clear');
+const btn_reset = document.getElementById('reset');
 
 var text = document.createTextNode('');
 var child = document.getElementById('play_button');
@@ -77,45 +78,46 @@ child.parentNode.insertBefore(text, child);
 let nodeCounter = 0;
 let uNodeCounter = 0;
 
-
+const groupOrderInput2 = document.getElementById("groupOrder2");
+groupOrderInput2.disabled = true;
 
 groupTypeSelect.addEventListener('change', function () {
-  document.getElementById("dihedralMultDisplay").disabled = true;
   const groupOrderInput1 = document.getElementById("groupOrder1");
   const groupOrderInput2 = document.getElementById("groupOrder2");
+  groupOrderInput2.disabled = true;
   const groupTypeSelect = document.getElementById('groupTypeSelect');
   const groupType = groupTypeSelect.value;
   const numVert = document.getElementById("editing_dihedral");
   const dihedralMult = document.getElementById("groupMultiplier");
   updateGroupTypeDisplay();
+
   if (groupType === "quaternion") {
     numVert.textContent = "Group order:"
     groupOrderInput1.value = 8;
     groupOrderInput2.value = 8;
     groupOrderInput1.disabled = true;
-    groupOrderInput2.disabled = true;
-    //document.getElementById("divMultiply").style.display = 'block';
+    document.getElementById("divMultiply").style.display = 'block';
     document.getElementById("divMultiply_dihedral").style.display = 'none';
+
   } else if (groupType === "freeabgroup" || groupType === "freegroup") {
     numVert.textContent = "Group order:"
     groupOrderInput1.disabled = true;
-    groupOrderInput2.disabled = true;
-    //document.getElementById("divMultiply").style.display = 'block';
+    document.getElementById("divMultiply").style.display = 'block';
     document.getElementById("divMultiply_dihedral").style.display = 'none';
+
   } else if (groupType === "dihedral"){
     numVert.textContent = "Number of vertices:"
     document.getElementById("divMultiply_dihedral").style.display = 'block';
     groupOrderInput1.value = 4;
     groupOrderInput1.disabled = false;
-    groupOrderInput2.disabled = true;
-    //document.getElementById("divMultiply").style.display = 'none';
+    document.getElementById("divMultiply").style.display = 'none';
+
   }
   else {
     groupOrderInput1.value = 2;
     groupOrderInput1.disabled = false;
-    groupOrderInput2.disabled = false;
     numVert.textContent = "Group order:"
-    //document.getElementById("divMultiply").style.display = 'block';
+    document.getElementById("divMultiply").style.display = 'block';
     document.getElementById("divMultiply_dihedral").style.display = 'none';
   }
 });
@@ -164,7 +166,9 @@ btn_mode.addEventListener('click', function handleClick() {
 
   if (btn_mode.textContent === 'Editing') {
     document.getElementById('play_button').style.backgroundColor = '#75485E';
-    btn_clear.style.backgroundColor = '#75485E';
+    document.getElementById('playing_toggle').style.display = 'block';
+    btn_clear.style.display = 'none';
+    btn_reset.style.display = 'block';
     editingGroup.style.display = 'none';
     for (const vertex of nodes) {
       switch (groupType) {
@@ -189,18 +193,18 @@ btn_mode.addEventListener('click', function handleClick() {
       }
     }
     btn_mode.textContent = 'Playing';
-    btn_clear.textContent = 'Reset graph';
     clear_puzzle();
     draw(); // Displays default values of nodes when editing mode is clicked.
     addLegend();
     document.getElementById("right").checked = true;
   }
   else {
-    btn_clear.style.backgroundColor = '#51A3A3';
+    document.getElementById('playing_toggle').style.display = 'none';
+    btn_clear.style.display = 'block';
+    btn_reset.style.display = 'none';
     document.getElementById('play_button').style.backgroundColor = '#51A3A3';
     editingGroup.style.display = 'block';
     btn_mode.textContent = 'Editing';
-    btn_clear.textContent = 'Clear graph';
     for (let i = 0; i < nodes.length; i++)
       nodes[i].node.value = 0;
     draw();
@@ -527,18 +531,21 @@ function up(e) {
       const isValidInput = set_group_multiplier(true);
 
       if (isValidInput) {
-        target.node.multiply(groupMultiplier, leftMultiply, true);
-
         // find other nodes connected to the clicked node and multiply them by the group element.
-        for (let i = 0; i < edges.length; i++) {
-          var other = undefined;
-          if (edges[i].from == target)
-            other = edges[i].to;
-          else if (edges[i].to == target)
-            other = edges[i].from;
-          if (other) {
-            other.node.multiply(groupMultiplier, leftMultiply, false);
+        if (currentMode === 'playing'){
+          target.node.multiply(groupMultiplier, leftMultiply, true);
+          for (let i = 0; i < edges.length; i++) {
+            var other = undefined;
+            if (edges[i].from == target)
+              other = edges[i].to;
+            else if (edges[i].to == target)
+              other = edges[i].from;
+            if (other) {
+              other.node.multiply(groupMultiplier, leftMultiply, false);
+            }
           }
+        } else if (currentMode === 'editing'){
+          target.node.value = groupMultiplier;
         }
         draw();
 
@@ -799,32 +806,63 @@ function set_group_order() {
 }
 
 
-// Reads dihedral multiplier-button input and builds raw string as of now, 
-// need to finish simplifier function.
-let multiplierWord = [];
+
+
+
+
+
+// The following functions deal with simplifying user input for the dihedral mode
+function simplifyDihedralWord(word, n) {
+  if (!word || word === "e") return "e";
+  if (!Number.isInteger(n) || n <= 0) {
+      console.error("Invalid dihedral group order n:", n);
+      return word;
+  }
+
+  const tempNode = new DihedralNode(n);
+  tempNode.value = "e";
+
+  word = word.replace(/\s+/g, "");
+
+  // Capture: s, s2, s-1, r, r3, R2, etc.
+  const tokens = word.match(/s\d*|[rR]-?\d*/g);
+
+  if (!tokens) return "e";
+
+  for (let token of tokens) {
+      // Expand s^k as s r^0 (k times mod 2)
+      if (token.startsWith("s")) {
+          let power = token.length > 1 ? parseInt(token.slice(1)) : 1;
+          power = Math.abs(power) % 2;
+
+          for (let i = 0; i < power; i++) {
+              tempNode.multiply("s", false, false);
+          }
+      } else {
+          tempNode.multiply(token, false, false);
+      }
+  }
+
+  return tempNode.value;
+}
+
 const dihedralMultDisplay = document.getElementById("dihedralMultDisplay");
+const simplifyBtn = document.getElementById("dihedral_simplify");
+const resetBtn = document.getElementById("dihedral_reset");
 
-document.getElementById("dihedral_reset")
-    .addEventListener("click", () => {
-        multiplierWord = [];
-        dihedralMultDisplay.value = "e";
+simplifyBtn.addEventListener("click", () => {
+
+        const input = dihedralMultDisplay.value;
+        const n = groupOrder; 
+
+        const simplified = simplifyDihedralWord(input, n);
+        dihedralMultDisplay.value = simplified;
     });
 
-document.getElementById("divMultiply_dihedral")
-    .addEventListener("click", e => {
 
-        if (e.target.tagName !== "BUTTON") return;
-
-        const symbol = e.target.id;
-
-        if (symbol === "dihedral_reset") return;
-
-        console.log(symbol);
-
-        multiplierWord.push(symbol);
-        dihedralMultDisplay.value = multiplierWord;
-
-    });
+resetBtn.addEventListener("click", () => {
+  dihedralMultDisplay.value = "e";
+});
 
 
 
@@ -832,7 +870,7 @@ document.getElementById("divMultiply_dihedral")
 function set_group_multiplier(validateInput = true) {
   const groupMultiplierInput = document.getElementById("groupMultiplier").value;
 
-  if (groupType === "freeabgroup" || groupType === "freegroup" || groupType === "dihedral") {
+  if (groupType === "freeabgroup" || groupType === "freegroup") {
     const regex = /^([a-zA-Z]\d*|1)*$/;
     if (validateInput && !regex.test(groupMultiplierInput)) {
       alert("Invalid input. Please enter a combination of letters and numbers or the identity element '1'.");
@@ -840,7 +878,7 @@ function set_group_multiplier(validateInput = true) {
     }
     groupMultiplier = groupMultiplierInput;
   } else if (groupType === "dihedral"){
-    groupMultiplier = dihedralReducer.value;
+    groupMultiplier = document.getElementById('dihedralMultDisplay').value;
   }
   else {
     if (validateInput && isNaN(parseInt(groupMultiplierInput))) {
@@ -851,6 +889,35 @@ function set_group_multiplier(validateInput = true) {
   }
   return true;
 }
+
+
+
+
+
+
+//Functions for the edit state mode in playing
+const edit_state = document.getElementById('editState');
+let currentMode = 'playing';
+
+edit_state.addEventListener("click", () => {
+    const isEditing = edit_state.classList.toggle('editing');
+
+    currentMode = isEditing ? "editing" : "playing";
+
+    edit_state.setAttribute("aria-pressed", isEditing);
+
+    console.log("Current mode:", currentMode);
+
+    if (currentMode === 'editing') {
+      document.getElementById('dihedralMultLabel').textContent = 'State:';
+      document.getElementById('groupMultiplier_label').textContent = 'State:';
+    } else{
+      document.getElementById('dihedralMultLabel').textContent = 'Multiplier:';
+      document.getElementById('groupMultiplier_label').textContent = 'Multiplier:';
+    }
+});
+
+
 
 
 
