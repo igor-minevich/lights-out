@@ -1,7 +1,8 @@
 const canvas = document.getElementById("myCanvas");
 const context = canvas.getContext('2d');
 
-
+let ADJ_MATRIX = [];
+let NODE_LABELS = [];
 var nodes = [];
 var edges = [];
 var clicks = 1;
@@ -71,6 +72,8 @@ const SELECTED = '#88aaaa';
 const btn_mode = document.getElementById('play_button');
 const btn_clear = document.getElementById('clear');
 const btn_reset = document.getElementById('reset');
+const btn_matrix = document.getElementById('adjacency_matrix');
+const dihedralMultDisplay = document.getElementById("dihedralMultDisplay");
 
 var text = document.createTextNode('');
 var child = document.getElementById('play_button');
@@ -96,8 +99,8 @@ groupTypeSelect.addEventListener('change', function () {
     groupOrderInput1.value = 8;
     groupOrderInput2.value = 8;
     groupOrderInput1.disabled = true;
-    document.getElementById("divMultiply").style.display = 'block';
-    document.getElementById("divMultiply_dihedral").style.display = 'none';
+    document.getElementById("divMultiply").style.display = 'none';
+    document.getElementById("divMultiply_dihedral").style.display = 'block';
 
   } else if (groupType === "freeabgroup" || groupType === "freegroup") {
     numVert.textContent = "Group order:"
@@ -111,7 +114,6 @@ groupTypeSelect.addEventListener('change', function () {
     groupOrderInput1.value = 4;
     groupOrderInput1.disabled = false;
     document.getElementById("divMultiply").style.display = 'none';
-
   }
   else {
     groupOrderInput1.value = 2;
@@ -136,13 +138,25 @@ function updateGroupTypeDisplay() {
   groupTypeDisplay.innerText = 'Group Type: ' + groupType.charAt(0).toUpperCase() + groupType.slice(1);
 }
 
-
-
-
-
+let checkCount = 0;
+function checkGenerate() {
+  if (btn_mode.textContent === 'Editing' && !hasBeenGenerated) {
+    alert("Please select \"Generate graph\" to enter playing mode.");
+    checkCount = 1;
+    btn_mode.click();
+  }
+}
 // Code for the Editing/Playing mode button
 
 btn_mode.addEventListener('click', function handleClick() {
+  if (checkCount === 0){
+    checkGenerate();
+  } else {
+    checkCount = 0;
+  }
+  if (currentMode === 'editing'){
+    edit_state.click();
+  }
 
   document.getElementById("displayValues").checked = true;
   // Get the selected group type from the dropdown menu
@@ -154,9 +168,9 @@ btn_mode.addEventListener('click', function handleClick() {
 
   if (groupType === "dihedral") {
     groupOrderLabel.textContent = "Number of Vertices:";
-    document.getElementById("groupMultiplier").value = 'e';
+    dihedralMultDisplay.value = 'e'
   } else if (groupType === "quaternion"){
-    document.getElementById("groupMultiplier").value = '1';
+    dihedralMultDisplay.value = '1'
   } else {
     groupOrderLabel.textContent = "Group order:";
     document.getElementById("groupMultiplier").value = '1';
@@ -169,6 +183,7 @@ btn_mode.addEventListener('click', function handleClick() {
     document.getElementById('playing_toggle').style.display = 'block';
     btn_clear.style.display = 'none';
     btn_reset.style.display = 'block';
+    btn_matrix.style.display = 'block';
     editingGroup.style.display = 'none';
     for (const vertex of nodes) {
       switch (groupType) {
@@ -202,6 +217,7 @@ btn_mode.addEventListener('click', function handleClick() {
     document.getElementById('playing_toggle').style.display = 'none';
     btn_clear.style.display = 'block';
     btn_reset.style.display = 'none';
+    btn_matrix.style.display = 'none';
     document.getElementById('play_button').style.backgroundColor = '#51A3A3';
     editingGroup.style.display = 'block';
     btn_mode.textContent = 'Editing';
@@ -533,6 +549,10 @@ function up(e) {
       if (isValidInput) {
         // find other nodes connected to the clicked node and multiply them by the group element.
         if (currentMode === 'playing'){
+          if (groupType === 'dihedral' || groupType === 'quaternion'){
+            simplifyBtn.click();
+            groupMultiplier = document.getElementById('dihedralMultDisplay').value;
+          }
           target.node.multiply(groupMultiplier, leftMultiply, true);
           for (let i = 0; i < edges.length; i++) {
             var other = undefined;
@@ -545,6 +565,10 @@ function up(e) {
             }
           }
         } else if (currentMode === 'editing'){
+          if (groupType === 'dihedral' || groupType === 'quaternion'){
+            simplifyBtn.click();
+            groupMultiplier = document.getElementById('dihedralMultDisplay').value;
+          }
           target.node.value = groupMultiplier;
         }
         draw();
@@ -660,6 +684,21 @@ function congratulate() {
 }
 
 
+let hasBeenGenerated = false;
+
+document.getElementById('generate').addEventListener("click", () => {
+  hasBeenGenerated = true;
+})
+
+document.getElementById('graph6_btn').addEventListener("click", () => {
+  hasBeenGenerated = true;
+})
+
+document.getElementById('clear').addEventListener("click", () => {
+  hasBeenGenerated = false;
+})
+
+
 function generate_puzzle() {
   nodeCounter = 0;
   uNodeCounter = 0;
@@ -699,6 +738,15 @@ function generate_puzzle() {
     case "bipartite":
       bipartiteGraph(all_nodes);
       break;
+    case "cube":
+      cubeGraph(all_nodes);
+      break;
+    case "folded":
+      foldedGraph(all_nodes);
+      break;
+    case "crown":
+        crownGraph(all_nodes);
+        break;
     case "diagonal":
       diagonalGraph(all_nodes, num_rows, num_cols);
       break;
@@ -846,22 +894,80 @@ function simplifyDihedralWord(word, n) {
   return tempNode.value;
 }
 
-const dihedralMultDisplay = document.getElementById("dihedralMultDisplay");
+function simplifyQuaternionWord(word) {
+  if (!word) return "1";
+
+  const tempNode = new QuaternionNode();
+  tempNode.value = "1";
+
+  word = word.replace(/\s+/g, "");
+
+  // Match: i, i2, i^2, i-3, -j, k^4, 1, -1
+  const tokens = word.match(/-?(?:[ijk])(?:\^?-?\d+)?|-?1/g);
+  if (!tokens) return "1";
+
+  for (let token of tokens) {
+    // Handle ±1
+    if (token === "1" || token === "-1") {
+      tempNode.multiply(token, false, false);
+      continue;
+    }
+
+    // Extract sign, base, exponent
+    const match = token.match(/^(-)?([ijk])(?:\^?(-?\d+))?$/);
+    if (!match) continue;
+
+    const sign = match[1] ? -1 : 1;
+    const base = match[2];
+    let exp = match[3] ? parseInt(match[3]) : 1;
+
+    // Account for leading minus
+    if (sign === -1) {
+      tempNode.multiply("-1", false, false);
+    }
+
+    // Quaternion generators have order 4
+    exp = ((exp % 4) + 4) % 4;
+
+    for (let i = 0; i < exp; i++) {
+      tempNode.multiply(base, false, false);
+    }
+  }
+
+  return tempNode.value;
+}
+
+
+
 const simplifyBtn = document.getElementById("dihedral_simplify");
 const resetBtn = document.getElementById("dihedral_reset");
 
 simplifyBtn.addEventListener("click", () => {
+  const input = dihedralMultDisplay.value;
+  const groupType = document.getElementById("groupTypeSelect").value;
 
-        const input = dihedralMultDisplay.value;
-        const n = groupOrder; 
+  let simplified;
 
-        const simplified = simplifyDihedralWord(input, n);
-        dihedralMultDisplay.value = simplified;
-    });
+  switch (groupType) {
+    case "dihedral":
+      simplified = simplifyDihedralWord(input, groupOrder);
+      break;
 
+    case "quaternion":
+      simplified = simplifyQuaternionWord(input);
+      break;
+
+    default:
+      simplified = input; // no-op fallback
+  }
+
+  dihedralMultDisplay.value = simplified;
+});
 
 resetBtn.addEventListener("click", () => {
-  dihedralMultDisplay.value = "e";
+  const groupType = document.getElementById("groupTypeSelect").value;
+  dihedralMultDisplay.value =
+    groupType === "quaternion" ? "1" : "e";
 });
 
 
@@ -877,7 +983,7 @@ function set_group_multiplier(validateInput = true) {
       return false;
     }
     groupMultiplier = groupMultiplierInput;
-  } else if (groupType === "dihedral"){
+  } else if (groupType === "dihedral" || groupType === 'quaternion'){
     groupMultiplier = document.getElementById('dihedralMultDisplay').value;
   }
   else {
@@ -909,8 +1015,8 @@ edit_state.addEventListener("click", () => {
     console.log("Current mode:", currentMode);
 
     if (currentMode === 'editing') {
-      document.getElementById('dihedralMultLabel').textContent = 'State:';
-      document.getElementById('groupMultiplier_label').textContent = 'State:';
+      document.getElementById('dihedralMultLabel').textContent = 'New state:';
+      document.getElementById('groupMultiplier_label').textContent = 'New state:';
     } else{
       document.getElementById('dihedralMultLabel').textContent = 'Multiplier:';
       document.getElementById('groupMultiplier_label').textContent = 'Multiplier:';
@@ -1035,6 +1141,7 @@ function updateLayout() {
     "connectionsDiv",
     "set1div",
     "set2div",
+    "dimensionDiv",
     "row_label",
     "col_label",
     "row_input",
@@ -1051,8 +1158,10 @@ function updateLayout() {
     showElements(["verticesDiv"]);
   } else if (variation === "peterson") {
     // Nothing to show
-  } else if (variation === "bipartite") {
+  } else if (variation === "bipartite" || variation === "crown") {
     showElements(["set1div", "set2div"]);
+  } else if (variation === "cube" || variation === "folded") {
+    showElements(["dimensionDiv"]);
   } else if (variation === "circulant") {
     showElements(["verticesDiv", "connectionsDiv"]);
   } else if (variation === "standard" || variation === "diagonal") {
@@ -1302,4 +1411,136 @@ function updateRelationsList() {
 }
 
 
+function adjacencyMatrix(nodes, edges) {
+  const indexMap = new Map();
+  nodes.forEach((n, i) => indexMap.set(n.label, i));
+
+  const size = nodes.length;
+  const matrix = Array.from({ length: size }, () =>
+      Array(size).fill(0)
+  );
+
+  for (let edge of edges) {
+      const i = indexMap.get(edge.from.label);
+      const j = indexMap.get(edge.to.label);
+      matrix[i][j] = 1;
+      matrix[j][i] = 1;
+  }
+  
+  console.log("Node order:", nodes.map(n => n.label));
+  console.table(matrix);
+  return matrix;
+}
+
+function graphFromAdjacencyMatrix() {
+  nodes.length = 0;
+  edges.length = 0;
+
+  if (!ADJ_MATRIX || ADJ_MATRIX.length === 0) {
+    console.error("Adjacency matrix is empty.");
+    return;
+  }
+
+  const n = ADJ_MATRIX.length;
+
+  const canvas = context.canvas;
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+  const layoutRadius = Math.min(centerX, centerY) * 0.7;
+
+  // --- Create nodes ---
+  for (let i = 0; i < n; i++) {
+    const angle = (2 * Math.PI * i) / n;
+
+    nodes.push({
+      label: NODE_LABELS[i] ?? `${i}`,
+      x: centerX + layoutRadius * Math.cos(angle),
+      y: centerY + layoutRadius * Math.sin(angle),
+      radius: 18,
+      selected: false,
+      clicked: false,
+      node: null
+    });
+  }
+
+  // --- Create edges ---
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      if (ADJ_MATRIX[i][j] === 1) {
+        edges.push({
+          from: nodes[i],
+          to: nodes[j]
+        });
+      }
+    }
+  }
+
+  redraw();
+}
+
+
+function graph6ToAdjacencyMatrix(g6) {
+  let index = 0;
+
+  // --- Decode number of vertices ---
+  let n = g6.charCodeAt(index++) - 63;
+
+  // (Extended formats not handled here; standard graph6 only)
+  if (n < 0 || n > 62) {
+    throw new Error("Only standard graph6 (n ≤ 62) is supported.");
+  }
+
+  // --- Decode edge bits ---
+  const neededBits = (n * (n - 1)) / 2;
+  let bits = [];
+
+  while (bits.length < neededBits) {
+    const value = g6.charCodeAt(index++) - 63;
+    for (let i = 5; i >= 0; i--) {
+      bits.push((value >> i) & 1);
+    }
+  }
+
+  // --- Build adjacency matrix ---
+  const adjMatrix = Array.from({ length: n }, () =>
+    Array(n).fill(0)
+  );
+
+  let bitIndex = 0;
+  for (let i = 1; i < n; i++) {
+    for (let j = 0; j < i; j++) {
+      const bit = bits[bitIndex++];
+      adjMatrix[i][j] = bit;
+      adjMatrix[j][i] = bit;
+    }
+  }
+
+  // --- Node labels (A, B, C, ...) ---
+  const nodeLabels = Array.from({ length: n }, (_, i) =>
+    String.fromCharCode(65 + i)
+  );
+
+  return { adjMatrix, nodeLabels };
+}
+
+
+function graphFromGraph6() {
+  const input = document.getElementById("graph6");
+  const g6 = input.value.trim();
+
+  if (!g6) {
+    console.error("Graph6 string is empty.");
+    return;
+  }
+
+  const result = graph6ToAdjacencyMatrix(g6);
+
+  ADJ_MATRIX = result.adjMatrix;
+  NODE_LABELS = result.nodeLabels;
+
+  console.log("ADJ_MATRIX =", ADJ_MATRIX);
+  console.log("NODE_LABELS =", NODE_LABELS);
+
+  graphFromAdjacencyMatrix();
+}
 

@@ -1,81 +1,130 @@
 class QuaternionNode {
     constructor() {
         this.selected = false;
-        this.value = 1;
+        this.value = "1"; // strict string representation
     }
 
-    multiply(b, leftMultiply, clicked) {
-        let a = this.value;
-        let multTable = [
-            [1, 2, 3, 4],
-            [2, -1, 4, -3],
-            [3, -4, -1, 2],
-            [4, 3, -2, -1]
-        ];
+    /* -------------------------
+       Parsing
+    ------------------------- */
 
+    parseElement(str) {
+        // Normalize input
+        str = str.trim();
 
-        const getIndex = val => {
-            if (val < 0) {
-                return (Math.abs(val) - 1 + 4) % 4;
-            }
-            return val - 1;
-        };
+        if (str === "1")  return { sign:  1, base: "1" };
+        if (str === "-1") return { sign: -1, base: "1" };
 
-        const getValue = index => {
-            if (index >= 4) {
-                return (index - 3) * -1;
-            }
-            return index + 1;
-        };
+        let sign = 1;
+        if (str[0] === "-") {
+            sign = -1;
+            str = str.slice(1);
+        }
 
-        let aIndex = getIndex(a);
-        let bIndex = getIndex(b);
+        if (!["i", "j", "k"].includes(str)) {
+            throw new Error(`Invalid quaternion element: ${str}`);
+        }
 
-        let result = (leftMultiply)
-            ? multTable[aIndex][bIndex]
-            : multTable[bIndex][aIndex];
-
-        this.value = getValue((result + 8) % 8); // Add 8 before taking modulo to ensure positive result
+        return { sign, base: str };
     }
 
+    toStringFromParsed(el) {
+        if (el.base === "1") {
+            return el.sign === 1 ? "1" : "-1";
+        }
+        return el.sign === 1 ? el.base : `-${el.base}`;
+    }
+
+    /* -------------------------
+       Multiplication table
+    ------------------------- */
+
+    multiplyBases(a, b) {
+        // returns { sign, base }
+        if (a === "1") return { sign: 1, base: b };
+        if (b === "1") return { sign: 1, base: a };
+
+        if (a === b) return { sign: -1, base: "1" };
+
+        const table = {
+            "i,j": { sign:  1, base: "k" },
+            "j,k": { sign:  1, base: "i" },
+            "k,i": { sign:  1, base: "j" },
+
+            "j,i": { sign: -1, base: "k" },
+            "k,j": { sign: -1, base: "i" },
+            "i,k": { sign: -1, base: "j" }
+        };
+
+        const key = `${a},${b}`;
+        if (!table[key]) {
+            throw new Error(`Invalid quaternion product: ${a} * ${b}`);
+        }
+
+        return table[key];
+    }
+
+    multiplyElements(a, b) {
+        const baseResult = this.multiplyBases(a.base, b.base);
+        return {
+            sign: a.sign * b.sign * baseResult.sign,
+            base: baseResult.base
+        };
+    }
+
+    /* -------------------------
+       Public multiply interface
+    ------------------------- */
+
+    multiply(bStr, leftMultiply, clicked) {
+        const a = this.parseElement(this.value);
+        const b = this.parseElement(bStr);
+
+        const result = leftMultiply
+            ? this.multiplyElements(b, a) // b · a
+            : this.multiplyElements(a, b); // a · b
+
+        this.value = this.toStringFromParsed(result);
+    }
+
+    /* -------------------------
+       Coloring (simple & readable)
+    ------------------------- */
 
     color() {
-        const colors = {
-            '1':  "rgb(255,255,255)",   //  1  → white
-            '2':  "rgb(255,200,200)",   //  i  → light red
-            '3':  "rgb(200,255,200)",   //  j  → light green
-            '4':  "rgb(200,200,255)",   //  k  → light blue
+        const { sign, base } = this.parseElement(this.value);
     
-            '-1': "rgb(230,230,230)",   // -1 → light gray
-            '-2': "rgb(255,220,220)",   // -i → lighter red
-            '-3': "rgb(220,255,220)",   // -j → lighter green
-            '-4': "rgb(220,220,255)"    // -k → lighter blue
-        };
+        // Identity / -identity (r-like behavior)
+        if (base === "1") {
+            const MIN = 180;
+            const g = sign === 1 ? 255 : MIN;
+            return `rgb(255,${g},${g})`;
+        }
     
-        return colors[this.value.toString()];
+        /*
+          Map i, j, k to evenly spaced "k-values"
+          so we can reuse the dihedral-style interpolation
+        */
+        const indexMap = { i: 0, j: 1, k: 2 };
+        const v = indexMap[base];
+        const t = v / 2; // 0, 0.5, 1
+    
+        const MIN = 180;
+    
+        let r = Math.round(MIN + t * (255 - MIN));
+        let b = 255;
+    
+        // Darken slightly if negative
+        if (sign === -1) {
+            r = Math.max(MIN, r - 40);
+            b = Math.max(MIN, b - 40);
+        }
+    
+        return `rgb(${r},${MIN},${b})`;
     }
     
 
     toString() {
-        switch (this.value) {
-            case 1:
-                return "1";
-            case 2:
-                return "i";
-            case 3:
-                return "j";
-            case 4:
-                return "k";
-            case -1:
-                return "-1";
-            case -2:
-                return "-i";
-            case -3:
-                return "-j";
-            case -4:
-                return "-k";
-            default:
-                return "";
-        }
+        return this.value;
     }
 }

@@ -220,6 +220,89 @@ function circulantGraph(all_nodes) {
 }
 
 
+function cubeGridSize(d) {
+    const k = Math.floor((d - 1) / 2);
+    return [1 << k, 1 << (d - 1 - k)];
+}
+
+function cubeGraph() {
+    const d = parseInt(document.getElementById("dim_input").value);
+    if (isNaN(d) || d < 1) return;
+
+    nodes.length = 0;
+    edges.length = 0;
+
+    const canvas = context.canvas;
+    const spacing = 50;
+
+    // Split dimensions into grid
+    const [rows, cols] = cubeGridSize(d);
+    const layerCount = 1 << (d - (Math.log2(rows) + Math.log2(cols)));
+
+    const allLayers = [];
+
+    const totalHeight =
+        layerCount * rows * spacing + (layerCount - 1) * spacing;
+
+    const startY = canvas.height / 2 - totalHeight / 2;
+
+    // --- Create layers ---
+    for (let l = 0; l < layerCount; l++) {
+        const layerNodes = [];
+
+        const gridWidth = (cols - 1) * spacing;
+        const offsetX = canvas.width / 2 - gridWidth / 2;
+        const offsetY = startY + l * (rows * spacing + spacing);
+
+        for (let y = 0; y < rows; y++) {
+            const row = [];
+            for (let x = 0; x < cols; x++) {
+                row.push(
+                    create_node(
+                        offsetX + x * spacing,
+                        offsetY + y * spacing
+                    )
+                );
+            }
+            layerNodes.push(row);
+        }
+
+        allLayers.push(layerNodes);
+    }
+
+    // --- Horizontal + vertical edges inside layers ---
+    for (const layer of allLayers) {
+        for (let y = 0; y < rows; y++) {
+            for (let x = 0; x < cols - 1; x++) {
+                edges.push({ from: layer[y][x], to: layer[y][x + 1], round: false, dash: false });
+            }
+        }
+        for (let y = 0; y < rows - 1; y++) {
+            for (let x = 0; x < cols; x++) {
+                edges.push({ from: layer[y][x], to: layer[y + 1][x], round: false, dash: false });
+            }
+        }
+    }
+
+    // --- Vertical (cube) connections ---
+    for (let l = 0; l < layerCount - 1; l++) {
+        for (let y = 0; y < rows; y++) {
+            for (let x = 0; x < cols; x++) {
+                edges.push({
+                    from: allLayers[l][y][x],
+                    to: allLayers[l + 1][y][x],
+                    round: true,
+                    dash: false
+                });
+            }
+        }
+    }
+
+    draw();
+}
+
+
+
 function bipartiteGraph(all_nodes) {
     const set1Size = parseInt(document.getElementById("set1").value);
     const set2Size = parseInt(document.getElementById("set2").value);
@@ -246,6 +329,47 @@ function bipartiteGraph(all_nodes) {
         }
     }
 }
+
+function crownGraph(all_nodes) {
+    const set1Size = parseInt(document.getElementById("set1").value);
+    const set2Size = parseInt(document.getElementById("set2").value);
+
+    const yPos1 = 150;
+    const yPos2 = 350;
+    const set1Spacing = canvas.width / (set1Size + 1);
+    const set2Spacing = canvas.width / (set2Size + 1);
+
+    const set1Nodes = [];
+    const set2Nodes = [];
+
+    // --- Create nodes ---
+    for (let i = 0; i < set1Size; i++) {
+        set1Nodes.push(create_node((i + 1) * set1Spacing, yPos1));
+    }
+
+    for (let i = 0; i < set2Size; i++) {
+        set2Nodes.push(create_node((i + 1) * set2Spacing, yPos2));
+    }
+
+    // --- Create crown edges ---
+    const matchingSize = Math.min(set1Size, set2Size);
+
+    for (let i = 0; i < set1Size; i++) {
+        for (let j = 0; j < set2Size; j++) {
+
+            // Remove the perfect matching
+            if (i < matchingSize && i === j) continue;
+
+            edges.push({
+                from: set1Nodes[i],
+                to: set2Nodes[j],
+                round: false,
+                dash: null
+            });
+        }
+    }
+}
+
 
 function diagonalGraph(all_nodes, num_rows, num_cols) {
     const spacing = 50;

@@ -1,0 +1,161 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+*,
+body,
+button,
+input,
+select,
+textarea {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  outline: 0;
+}
+
+
+body {
+    font-family: "Roboto", sans-serif;
+    font-weight: normal;
+    font-size: 1rem;
+    overflow: auto;
+}
+
+#navbar{
+    display: flex;
+    width: 100%;
+    height: 75px;
+    flex-direction: row;
+    justify-content: space-between;
+    background-color: #DFCC74;
+    align-items: center;
+    padding: 0px;
+}
+  
+#title{
+    font-family: "Julius Sans One", sans-serif;
+    text-decoration: none;
+    margin-left: 25px;
+    color: #75485E;
+    font-size: 2rem;
+}
+  
+#title:hover{
+    color: white;
+    transition: 0.2s;
+}
+  
+  #right_side{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
+  
+#right_side a{
+    text-decoration: none;
+    font-size: 1rem;
+    color: #75485E;
+}
+  
+#about_btn:hover{
+    color: white;
+    transition: 0.2s;
+}
+
+#about_btn {
+    margin: 25px;
+}
+
+#instructions_btn {
+    background-color: white;
+    padding: 8px;
+    margin: 25px 17px;
+    border-radius: 0.5rem;
+}
+
+#instructions_btn:hover{
+    cursor: default;
+}
+
+#main_content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#header_sec {
+    margin: 25px;
+    font-family: "Julius Sans One", sans-serif;
+    box-shadow: 0px 5px #DFCC74;
+}
+
+#group_items{
+    width: 100%;
+    height: 400px;
+    margin: 25px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.menu_item {
+    background-color: #51A3A3;
+    width: 30%;
+    height: 100%;
+    margin: 10px;
+    border-radius: 1rem;
+    box-shadow: 4px 4px 10px #979797;
+    transition: 0.2s;
+}
+
+.menu_item:hover {
+    background-color: #0B3948;
+    cursor: pointer;
+}
+
+.menu_item div {
+    padding: 25px;
+    color: white;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+}
+
+.menu_item h1 {
+    box-shadow: 0px 5px white;
+    margin-bottom: 25px;
+}
+
+.menu_item p {
+    font-size: 1.5rem;
+    line-height: 2.5rem;
+    text-align: center;
+    margin-top: 25px;
+}
+
+.back_btn {
+    background: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    font-size: 1.5rem;
+    scale: (1);
+    transition: 0.2s;
+}
+
+.back_btn:hover {
+    transform: scale(1.2);
+    cursor: pointer;
+}
+
+.back_btn img {
+    width: 2rem;
+    padding: 5px;
+}

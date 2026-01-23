@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lights-Out Instructions</title>
+    <link rel="icon" type="image/x-icon" href="light-bulb.png">
+    <link rel="stylesheet" href="instructions.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Didact+Gothic&family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Julius+Sans+One&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="navbar">
+        <div>
+            <a href="Interface.html" id="title">Try it Out</a>
+        </div>
+
+        <div id="right_side">
+            <a href="#" id="instructions_btn">Instructions</a>
+            <a href="#" id="about_btn">About</a>
+        </div>
+    </div>
+
+    <div id="main_content">
+        <div id="header_sec">
+            <h1 id="title_change">Navigating the Lights Out Puzzle</h1>
+        </div>
+
+        <div id="group_items">
+            <div class="menu_item" id="editing_ins">
+                <div>
+                    <h1>Editing</h1>
+                    <p>Choosing and fine-tuning different graph types, saving a graph, and more.</p>
+                    <p id="editShow" style="display: none;">(Click to learn more)</p>
+                </div>
+            </div>
+
+            <div class="menu_item" id="group_ins">
+                <div>
+                    <h1>Groups</h1>
+                    <p>Functions of cyclic, dihedral, quaternion, free, and free-abelion groups.</p>
+                    <p id="groupShow" style="display: none;">(Click to learn more)</p>
+                </div>
+            </div>
+
+            <div class="menu_item" id="playing_ins">
+                <div>
+                    <h1>Playing</h1>
+                    <p>Solving the puzzle, state edits, history tracking, and more.</p>
+                    <p id="playShow" style="display: none;">(Click to learn more)</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="more_editing" style="display: none;">
+
+            <button class="back_btn" id="btn1" type="button"><img src="back.png" alt="">Back</button>
+        </div>
+
+        <div id="more_groups" style="display: none;">
+
+            <button class="back_btn" id="btn2" type="button"><img src="back.png" alt="">Back</button>
+        </div>
+
+        <div id="more_playing" style="display: none;">
+
+            <button class="back_btn" id="btn3" type="button"><img src="back.png" alt="">Back</button>
+        </div>
+    </div>
+
+    <script src="instructions.js"></script>
+</body>
+</html>

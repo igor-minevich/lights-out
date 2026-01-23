@@ -38,7 +38,7 @@
       
       <!--Right side info-->
       <div id="right_side">
-          <a href="#">Instructions</a>
+          <a href="instructions.html">Instructions</a>
           <a href="#">About</a>
           <button id="play_button" type="button">Editing</button>
       </div>
@@ -48,16 +48,41 @@
 
     <div class="controls-wrapper">
     <div class="left_side_menus">
+
+      <div class="bottom_buttons">
+        <div>
+          <button id="generate" onclick="generate_puzzle()" type="button">Generate graph</button>
+        </div>
+        <div>
+          <button id="adjacency_matrix" onclick="adjacencyMatrix(nodes, edges)" type="button" style="display: none;">Generate Adjacency Matrix</button>
+        </div>
+        <div>
+          <button id="clear" onclick="clear_puzzle()" type="button">Clear graph</button>
+        </div>
+        <div>
+          <button id="reset" onclick="clear_puzzle()" type="button" style="display: none;">Reset graph</button>
+        </div>
+      </div>
+
       <!-- DIV FOR GRAPH CONTROLS-->
       <div class="controls graph-controls" id="graphcontrols">
+        <div class="input-wrapper">
+          <input id="graph6" type="text" placeholder="Enter graph6 string" />
+          <button type="button" onclick="graphFromGraph6()" id="graph6_btn">
+            Draw Graph
+          </button>
+        </div>
         <div class="line">
           <label for="variation" id="choose_variation_label">Graph type:</label>
           <select name="variation" id="choose_variation">
             <option value="standard">Standard Grid</option>
             <option value="diagonal">Diagonal Grid</option>
+            <option value="cube">Cube Graph</option>
+            <option value="folded">Folded Cube Graph</option>
             <option value="circulant">Circulant Graph</option>
             <option value="complete">Complete Graph</option>
             <option value="bipartite">Complete Bipartite Graph</option>
+            <option value="crown">Crown Graph</option>
             <option value="cycle">Cycle Graph</option>
             <option value="peterson">Peterson Graph</option>
             <option value="star">Star Graph</option>
@@ -95,6 +120,11 @@
           <input type="number" id="set2" class="input_size" value="3" min="0">
         </div>
 
+        <div id="dimensionDiv" class="line" style="display: none;">
+          <label for="dim_input" id="dim_label">Dimension:</label>
+          <input type="number" id="dim_input" class="input_size" value="3" min="0" max="5">
+        </div>
+
         <div class="line">
           <input type="checkbox" id="top_bottom">
           <label for="top_bottom" id="top_bottom_label">Top and bottom connected</label>
@@ -112,51 +142,6 @@
 
 
 
-      </div>
-
-      <div id="history" style="display:none">
-        <h3 id="historyFont" class="line">History</h3>
-        <ul id="historyList"></ul>
-
-        <div id="eventEditor">
-          <div class="line" id="node_gap">
-            <label for="nodeLabelInput">Node:</label>
-            <input type="text" id="nodeLabelInput" />
-          </div>
-          <div class="line">
-            <label for="multiplierInput">Multiplier:</label>
-            <input type="number" id="multiplierInput" />
-          </div>
-
-          <div id="historySide" class="line">
-            <label>Side:</label>
-            <label>
-              <input type="radio" id="sideRadioLeft" name="sideRadio" value="Left" checked /> Left
-            </label>
-            <label>
-              <input type="radio" id="sideRadioRight" name="sideRadio" value="Right" /> Right
-            </label>
-          </div>
-        </div>
-
-        <div>
-          <button id="updateButton">Update</button>
-          <button id="insertButton">Insert</button>
-          <button id="deleteButton" disabled>Delete</button>
-        </div>
-      </div>
-
-      <div class="bottom_buttons">
-        <div>
-          <button id="generate" onclick="generate_puzzle()" type="button">Generate graph</button>
-        </div>
-  
-        <div>
-          <button id="clear" onclick="clear_puzzle()" type="button">Clear graph</button>
-        </div>
-        <div>
-          <button id="reset" onclick="clear_puzzle()" type="button" style="display: none;">Reset graph</button>
-        </div>
       </div>
 
       <div id="editing_group">
@@ -259,12 +244,47 @@
 
       <div id="playing_toggle" style="display: none;">
         <button id="editState" type="button" aria-pressed="false">
+          <span class="mode_label left">Playing</span>
+      
           <div class="toggle_track">
-              <span class="toggle_label left">Playing</span>
-              <span class="toggle_label right">Edit state</span>
-              <div class="toggle_window"></div>
+            <div class="toggle_window"></div>
           </div>
-      </button>
+      
+          <span class="mode_label right">Edit state</span>
+        </button>
+      </div>
+      
+
+      <div id="history" style="display:none">
+        <h3 id="historyFont" class="line">History</h3>
+        <ul id="historyList"></ul>
+
+        <div id="eventEditor">
+          <div class="line" id="node_gap">
+            <label for="nodeLabelInput">Node:</label>
+            <input type="text" id="nodeLabelInput" />
+          </div>
+          <div class="line">
+            <label for="multiplierInput">Multiplier:</label>
+            <input type="number" id="multiplierInput" />
+          </div>
+
+          <div id="historySide" class="line">
+            <label>Side:</label>
+            <label>
+              <input type="radio" id="sideRadioLeft" name="sideRadio" value="Left" checked /> Left
+            </label>
+            <label>
+              <input type="radio" id="sideRadioRight" name="sideRadio" value="Right" /> Right
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <button id="updateButton">Update</button>
+          <button id="insertButton">Insert</button>
+          <button id="deleteButton" disabled>Delete</button>
+        </div>
       </div>
 
     </div>

@@ -190,6 +190,7 @@ button:hover{
   border: none;
   background-color: white;
   border-radius: 0.5rem;
+  box-shadow: 5px 5px 8px #07242e;
 }
 
 #row_input,
@@ -210,7 +211,7 @@ button:hover{
   padding: 20px 20px;
   background-color: #D9DBF1;
   border-radius: 0.5rem;
-  box-shadow: 5px 5px 8px #000;
+  box-shadow: 5px 5px 8px #07242e;
 }
 
 #historyList {
@@ -228,7 +229,7 @@ button:hover{
 }
 
 #history button:hover{
-  background-color: #563646;
+  background-color: #0B3948;
 }
 
 #historyList li {
@@ -252,7 +253,7 @@ button:hover{
 }
 
 #relationsContainer button:hover{
-  background-color: #563646;
+  background-color: #0B3948;
 }
 
 #relationsList {
@@ -305,7 +306,7 @@ button:hover{
   padding: 20px 20px;
   background-color: #D9DBF1;
   border-radius: 0.5rem;
-  box-shadow: 5px 5px 8px #000;
+  box-shadow: 5px 5px 8px #07242e;
 }
 
 #clear{
@@ -313,20 +314,20 @@ button:hover{
 }
 
 #reset{
-  background-color: #75485E;
+  background-color: #0B3948;
 }
 
 #reset:hover{
-  background-color: #563646;
+  background-color: #75485E;
 }
 
 .bottom_buttons button{
-  background-color: #51A3A3;
+  background-color: #0B3948;
   transition: 0.2s;
 }
 
 .bottom_buttons button:hover{
-  background-color: #448888;
+  background-color: #51A3A3;
 }
 
 .graph-controls, .group-controls, #editing_group, #relationsContainer{
@@ -334,7 +335,7 @@ button:hover{
   padding: 20px 20px;
   background-color: #D9DBF1;
   border-radius: 0.5rem;
-  box-shadow: 5px 5px 8px #000;
+  box-shadow: 5px 5px 8px #07242e;
 }
 
 .graph-controls button{
@@ -343,7 +344,7 @@ button:hover{
 }
 
 .graph-controls button:hover{
-  background-color: #448888;
+  background-color: #0B3948;
 }
 
 #groupcontrols button{
@@ -352,7 +353,7 @@ button:hover{
 }
 
 #groupcontrols button:hover{
-  background-color: #448888;
+  background-color: #0B3948;
 }
 
 .line, .input-wrapper{
@@ -385,8 +386,8 @@ button:hover{
 }
 
 #sagecell button{
-  color: white;
-  background-color: #51A3A3;
+  color: #0B3948;
+  background-color: white;
   border: none;
   border-radius: 0.5rem;
   padding: 8px;
@@ -400,7 +401,7 @@ button:hover{
 #sagecell button:hover{
   cursor: pointer;
   color: white;
-  background-color: #448888;
+  background-color: #51A3A3;
 }
 
 .CodeMirror-sizer{
@@ -416,74 +417,85 @@ button:hover{
   font-weight: bold;
 }
 
-#playing_toggle{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 20px;
-  padding: 20px 20px;
-  background-color: #D9DBF1;
-  border-radius: 0.5rem;
-  box-shadow: 5px 5px 8px #000;
+#playing_toggle{ 
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  margin-top: 20px; 
+  padding: 20px 20px; 
+  background-color: #D9DBF1; 
+  border-radius: 0.5rem; 
+  box-shadow: 5px 5px 8px #07242e;
 }
 
 #editState {
-  padding: 0;
-  width: 200px; 
-  height: 36px;
-  background: none;
-  border-radius: 0.5rem;
-  position: relative;
-  margin-left: 17px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 0.6rem;
+  border: none;
+  cursor: pointer;
+  background-color: #D9DBF1;
 }
 
+/* Text labels */
+.mode_label {
+  color: #858594;
+  transition: 0.2;
+  user-select: none;
+  padding: 8px;
+}
+
+#editState:not(.editing) .mode_label.left {
+  color: white;
+  background-color: #75485E;
+  border-radius: 0.5rem;
+}
+
+#editState.editing .toggle_track{
+  background-color: #51A3A3;
+}
+
+#editState.editing .mode_label.right{
+  color: white;
+  background-color: #51A3A3;
+  border-radius: 0.5rem;
+}
+
+
+/* Toggle track */
 .toggle_track {
   position: relative;
-  width: 100%;
-  height: 100%;
+  width: 56px;
+  height: 28px;
   background: #75485E;
-  border-radius: 0.5rem;
-  overflow: hidden;
-  display: flex;
+  border-radius: 14px;
+  flex-shrink: 0;
 }
 
-.toggle_label {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #997788;
-  z-index: 2;
-  pointer-events: none;
-  font-size: 1rem;
-}
-
+/* Sliding knob */
 .toggle_window {
   position: absolute;
   top: 2px;
   left: 2px;
-  width: calc(50% - 4px);
-  height: calc(100% - 4px);
-  background: #51A3A3;
-  border-radius: 0.4rem;
-  transition: left 0.3s ease;
-  z-index: 1;
+  width: 24px;
+  height: 24px;
+  background: white;
+  border-radius: 50%;
+  transition: left 0.25s ease, background 0.2s;
 }
 
-.toggle_window:hover{
-  background: #448888;
-  transition: 0.2s;
-}
-
-#editState:not(.editing) .left,
-#editState.editing .right {
-  color: white;
-}
-
+/* Move knob right when editing */
 #editState.editing .toggle_window {
-  left: calc(50% + 2px);
+  left: 30px;
 }
 
 #divMultiply_dihedral button{
   background-color: #75485E;
+}
+
+#divMultiply_dihedral button:hover{
+  background-color: #563646;
 }
