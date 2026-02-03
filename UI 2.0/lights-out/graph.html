@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Map</title>
+  <link rel="stylesheet" href="index.css">
+  <script defer type="text/javascript" src="graph_files/load.js"></script>
+</head>
+
+<body>
+  <a href="interface.html">Main page</a>
+  <section class="controls">
+    <p>
+      <button id="play_button" , value="Editing" , type="button">Editing</button>
+      <input type="checkbox" id="top_bottom">
+      <label for="top_bottom">Top and bottom connected</label>
+      <input type="checkbox" id="sides">
+      <label for="sides">Sides connected</label>
+      <input type="checkbox" id="congratulate" checked>
+      <label for="sides">Congratulate achievements</label>
+    </p>
+    <p>
+      <label for="row_input">Rows:</label>
+      <input type="text" width=20px id="row_input" value="5" />
+      <label for="col_input">Columns:</label>
+      <input type="text" width=20px id="col_input" value="5" />
+      <label for="num_colors_input">Number of Colors</label>
+      <input type="text" width=20px id="num_colors_input" value="2" />
+      <label for="variation">Choose a variation:</label>
+      <select name="variation" id="choose_variation"
+        title="Changing the variation and clicking 'Generate' changes the settings below.">
+        <option value="standard">Standard</option>
+        <option value="diagonal">Diagonal</option>
+      </select>
+    </p>
+    <p>
+      <button id="generate" , onclick="generate_puzzle()" , type="button">Generate puzzle</button>
+      <button id="connect_all_btn" onclick="connect_to_all()" type="button">Connect to all</button>
+      <button id="disconnect_all_btn" onclick="disconnect_from_all()" type="button">Disconnect</button>
+      <button id="clear" , onclick="clear_puzzle()" , type="button">Clear puzzle</button>
+    </p>
+  </section>
+  <div id='d1' style=" top:0; left:0; z-index:1">
+    </p>
+    <p>
+      <canvas id="myCanvas" , width="800" , height="500"></canvas>
+    <p>
+      <button id="instructions_button" value="Instructions" type="button">Instructions</button>
+    </p>
+
+  </div>
+
+
+</body>
+
+</html>

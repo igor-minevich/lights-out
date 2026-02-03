@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lights-Out Puzzle</title>
+    <link rel="icon" type="image/x-icon" href="light-bulb.png">
+    <link rel="stylesheet" href="style.css">
+    <script src="app.js" defer></script>
+    <script src="node.js" defer></script>
+    <script src="graphs.js" defer></script>
+    <script src="history.js" defer></script>
+    <script src="cyclic.js" defer></script>
+    <script src="dihedral.js" defer></script>
+    <script src="quaternion.js" defer></script>
+    <script src="free.js" defer></script>
+    <script src="freeab.js" defer></script>
+    <script src="znode.js" defer></script>
+    <link rel="stylesheet" href="https://sagecell.sagemath.org/static/embedded_sagecell.css">
+    <script src="https://sagecell.sagemath.org/static/embedded_sagecell.js"></script>
+</head>
+<body onload="updateSavedPuzzles()" id="back_clr">
+  <div id="sudo_main" style="display: none;"></div>
+    <div class="top_nav">
+        <h1 class="title">
+          <span>L</span><span>i</span><span>g</span><span>h</span><span>t</span><span>s</span><span>-</span><span>O</span><span>u</span><span>t</span>
+          <span> </span>
+          <span>P</span><span>u</span><span>z</span><span>z</span><span>l</span><span>e</span>
+        </h1>
+        <div>
+            <h3>Current Mode (Click to Change):</h3>
+            <button id="play_button" type="button">Editing</button>
+        </div>
+    </div>
+    <div class="main_content" id="main_content">
+        <div class="left_menu">
+            <div id="left_arrow" class="parent1">
+                <img src="left-arrow.png" alt="" class="menu_img child1" id="left_img">
+                <p class="child2" id="left_text">Create & Edit Graphs</p>
+            </div>
+            <div id="left_contents" style="display: none;">
+                <div class="input-wrapper line" id="graph6-wrapper">
+                    <p class="subtitle">Graph-Six Generator</p>
+                    <div id="graph6_sub">
+                      <input id="graph6" type="text" placeholder="String Input"/>
+                      <button type="button" onclick="graphFromGraph6()" id="graph6_btn">Generate Graph</button>
+                      <button id="clear2" onclick="clear_puzzle()" type="button">Clear Graph</button>
+                    </div>
+                </div>
+                <div class="line_break"></div>
+
+
+                <div class="line">
+                  <div class="controls graph-controls input-wrapper" id="graphcontrols">
+                      <p class="subtitle">Preset Generator/Editor</p>
+                      <div class="input-wrapper">
+                        <label for="variation" id="choose_variation_label">Graph type:</label>
+                        <div class="select-wrapper">
+                          <select name="variation" id="choose_variation">
+                            <option value="standard">Standard Grid</option>
+                            <option value="diagonal">Diagonal Grid</option>
+                            <option value="cube">Cube Graph</option>
+                            <option value="folded">Folded Cube Graph</option>
+                            <option value="circulant">Circulant Graph</option>
+                            <option value="complete">Complete Graph</option>
+                            <option value="bipartite">Complete Bipartite Graph</option>
+                            <option value="crown">Crown Graph</option>
+                            <option value="cycle">Cycle Graph</option>
+                            <option value="peterson">Peterson Graph</option>
+                            <option value="star">Star Graph</option>
+                            <option value="wheel">Wheel Graph</option>
+                          </select>
+                        </div>
+                        
+                      </div>
+              
+                      <div class="input-wrapper">
+                          <label id="row_label" class="row_label input-wrapper">Rows:</label>
+                          <input type="number" id="row_input" class="input_size" value="5" />
+                      </div>
+              
+                      <div class="input-wrapper">
+                          <label id="col_label" class="col_input input-wrapper">Columns:</label>
+                          <input type="number" id="col_input" class="input_size" value="5" />
+                      </div>
+              
+                      <div id="verticesDiv" class="input-wrapper" style="display: none;">
+                          <label for="vertices">Vertices:</label>
+                          <input type="number" id="vertices" class="input_size" value="5" />
+                      </div>
+              
+                      <div id="connectionsDiv" class="input-wrapper" style="display: none;">
+                          <label for="connections">Connections:</label>
+                          <input type="text" id="connections" class="input_size" name="connections" value="1,2">
+                      </div>
+              
+                      <div id="set1div" class="input-wrapper" style="display: none;">
+                          <label for="set1" id="set1_text">Set one size:</label>
+                          <input type="number" id="set1" class="input_size" value="3" min="0">
+                      </div>
+              
+                      <div id="set2div" class="input-wrapper" style="display: none;">
+                          <label for="set2">Set two size:</label>
+                          <input type="number" id="set2" class="input_size" value="3" min="0">
+                      </div>
+              
+                      <div id="dimensionDiv" class="input-wrapper" style="display: none;">
+                          <label for="dim_input" id="dim_label">Dimension:</label>
+                          <input type="number" id="dim_input" class="input_size" value="3" min="0" max="5">
+                      </div>
+              
+                      <div class="input-wrapper">
+                          <label for="top_bottom" id="top_bottom_label">Top and bottom connected:</label>
+                          <input type="checkbox" id="top_bottom">
+                      </div>
+              
+                      <div class="input-wrapper check_boxes">
+                          <label for="sides" id="sides_label">Sides connected:</label>
+                          <input type="checkbox" id="sides">
+                      </div>
+                  </div>
+
+                  <div class="bottom_buttons">
+                    <div>
+                      <button id="generate" onclick="generate_puzzle()" type="button">Generate Graph</button>
+                    </div>
+                    <div>
+                      <button id="clear" onclick="clear_puzzle()" type="button">Clear Graph</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="line_break"></div>
+
+                <div class="line">
+                  <p class="subtitle">Edit Vertex Connections</p>
+                  <div>
+                    <button id="connect_all_btn" onclick="connect_to_all()" type="button">Connect Vertex to All</button>
+                    <button id="disconnect_all_btn" onclick="disconnect_from_all()" type="button">Disconnect Vertex From All</button>
+                  </div>
+                  
+                </div>
+
+                <div class="line_break"></div>
+
+                <div id="editing_group" class="line">
+                  <p class="subtitle">Select Group Type for Playing</p>
+                  <div>
+                    <label for="groupTypeSelect" id="group_type_label">Group type:</label>
+                    <div class="select-wrapper">
+                      <select id="groupTypeSelect" onchange="updateGroupType()">
+                        <option value="cyclic">Cyclic</option>
+                        <option value="dihedral">Dihedral</option>
+                        <option value="quaternion">Quaternion</option>
+                        <option value="freeabgroup">Free Abelian Group</option>
+                        <option value="freegroup">Free Group</option>
+                      </select>
+                    </div>
+                    
+                  </div>
+          
+                  <div id="displayWhenPlaying">
+                    <label for="groupOrder1" id="editing_dihedral">Group order:</label>
+                    <input type="text" id="groupOrder1" class="input_size" value="2" onchange="set_group_order()" />
+                  </div>
+                </div>
+
+                <div class="line_break"></div>
+
+                <div class="controls group-controls line" id="groupcontrols">
+                  <p class="subtitle">Save/Load Graphs</p>
+                  <div>
+                    <label for="loadSelector" id="load_selector_label">Select a saved graph to load:</label>
+                    <div class="select-wrapper" id="save_select">
+                      <select id="loadSelector"></select>
+                    </div>
+                    
+                  </div>
+                  <div>
+                    <button id="save" onclick="save_puzzle()" type="button">Save graph</button>
+                    <button id="load" onclick="load_puzzle()" type="button">Load graph</button>
+                    <button id="delete" onclick="delete_puzzle()" type="button">Delete graph</button>
+                  </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="left_close" style="display: none;"><img src="close.png" alt="" class="close_img"></div>
+
+
+        <div id='d1'>
+            <p>
+            <canvas id="myCanvas" width="700" height="500"></canvas>
+            <div id="sagecell"></div>
+            </p>
+        </div>
+
+
+        <div class="right_menu">
+            <div id="right_arrow" style="display: none;">
+                <img src="curved-arrow.png" alt="" class="menu_img child1" id="right_img">
+                <p class="child2" id="right_text">View & Edit Play Features</p>
+            </div>
+
+            <div id="right_contents" style="display: none;">
+              <div class="bottom_buttons line" id="resetDiv">
+                <p class="subtitle">Clear Move History</p>
+                <div>
+                  <button id="reset" onclick="clear_puzzle()" type="button" style="display: none;">Reset Graph</button>
+                </div>
+              </div>
+
+              <div class="line_break"></div>
+            
+                  <div class="controls graph-controls line" id="mergedcontrols" style="display:none">
+                    <p id="groupTypeDisplay" class="subtitle"></p>
+                    <div>
+                      <label for="groupOrder2" id="dihedralChange">Group order:</label>
+                      <input type="text" id="groupOrder2" value="2" onchange="set_group_order()" />
+                    </div>
+                    <div id="divMultiply_dihedral" style="display: none;">
+                        <div>
+                          <label for="dihedralMultDisplay" id="dihedralMultLabel">Multiplier:</label>
+                          <input id="dihedralMultDisplay" type="text" width="20px" value="e"/>
+                          <button id="dihedral_simplify" type="button">Simplify</button>
+                          <button id="dihedral_reset" type="button">Reset</button>
+                        </div>
+                    </div>
+                    <div id='divMultiply'>
+                      <label for="groupMultiplier" id="groupMultiplier_label" style="display: none;">Multiplier:</label>
+                      <input id="groupMultiplier" type="text" width="20px" value="1" onchange="set_group_multiplier()"
+                        style="display: none;" />
+                    </div>
+             
+            
+                    <div id="multiplicationOptions" style="display:none">
+                      <label id="multiplication_label">Side to Multiply:</label>
+                      <input type="radio" id="left" name="multiplication" value="left" checked>
+                      <label for="left">Left</label>
+                      <input type="radio" id="right" name="multiplication" value="right">
+                      <label for="right">Right</label>
+                    </div>
+                    <div id="nodeDisplayOptions" style="display: none;" class="check_boxes">
+                      <span>Show:</span>
+                      <input type="radio" id="displayValues" name="displayOption" value="values">
+                      <label for="displayValues" id="displayValuesInput">Values</label>
+                      <input type="radio" id="displayLabels" name="displayOption" value="labels">
+                      <label for="displayLabels" id="displayLabelsInput">Labels</label>
+                      <input type="radio" id="displayClicks" name="displayOption" value="clicks">
+                      <label for="displayClicks" id="displayClicksInput">Clicks</label>
+                    </div>
+                    <div id="multiplicationOptions" style="display:none">
+                      <label id="multiplication_label">Side to Multiply:</label>
+                      <input type="radio" id="left" name="multiplication" value="left" checked>
+                      <label for="left">Left</label>
+                      <input type="radio" id="right" name="multiplication" value="right">
+                      <label for="right">Right</label>
+                    </div>
+                  </div>
+
+                  <div class="line_break"></div>
+            
+                  <div id="relationsContainer" class="line" style="display:none;">
+                    <p id="relationsFont" class="subtitle">Relations</p>
+                    <div>
+                      <input type="text" id="relationInput" placeholder="String Input" />
+                      <button id="storeRelation" onclick="storeRelation()">Store</button>
+                      <button id="editRelation" onclick="toggleEditMode()">Edit</button>
+                      <button id="deleteRelation" onclick="deleteRelation()" style="display:none;">Delete</button>
+                      <button id="backButton" onclick="toggleEditMode()" style="display:none;">Back</button>
+                    </div>
+                    <ul id="relationsList"></ul>
+                  </div>
+
+                  <div class="line_break" id="free_break" style="display: none;"></div>
+            
+                  <div id="playing_toggle" class="line" style="display: none;">
+                    <p class="subtitle">Override Individual Vertices</p>
+                    <button id="editState" type="button" aria-pressed="false">
+                      <span class="mode_label left">Playing</span>
+                  
+                      <div class="toggle_track">
+                        <div class="toggle_window"></div>
+                      </div>
+                  
+                      <span class="mode_label right">Edit state</span>
+                    </button>
+                  </div>
+
+                  <div class="line_break"></div>
+                  
+            
+                  <div id="history" class="line" style="display:none">
+                    <p id="historyFont" class="subtitle">Move History</p>
+                    <ul id="historyList"></ul>
+            
+                    <div id="eventEditor">
+                      <div id="node_gap">
+                        <label for="nodeLabelInput">Node:</label>
+                        <input type="text" id="nodeLabelInput" />
+                      </div>
+                      <div>
+                        <label for="multiplierInput">Multiplier:</label>
+                        <input type="number" id="multiplierInput" />
+                      </div>
+            
+                      <div id="historySide" class="check_boxes">
+                        <label>Side:</label>
+                        <label>
+                          <input type="radio" id="sideRadioLeft" name="sideRadio" value="Left" checked /> Left
+                        </label>
+                        <label>
+                          <input type="radio" id="sideRadioRight" name="sideRadio" value="Right" /> Right
+                        </label>
+                      </div>
+                    </div>
+            
+                    <div>
+                      <button id="updateButton">Update</button>
+                      <button id="insertButton">Insert</button>
+                      <button id="deleteButton" disabled>Delete</button>
+                    </div>
+                  </div>
+            </div>
+        </div>
+        <div id="right_close" style="display: none;"><img src="close.png" alt="" class="close_img"></div>
+    </div>
+    
+    
+    <div class="bottom_nav">
+        <button id="popup" type="button" onclick="checkGenerate_modal()">Graph Properties</button>
+        <a href="#">Instructions</a>
+        <a href="#">About</a>
+        <a href="lights-out/index.html">More Puzzles</a>
+    </div>
+
+    <div id="properties_container" style="display: none;">
+      <div id="prop_sub">
+        <div id="center_close" style="display: none;"><img src="close.png" alt="" class="close_img" id="center_img"></div>
+        <div class="inputDiv">
+          <button id="graph6_from_graph" type="button">Graph-Six from Graph</button>
+          <button id="adjacency_matrix" onclick="adjacencyMatrix(nodes, edges)" type="button">Generate Adjacency Matrix</button>
+          <button id="activation_matrix" onclick="activationMatrix(nodes, edges)" type="button">Generate Activation Matrix</button>
+          <button id="ra_matrix" onclick="RAMatrix(nodes, edges)" type="button">Generate RA Matrix</button>
+        </div>
+        <div class="outputDiv">
+          <div id="mat_label"></div>
+          <div id="mat_out"></div>
+          <div id="copyDiv1"></div>
+          <div id="elem_divisors"></div>
+          <div id="actDivs"></div>
+          <div id="copyGraph6"></div>
+        </div>
+      </div>
+    </div>
+</body>
+</html>
