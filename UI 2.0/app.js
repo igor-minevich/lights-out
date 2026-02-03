@@ -1663,6 +1663,10 @@ function smithNormalForm(A) {
     for (let r = 0; r < m; r++) {
       if (r !== i && A[r][j] !== 0) {
         let g = gcd(A[i][j], A[r][j]);
+        //if A[r][j] % A[i][j]:
+        // Do Extended Euclidean Algorithm to find a & b such that a*A[i][j] + b*A[r][j] = gcd(A[i][j], A[r][j]) = g
+        // Replace row i by a * row i + b * row r
+        // Use row i to kill off the entry in row r (subtract A[r][j]/g * row i from row r)
         let a = A[i][j] / g;
         let b = A[r][j] / g;
         for (let c = 0; c < n; c++) {
