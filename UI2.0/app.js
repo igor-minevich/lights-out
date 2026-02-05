@@ -1,5 +1,3 @@
-const { normalForm } = require("@tdajs/normal-form");
-
 const canvas = document.getElementById("myCanvas");
 const context = canvas.getContext('2d');
 
@@ -80,9 +78,11 @@ const editCanvas = document.getElementById("myCanvas");
 const left_close = document.getElementById('left_close');
 const right_close = document.getElementById('right_close');
 const center_close = document.getElementById('center_close');
+const center_close2 = document.getElementById('center_close2');
 const left_text_appear = document.getElementById('left_text');
 const right_text_appear = document.getElementById('right_text');
 const modal = document.getElementById('properties_container');
+const sage_cont = document.getElementById('sage_container');
 
 const EDGE = '#009999';
 const SELECTED = '#88aaaa';
@@ -167,6 +167,7 @@ groupTypeSelect.addEventListener('change', function () {
     groupOrderInput1.disabled = true;
     document.getElementById("divMultiply").style.display = 'none';
     document.getElementById("divMultiply_dihedral").style.display = 'block';
+    document.getElementById("divMultiply_heisenberg").style.display = 'none';
 
   } else if (groupType === "freeabgroup" || groupType === "freegroup") {
     numVert.textContent = "Group order:"
@@ -174,6 +175,7 @@ groupTypeSelect.addEventListener('change', function () {
     document.getElementById("divMultiply").style.display = 'block';
     document.getElementById("free_break").style.display = 'block';
     document.getElementById("divMultiply_dihedral").style.display = 'none';
+    document.getElementById("divMultiply_heisenberg").style.display = 'none';
 
   } else if (groupType === "dihedral"){
     numVert.textContent = "Number of vertices:"
@@ -181,13 +183,21 @@ groupTypeSelect.addEventListener('change', function () {
     groupOrderInput1.value = 4;
     groupOrderInput1.disabled = false;
     document.getElementById("divMultiply").style.display = 'none';
-  }
-  else {
+    document.getElementById("divMultiply_heisenberg").style.display = 'none';
+  } else if (groupType === 'heisenberg') {
+    groupOrderInput1.value = 2;
+    groupOrderInput1.disabled = false;
+    document.getElementById("divMultiply").style.display = 'none';
+    document.getElementById("divMultiply_dihedral").style.display = 'none';
+    numVert.textContent = "Modulus (p):"
+    document.getElementById("divMultiply_heisenberg").style.display = 'block';
+  } else {
     groupOrderInput1.value = 2;
     groupOrderInput1.disabled = false;
     numVert.textContent = "Group order:"
     document.getElementById("divMultiply").style.display = 'block';
     document.getElementById("divMultiply_dihedral").style.display = 'none';
+    document.getElementById("divMultiply_heisenberg").style.display = 'none';
   }
 });
 
@@ -204,6 +214,34 @@ function checkGenerate_modal () {
     isOpen = true;
   }
 }
+
+function checkGenerate_sage () {
+  showSageCell();
+  center_close2.style.display = 'block';
+  isOpen = true;
+}
+
+let sageInitialized = false;
+
+function showSageCell() {
+  document.getElementById("sage_container").style.display = "flex";
+
+  if (!sageInitialized) {
+    sagecell.makeSagecell({
+      inputLocation: '#sagecell',
+      evalButtonText: 'Enter',
+      linked: true,
+      autoeval: true
+    });
+    sageInitialized = true;
+  }
+}
+
+
+center_close2.addEventListener('click', () => {
+  center_close.style.display = 'none';
+  sage_cont.style.display = 'none';
+});
 
 center_close.addEventListener('click', () => {
   center_close.style.display = 'none';
@@ -280,6 +318,8 @@ btn_mode.addEventListener('click', function handleClick() {
     dihedralMultDisplay.value = 'e'
   } else if (groupType === "quaternion"){
     dihedralMultDisplay.value = '1'
+  } else if (groupType === "heisenberg"){
+    groupOrderLabel.textContent = "Modulus (p):";
   } else {
     groupOrderLabel.textContent = "Group order:";
     document.getElementById("groupMultiplier").value = '1';
@@ -358,6 +398,9 @@ btn_mode.addEventListener('click', function handleClick() {
           break;
         case "quaternion":
           vertex.node = new QuaternionNode(groupOrder);
+          break;
+        case "heisenberg":
+          vertex.node = new HeisenbergNode(groupOrder);
           break;
         case "freeabgroup":
           vertex.node = new FreeAbelianNode();
@@ -855,6 +898,9 @@ function clear_puzzle() {
         case "quaternion":
           vertex.node = new QuaternionNode(groupOrder);
           break;
+        case "heisenberg":
+          vertex.node = new HeisenbergNode(groupOrder);
+          break;
         case "freeabgroup":
           vertex.node = new FreeAbelianNode();
           break;
@@ -1192,6 +1238,13 @@ function set_group_multiplier(validateInput = true) {
     groupMultiplier = groupMultiplierInput;
   } else if (groupType === "dihedral" || groupType === 'quaternion'){
     groupMultiplier = document.getElementById('dihedralMultDisplay').value;
+  } else if (groupType === "heisenberg"){
+    groupMultiplier = [
+      parseInt(document.getElementById('a_input').value, 10),
+      parseInt(document.getElementById('b_input').value, 10),
+      parseInt(document.getElementById('c_input').value, 10)
+    ];
+    console.log(groupMultiplier);
   }
   else {
     if (validateInput && isNaN(parseInt(groupMultiplierInput))) {
@@ -1496,6 +1549,14 @@ document.getElementById("play_button").addEventListener("click", function () {
       nodeClickInput.style.display = "none";
       historySide.style.display = "inline-block"
     }
+    if (groupType === "heisenberg") {
+      sideMultiplier.style.display = "none";
+      nodeLabel.style.display = "inline-block";
+      nodeLabelInput.style.display = "inline-block";
+      nodeClick.style.display = "none";
+      nodeClickInput.style.display = "none";
+      historySide.style.display = "none"
+    }
   }
   else {
     multiplierLabel.style.display = "none";
@@ -1624,84 +1685,228 @@ function updateRelationsList() {
   });
 }
 
+// -------------------------------------------------------------------
 
-function gcd(a, b) {
-  a = Math.abs(a); b = Math.abs(b);
-  while (b !== 0) {
-    [a, b] = [b, a % b];
-  }
-  return a;
-}
+// Extended Euclidean Algorithm
+function extendedEuclidean(a, b) {
+  // Remainders
+  let old_r = a, r = b;
 
-function smithNormalForm(A) {
-  A = A.map(row => row.slice()); // deep copy
-  const m = A.length;
-  const n = A[0].length;
+  // Coefficients tracking
+  let old_s = 1, s = 0;
+  let old_t = 0, t = 1;
 
-  let i = 0, j = 0;
+  while (r !== 0) {
+    // Quotient
+    const q = Math.floor(old_r / r);
 
-  while (i < m && j < n) {
-    // Find smallest nonzero entry
-    let minVal = Infinity, p = -1, q = -1;
-    for (let r = i; r < m; r++) {
-      for (let c = j; c < n; c++) {
-        if (A[r][c] !== 0 && Math.abs(A[r][c]) < minVal) {
-          minVal = Math.abs(A[r][c]);
-          p = r; q = c;
-        }
-      }
-    }
-    if (p === -1) break;
+    // Standard remainder update
+    [old_r, r] = [r, old_r - q * r];
 
-    // Swap rows & columns
-    [A[i], A[p]] = [A[p], A[i]];
-    for (let r = 0; r < m; r++) {
-      [A[r][j], A[r][q]] = [A[r][q], A[r][j]];
-    }
-
-    // Clear column
-    for (let r = 0; r < m; r++) {
-      if (r !== i && A[r][j] !== 0) {
-        let g = gcd(A[i][j], A[r][j]);
-        let a = A[i][j] / g;
-        let b = A[r][j] / g;
-        for (let c = 0; c < n; c++) {
-          A[r][c] = a * A[r][c] - b * A[i][c];
-        }
-      }
-    }
-
-    // Clear row
-    for (let c = 0; c < n; c++) {
-      if (c !== j && A[i][c] !== 0) {
-        let g = gcd(A[i][j], A[i][c]);
-        let a = A[i][j] / g;
-        let b = A[i][c] / g;
-        for (let r = 0; r < m; r++) {
-          A[r][c] = a * A[r][c] - b * A[r][j];
-        }
-      }
-    }
-
-    preMinVal = minVal;
-
-    for (let r = i; r < m; r++) {
-      for (let c = j; c < n; c++) {
-        if (A[r][c] !== 0 && Math.abs(A[r][c]) < minVal) {
-          minVal = Math.abs(A[r][c]);
-          p = r; q = c;
-        }
-      }
-    }
-    if (preMinVal === minVal) {
-      i++; j++;
-    }
+    // Update coefficients
+    [old_s, s] = [s, old_s - q * s];
+    [old_t, t] = [t, old_t - q * t];
   }
 
-  return A;
+  return {
+    gcd: old_r,
+    x: old_s,
+    y: old_t
+  };
 }
 
+// Swap two given rows
+function swapRows(M, i, j) {
+  [M[i], M[j]] = [M[j], M[i]];
+}
+
+// Swap two given columns
+function swapCols(M, i, j) {
+  for (let r = 0; r < M.length; r++) {
+    [M[r][i], M[r][j]] = [M[r][j], M[r][i]];
+  }
+}
+
+// Additive row operation (ie. Rdst = Rdst + k * Rsrc)
+function addRow(M, src, dst, k) {
+  for (let c = 0; c < M[0].length; c++) {
+    M[dst][c] += k * M[src][c];
+  }
+}
+
+// Additive column operation (ie. Cdst = Cdst + k * Csrc)
+function addCol(M, src, dst, k) {
+  for (let r = 0; r < M.length; r++) {
+    M[r][dst] += k * M[r][src];
+  }
+}
+
+// Clear all entries below pivot M[k][k] in column k
+function clearColumn(M, k) {
+  for (let i = k + 1; i < M.length; i++) {
+    if (M[i][k] === 0) continue;
+
+    const a = M[k][k];
+    const b = M[i][k];
+
+    // Compute coefficients of two entries
+    const { gcd, x, y } = extendedEuclidean(a, b);
+    console.log(gcd);
+    console.log(x);
+    console.log(y);
+
+    // Cache entire rows to avoid overwrite 
+    const rowK = [...M[k]];
+    const rowI = [...M[i]];
+
+    // Apply unimodular 2x2 matrix transformation 
+    for (let c = 0; c < M[0].length; c++) {
+      M[k][c] = x * rowK[c] + y * rowI[c];
+      M[i][c] = (-b / gcd) * rowK[c] + (a / gcd) * rowI[c];
+    }
+  }
+}
+
+// Clear all entries to the right of pivot M[k][k] in row k
+function clearRow(M, k) {
+  for (let j = k + 1; j < M[0].length; j++) {
+    if (M[k][j] === 0) continue;
+
+    const a = M[k][k];
+    const b = M[k][j];
+
+    // Compute coefficients of two entries
+    const { gcd, x, y } = extendedEuclidean(a, b);
+
+    // Cache entire columns to avoid overwrite 
+    const colK = M.map(r => r[k]);
+    const colJ = M.map(r => r[j]);
+
+    // Apply 2x2 unimodular matrix transformation(column-wise)
+    for (let r = 0; r < M.length; r++) {
+      M[r][k] = x * colK[r] + y * colJ[r];
+      M[r][j] = (-b / gcd) * colK[r] + (a / gcd) * colJ[r];
+    }
+  }
+}
+
+// // Ensure the Smith divisibility condition: M[k][k] | M[k+1][k+1]
+function enforceDivisibility(M, k) {
+  if (k + 1 >= Math.min(M.length, M[0].length)) return;
+
+  if (M[k + 1][k + 1] % M[k][k] === 0) return;
+
+  // Mix diagonal entries to expose a smaller gcd
+  addRow(M, k, k + 1, 1);
+
+  // Restore diagonal
+  clearColumn(M, k);
+  clearRow(M, k);
+}
+
+// (Main driver) Iteratively fixes diagonal entries from top-left to bottom-right
+function smithNormalForm(M) {
+  const rows = M.length;
+  const cols = M[0].length;
+  const d = Math.min(rows, cols);
+
+  for (let k = 0; k < d; k++) {
+    // Ensure the pivot is nonzero by swapping
+    if (M[k][k] === 0) {
+      let found = false;
+
+      for (let i = k; i < rows && !found; i++) {
+        for (let j = k; j < cols; j++) {
+          if (M[i][j] !== 0) {
+            swapRows(M, k, i);
+            swapCols(M, k, j);
+            found = true;
+            break;
+          }
+        }
+      }
+      // Entire remaining submatrix is zero
+      if (!found) break;
+    }
+
+    // Clear column and row around the pivot
+    clearColumn(M, k);
+    clearRow(M, k);
+
+    // Enforce Smith divisibility condition
+    enforceDivisibility(M, k);
+  }
+
+  return M;
+}
+
+// Formats the elementary divisors using exponents for repeated entries
+function formatDivisors(divisors) {
+  const result = [];
+  let i = 0;
+
+  while (i < divisors.length) {
+    let count = 1;
+
+    while (
+      i + count < divisors.length &&
+      divisors[i + count] === divisors[i]
+    ) {
+      count++;
+    }
+
+    if (count > 1) {
+      result.push(`${divisors[i]}<sup>${count}</sup>`);
+    } else {
+      result.push(`${divisors[i]}`);
+    }
+
+    i += count;
+  }
+
+  return result;
+}
+
+// Formats divisors for RA matrix, eliminating NaN entries
+function formatDivisors2(divisors) {
+  const result = [];
+  let i = 0;
+
+  while (i < divisors.length) {
+    // Skip null or NaN immediately
+    if (divisors[i] === null || Number.isNaN(divisors[i])) {
+      i++;
+      continue;
+    }
+
+    let count = 1;
+
+    while (
+      i + count < divisors.length &&
+      divisors[i + count] === divisors[i]
+    ) {
+      count++;
+    }
+
+    if (count > 1) {
+      result.push(`${divisors[i]} (${count}x)`);
+    } else {
+      result.push(`${divisors[i]}`);
+    }
+
+    i += count;
+  }
+
+  return result;
+}
+
+// Function called upon button click that initiates SNF functions and formatting
 function elementaryDivisors(matrix) {
+  matrix = [
+    [6, 0, 0],
+    [0, 10, 0],
+    [0, 0, 70]
+  ];
   const snf = smithNormalForm(matrix);
   const divisors = [];
   for (let i = 0; i < snf.length; i++) {
@@ -1710,7 +1915,7 @@ function elementaryDivisors(matrix) {
   return divisors;
 }
 
-
+// -------------------------------------------------------------------
 
 function adjacencyMatrix(nodes, edges) {
   if (isGraph6 === false) {
@@ -1883,8 +2088,9 @@ function activationMatrix(nodes, edges) {
 
   document.getElementById("elem_btn").addEventListener('click', () => {
     document.getElementById('elem_divisors').innerHTML = `
-      <span>${divisors.join(", ")}</span>
-      `;
+      <span>${formatDivisors(divisors).join(", ")}</span>
+    `;
+
       document.getElementById('elem_divisors').style.cssText = `
       border: 1px solid black;
       padding: 10px 20px;
@@ -1903,6 +2109,7 @@ function activationMatrix(nodes, edges) {
 
 
 
+
 function RAMatrix(nodes, edges) {
   if (isGraph6 === false) {
     document.getElementById('mat_label').textContent = 
@@ -1914,14 +2121,16 @@ function RAMatrix(nodes, edges) {
 
   document.getElementById('mat_out').innerHTML = '';
   document.getElementById('copyGraph6').innerHTML = '';
-  document.getElementById('elem_divisors').innerHTML = null;
-      document.getElementById('elem_divisors').style.cssText = `
-        border: none;
-        padding: none;
-        border-radius: none;
-        font-size: none;
-        margin: none;
-      `;
+  document.getElementById('elem_divisors').innerHTML = `
+    <button id="elem_btn" type="button" onclick="showDivisors()">Show Elementary Divisors</button>
+  `;
+  document.getElementById('elem_divisors').style.cssText = `
+    border: none;
+    padding: none;
+    border-radius: none;
+    font-size: none;
+    margin: none;
+  `;
 
   const indexMap = new Map();
   nodes.forEach((n, i) => indexMap.set(n.label, i));
@@ -1969,6 +2178,23 @@ function RAMatrix(nodes, edges) {
   ];
 
   outputMatrixWithCopy(RA, rowLabels);
+
+  const divisors = elementaryDivisors(RA);
+
+
+  document.getElementById("elem_btn").addEventListener('click', () => {
+    document.getElementById('elem_divisors').innerHTML = `
+      <span>${formatDivisors2(divisors).join(", ")}</span>
+    `;
+
+      document.getElementById('elem_divisors').style.cssText = `
+      border: 1px solid black;
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-size: 15px;
+      margin: 5px;
+      `;
+  });
 
   return RA;
 }
