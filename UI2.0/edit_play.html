@@ -6,6 +6,17 @@
     <title>Lights-Out Puzzle</title>
     <link rel="icon" type="image/x-icon" href="light-bulb.png">
     <link rel="stylesheet" href="style.css">
+    <script src="app.js" defer></script>
+    <script src="node.js" defer></script>
+    <script src="graphs.js" defer></script>
+    <script src="history.js" defer></script>
+    <script src="cyclic.js" defer></script>
+    <script src="dihedral.js" defer></script>
+    <script src="quaternion.js" defer></script>
+    <script src="heisenberg.js"></script>
+    <script src="free.js" defer></script>
+    <script src="freeab.js" defer></script>
+    <script src="znode.js" defer></script>
     <link rel="stylesheet" href="https://sagecell.sagemath.org/static/embedded_sagecell.css">
     <script src="https://sagecell.sagemath.org/static/embedded_sagecell.js"></script>
 </head>
@@ -142,8 +153,9 @@
                         <option value="cyclic">Cyclic</option>
                         <option value="dihedral">Dihedral</option>
                         <option value="quaternion">Quaternion</option>
-                        <option value="freeabgroup">Free Abelian Group</option>
-                        <option value="freegroup">Free Group</option>
+                        <option value="heisenberg">Heisenberg</option>
+                        <option value="freeabgroup">Free Abelian</option>
+                        <option value="freegroup">Free</option>
                       </select>
                     </div>
                     
@@ -181,7 +193,6 @@
         <div id='d1'>
             <p>
             <canvas id="myCanvas" width="700" height="500"></canvas>
-            <div id="sagecell"></div>
             </p>
         </div>
 
@@ -196,7 +207,18 @@
               <div class="bottom_buttons line" id="resetDiv">
                 <p class="subtitle">Clear Move History</p>
                 <div>
-                  <button id="reset" onclick="clear_puzzle()" type="button" style="display: none;">Reset Graph</button>
+                  <button id="reset" onclick="clear_puzzle()" type="button" style="display: none;">Reset Puzzle</button>
+                </div>
+              </div>
+
+              <div class="line_break"></div>
+
+              <div class="generate_random line" id="random_puzzle">
+                <p class="subtitle">Generate Random Starting Point</p>
+                <div>
+                  <button id="randomize_btn1" onclick="randomizePuzzle(1)" type="button" style="display: none;">Easy</button>
+                  <button id="randomize_btn2" onclick="randomizePuzzle(2)" type="button" style="display: none;">Medium</button>
+                  <button id="randomize_btn3" onclick="randomizePuzzle(3)" type="button" style="display: none;">Hard</button>
                 </div>
               </div>
 
@@ -216,6 +238,24 @@
                           <button id="dihedral_reset" type="button">Reset</button>
                         </div>
                     </div>
+                    <div id="divMultiply_heisenberg" style="display: none;">
+                      <div class="triplet">
+                        <div id="a">
+                          <label for="a_input">A</label>
+                          <input id="a_input" type="number" value="1">
+                        </div>
+
+                        <div id="b">
+                          <label for="b_input">B</label>
+                          <input id="b_input" type="number" value="1">
+                        </div>
+
+                        <div id="c">
+                          <label for="c_input">C</label>
+                          <input id="c_input" type="number" value="1">
+                        </div>
+                      </div>
+                  </div>
                     <div id='divMultiply'>
                       <label for="groupMultiplier" id="groupMultiplier_label" style="display: none;">Multiplier:</label>
                       <input id="groupMultiplier" type="text" width="20px" value="1" onchange="set_group_multiplier()"
@@ -238,13 +278,6 @@
                       <label for="displayLabels" id="displayLabelsInput">Labels</label>
                       <input type="radio" id="displayClicks" name="displayOption" value="clicks">
                       <label for="displayClicks" id="displayClicksInput">Clicks</label>
-                    </div>
-                    <div id="multiplicationOptions" style="display:none">
-                      <label id="multiplication_label">Side to Multiply:</label>
-                      <input type="radio" id="left" name="multiplication" value="left" checked>
-                      <label for="left">Left</label>
-                      <input type="radio" id="right" name="multiplication" value="right">
-                      <label for="right">Right</label>
                     </div>
                   </div>
 
@@ -273,7 +306,7 @@
                         <div class="toggle_window"></div>
                       </div>
                   
-                      <span class="mode_label right">Edit state</span>
+                      <span class="mode_label right">Edit State</span>
                     </button>
                   </div>
 
@@ -318,6 +351,7 @@
     
     
     <div class="bottom_nav">
+        <button id="sage_btn" type="button" onclick="checkGenerate_sage()">Sage Cell</button>
         <button id="popup" type="button" onclick="checkGenerate_modal()">Graph Properties</button>
         <a href="#">Instructions</a>
         <a href="#">About</a>
@@ -331,6 +365,7 @@
           <button id="graph6_from_graph" type="button">Graph-Six from Graph</button>
           <button id="adjacency_matrix" onclick="adjacencyMatrix(nodes, edges)" type="button">Generate Adjacency Matrix</button>
           <button id="activation_matrix" onclick="activationMatrix(nodes, edges)" type="button">Generate Activation Matrix</button>
+          <button id="hermite_matrix" onclick="hermiteForm(nodes, edges)" type="button">Generate Hermite Form</button>
           <button id="ra_matrix" onclick="RAMatrix(nodes, edges)" type="button">Generate RA Matrix</button>
         </div>
         <div class="outputDiv">
@@ -338,21 +373,24 @@
           <div id="mat_out"></div>
           <div id="copyDiv1"></div>
           <div id="elem_divisors"></div>
+          <div id="rref"></div>
           <div id="actDivs"></div>
           <div id="copyGraph6"></div>
         </div>
       </div>
     </div>
 
-    <script src="app.js" defer></script>
-    <script src="node.js" defer></script>
-    <script src="graphs.js" defer></script>
-    <script src="history.js" defer></script>
-    <script src="cyclic.js" defer></script>
-    <script src="dihedral.js" defer></script>
-    <script src="quaternion.js" defer></script>
-    <script src="free.js" defer></script>
-    <script src="freeab.js" defer></script>
-    <script src="znode.js" defer></script>
+
+    <div id="sage_container" style="display: none;">
+      <div id="prop_sub2">
+        <div id="center_close2" style="display: none;">
+          <img src="close.png" alt="" class="close_img" id="center_img2">
+        </div>
+        
+        <div id="sagecell"></div>
+        
+      </div>
+    </div>
+    
 </body>
 </html>

@@ -5,6 +5,20 @@ class DihedralNode {
         this.value = "e"; // strict string representation
     }
 
+    toSuperscript(num) {
+        const sup = {
+            "0": "⁰", "1": "¹", "2": "²", "3": "³",
+            "4": "⁴", "5": "⁵", "6": "⁶", "7": "⁷",
+            "8": "⁸", "9": "⁹", "-": "⁻"
+        };
+    
+        return num.toString()
+            .split("")
+            .map(ch => sup[ch] || ch)
+            .join("");
+    }    
+    
+
     // Normalize parsed elements from user input
     parseElement(str) {
         // returns { type: "r" | "s", k } where inputed element
@@ -33,6 +47,7 @@ class DihedralNode {
             return el.k === 1 ? "sr" : `sr${el.k}`;
         }
     }
+    
 
     // Function for handling the specific multiplicative rules
     multiplyElements(a, b) {
@@ -55,6 +70,7 @@ class DihedralNode {
         if (a.type === "s" && b.type === "s") {
             return { type: "r", k: (b.k - a.k + this.n) % this.n };
         }
+
     }
 
     // Takes parsed elements and sends to multiplyElements based on 
@@ -89,6 +105,17 @@ class DihedralNode {
     }
     
     toString() {
-        return this.value;
+        let parsed = this.parseElement(this.value);
+    
+        if (parsed.type === "r") {
+            if (parsed.k === 0) return "e";
+            if (parsed.k === 1) return "r";
+            return `r${this.toSuperscript(parsed.k)}`;
+        } else {
+            if (parsed.k === 0) return "s";
+            if (parsed.k === 1) return "sr";
+            return `sr${this.toSuperscript(parsed.k)}`;
+        }
     }
+    
 }

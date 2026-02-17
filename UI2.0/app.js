@@ -90,6 +90,9 @@ const btn_mode = document.getElementById('play_button');
 const btn_clear = document.getElementById('clear');
 const btn_clear2 = document.getElementById('clear2');
 const btn_reset = document.getElementById('reset');
+const btn_random1 = document.getElementById('randomize_btn1');
+const btn_random2 = document.getElementById('randomize_btn2');
+const btn_random3 = document.getElementById('randomize_btn3');
 const btn_matrix = document.getElementById('adjacency_matrix');
 const dihedralMultDisplay = document.getElementById("dihedralMultDisplay");
 
@@ -386,6 +389,9 @@ btn_mode.addEventListener('click', function handleClick() {
     btn_clear.style.display = 'none';
     btn_clear2.style.display = 'none';
     btn_reset.style.display = 'block';
+    btn_random1.style.display = 'block';
+    btn_random2.style.display = 'block';
+    btn_random3.style.display = 'block';
     btn_matrix.style.display = 'block';
     editingGroup.style.display = 'none';
     for (const vertex of nodes) {
@@ -474,6 +480,9 @@ btn_mode.addEventListener('click', function handleClick() {
     btn_clear.style.display = 'block';
     btn_clear2.style.display = 'block';
     btn_reset.style.display = 'none';
+    btn_random1.style.display = 'block';
+    btn_random2.style.display = 'block';
+    btn_random3.style.display = 'block';
     btn_matrix.style.display = 'block';
     document.getElementById('play_button').style.backgroundColor = '#009FB7';
     editingGroup.style.display = 'block';
@@ -811,17 +820,7 @@ function up(e) {
             simplifyBtn.click();
             groupMultiplier = document.getElementById('dihedralMultDisplay').value;
           }
-          target.node.multiply(groupMultiplier, leftMultiply, true);
-          for (let i = 0; i < edges.length; i++) {
-            var other = undefined;
-            if (edges[i].from == target)
-              other = edges[i].to;
-            else if (edges[i].to == target)
-              other = edges[i].from;
-            if (other) {
-              other.node.multiply(groupMultiplier, leftMultiply, false);
-            }
-          }
+          applyMoveToVertex(target, groupMultiplier, leftMultiply);
         } else if (currentMode === 'editing'){
           if (groupType === 'dihedral' || groupType === 'quaternion'){
             simplifyBtn.click();
@@ -830,20 +829,39 @@ function up(e) {
           target.node.value = groupMultiplier;
         }
         draw();
+        congradulate();
 
         // Add the new event to the history list
         const label = target.label;
         const groupMultiplierUsed = groupMultiplier;
         const leftRightMultiplierUsed = leftMultiply ? "Left" : "Right";
         addToHistory(label, groupMultiplierUsed, leftRightMultiplierUsed);
-
-        //The current implementation of the congratulate function displays a message each time a node is clicked, which is not desirable.
-        //congratulate();
       }
     }
 
   }
   node_dragged = undefined;
+}
+
+function applyMoveToVertex(target, multiplier, leftMultiply = false) {
+  if (!target || !target.node) return;
+
+  // Apply to clicked vertex
+  target.node.multiply(multiplier, leftMultiply, true);
+
+  // Apply to neighbors
+  for (let i = 0; i < edges.length; i++) {
+    let other = undefined;
+
+    if (edges[i].from === target)
+      other = edges[i].to;
+    else if (edges[i].to === target)
+      other = edges[i].from;
+
+    if (other && other.node) {
+      other.node.multiply(multiplier, leftMultiply, false);
+    }
+  }
 }
 
 function key_up(e) {
@@ -869,6 +887,131 @@ function key_up(e) {
     }
   }
 }
+
+
+function congradulate() {
+  if (nodes.length === 0) return;
+
+  const first = nodes[0].node.toString();
+
+  for (let i = 1; i < nodes.length; i++) {
+    if (nodes[i].node.toString() !== first) {
+      return;
+    }
+  }
+
+  alert(`Congratulations! All vertices are now ${first}!`);
+}
+
+
+
+function randomizePuzzle(mode) {
+  
+  nodeCounter = 0;
+  uNodeCounter = 0;
+  historyData = [];
+  updateHistoryList();
+
+  if (btn_mode.textContent === 'Editing') return;
+
+  const groupTypeSelect = document.getElementById('groupTypeSelect');
+  const groupType = groupTypeSelect.value;
+
+  set_group_order();
+
+  if (groupType === "cyclic") {
+    let verticesToScramble;
+
+    if (mode === 1) verticesToScramble = Math.ceil(nodes.length * 0.1);
+    if (mode === 2) verticesToScramble = Math.ceil(nodes.length * 0.25);
+    if (mode === 3) verticesToScramble = nodes.length;
+    console.log(verticesToScramble);
+    let i = 0;
+      
+    while (i < verticesToScramble) {
+      const randomVertex = nodes[Math.floor(Math.random() * nodes.length)];
+      const randomVal = Math.floor(Math.random() * groupOrder);
+      
+      if (randomVal === 0) continue;
+      
+      applyMoveToVertex(randomVertex, randomVal, false);
+      i++;
+    }
+  }
+
+    // Determine how many vertices to hit based on difficulty
+  let verticesToScramble;
+  if (mode === 1) verticesToScramble = Math.ceil(nodes.length * 0.01);
+  if (mode === 2) verticesToScramble = Math.ceil(nodes.length * 0.25);
+  if (mode === 3) verticesToScramble = nodes.length;
+
+  // Shuffle nodes so random selection is uniform
+  const shuffled = [...nodes].sort(() => Math.random() - 0.5);
+  const targets = shuffled.slice(0, verticesToScramble);
+
+  switch (groupType) {
+
+    case "dihedral": {
+      const gens = ["r", "s"];
+      for (const vertex of targets) {
+        // Ensure vertex has its own node
+        if (!vertex.node) vertex.node = new DihedralNode(groupOrder);
+
+        // Apply 1–2 random moves to this vertex
+        const steps = 1 + Math.floor(Math.random() * 2);
+        for (let i = 0; i < steps; i++) {
+          vertex.node.multiply(gens[Math.floor(Math.random() * gens.length)]);
+        }
+
+        // Propagate via applyMoveToVertex so neighbors are updated
+        applyMoveToVertex(vertex, vertex.node.toString(), false);
+
+        if (vertex.node.toString() !== "e") nonIdentityCount++;
+      }
+      break;
+    }
+
+    case "quaternion": {
+      const gens = ["i", "j", "k"];
+      for (const vertex of targets) {
+        if (!vertex.node) vertex.node = new QuaternionNode(groupOrder);
+
+        const steps = 1 + Math.floor(Math.random() * 2);
+        for (let i = 0; i < steps; i++) {
+          vertex.node.multiply(gens[Math.floor(Math.random() * gens.length)]);
+        }
+
+        applyMoveToVertex(vertex, vertex.node.toString(), false);
+
+        if (vertex.node.toString() !== "1") nonIdentityCount++;
+      }
+      break;
+    }
+
+    case "heisenberg": {
+      for (const vertex of targets) {
+        if (!vertex.node) vertex.node = new HeisenbergNode(groupOrder);
+
+        const steps = 1 + Math.floor(Math.random() * 2);
+        for (let i = 0; i < steps; i++) {
+          const a = Math.floor(Math.random() * groupOrder);
+          const b = Math.floor(Math.random() * groupOrder);
+          const c = Math.floor(Math.random() * groupOrder);
+          vertex.node.multiply([a, b, c]);
+        }
+
+        applyMoveToVertex(vertex, vertex.node.value, false);
+
+        if (vertex.node.toString() !== "0,0,0") nonIdentityCount++;
+      }
+      break;
+    }
+  }
+
+  congradulate();
+  draw();
+}
+
 
 function clear_puzzle() {
   nodeCounter = 0;
@@ -1743,29 +1886,57 @@ function addCol(M, src, dst, k) {
 
 // Clear all entries below pivot M[k][k] in column k
 function clearColumn(M, k) {
-  for (let i = k + 1; i < M.length; i++) {
+  const rows = M.length;
+  const cols = M[0].length;
+
+  // Step 1: ensure pivot is nonzero (swap if needed)
+  if (M[k][k] === 0) {
+    for (let i = k + 1; i < rows; i++) {
+      if (M[i][k] !== 0) {
+        [M[k], M[i]] = [M[i], M[k]];
+        break;
+      }
+    }
+  }
+
+  if (M[k][k] === 0) return M; // nothing to do
+
+  // Step 2: clear entries below pivot
+  for (let i = k + 1; i < rows; i++) {
     if (M[i][k] === 0) continue;
 
     const a = M[k][k];
     const b = M[i][k];
 
-    // Compute coefficients of two entries
     const { gcd, x, y } = extendedEuclidean(a, b);
-    console.log(gcd);
-    console.log(x);
-    console.log(y);
 
-    // Cache entire rows to avoid overwrite 
     const rowK = [...M[k]];
     const rowI = [...M[i]];
 
-    // Apply unimodular 2x2 matrix transformation 
-    for (let c = 0; c < M[0].length; c++) {
+    for (let c = 0; c < cols; c++) {
       M[k][c] = x * rowK[c] + y * rowI[c];
       M[i][c] = (-b / gcd) * rowK[c] + (a / gcd) * rowI[c];
     }
   }
+
+  // Step 3: make pivot positive
+  if (M[k][k] < 0) {
+    for (let c = 0; c < cols; c++) M[k][c] *= -1;
+  }
+
+  // Step 4: reduce entries above pivot (optional but canonical)
+  for (let i = 0; i < k; i++) {
+    const factor = Math.floor(M[i][k] / M[k][k]);
+    if (factor !== 0) {
+      for (let c = 0; c < cols; c++) {
+        M[i][c] -= factor * M[k][c];
+      }
+    }
+  }
+
+  return M;
 }
+
 
 // Clear all entries to the right of pivot M[k][k] in row k
 function clearRow(M, k) {
@@ -1790,19 +1961,33 @@ function clearRow(M, k) {
   }
 }
 
-// // Ensure the Smith divisibility condition: M[k][k] | M[k+1][k+1]
-function enforceDivisibility(M, k) {
-  if (k + 1 >= Math.min(M.length, M[0].length)) return;
+// Ensure the Smith divisibility condition: M[k][k] | M[k+1][k+1]
+function enforceDivisibility(M) {
+  const L = Math.min(M.length, M[0].length);
+  let change = true;
 
-  if (M[k + 1][k + 1] % M[k][k] === 0) return;
+  while (change) {
+    change = false;
 
-  // Mix diagonal entries to expose a smaller gcd
-  addRow(M, k, k + 1, 1);
+    for (let k = 0; k < L - 1; k++) {
+      if (M[k+1][k+1] === 0) break;
 
-  // Restore diagonal
-  clearColumn(M, k);
-  clearRow(M, k);
+      if (M[k+1][k+1] % M[k][k] !== 0) {
+        const a = M[k][k];
+        const b =  M[k+1][k+1];
+
+        const { gcd, x, y } = extendedEuclidean(a, b);
+
+        M[k+1][k+1] = a *  b / gcd;
+        M[k][k] = gcd;
+
+        change = true;
+      }
+    }
+  }
 }
+
+
 
 // (Main driver) Iteratively fixes diagonal entries from top-left to bottom-right
 function smithNormalForm(M) {
@@ -1832,11 +2017,10 @@ function smithNormalForm(M) {
     // Clear column and row around the pivot
     clearColumn(M, k);
     clearRow(M, k);
-
-    // Enforce Smith divisibility condition
-    enforceDivisibility(M, k);
   }
 
+  // Enforce Smith divisibility condition
+  enforceDivisibility(M);
   return M;
 }
 
@@ -1889,7 +2073,7 @@ function formatDivisors2(divisors) {
     }
 
     if (count > 1) {
-      result.push(`${divisors[i]} (${count}x)`);
+      result.push(`${divisors[i]}<sup>${count}</sup>`);
     } else {
       result.push(`${divisors[i]}`);
     }
@@ -1902,11 +2086,6 @@ function formatDivisors2(divisors) {
 
 // Function called upon button click that initiates SNF functions and formatting
 function elementaryDivisors(matrix) {
-  matrix = [
-    [6, 0, 0],
-    [0, 10, 0],
-    [0, 0, 70]
-  ];
   const snf = smithNormalForm(matrix);
   const divisors = [];
   for (let i = 0; i < snf.length; i++) {
@@ -2103,8 +2282,63 @@ function activationMatrix(nodes, edges) {
   return matrix;
 }
 
+let currentMatrix = null;
+let currentLabels = null;
 
+function hermiteForm(nodes, edges) {
+  if (isGraph6 === false) {
+    document.getElementById('mat_label').textContent = 
+      'Hermite Form of Activation Matrix (Selected Input):';
+  } else if (isGraph6 === true) {
+    document.getElementById('mat_label').textContent =
+      'Hermite Form of Activation Matrix (Graph-Six Input):';
+  }
+  document.getElementById('mat_out').innerHTML = null;
+  document.getElementById('copyGraph6').innerHTML = null;
+  document.getElementById('elem_divisors').innerHTML = null;
+  document.getElementById('elem_divisors').style.cssText = `
+    border: none;
+    padding: none;
+    border-radius: none;
+    font-size: none;
+    margin: none;
+  `;
 
+  const indexMap = new Map();
+  nodes.forEach((n, i) => indexMap.set(n.label, i));
+  const size = nodes.length;
+
+  // Build activation matrix
+  const matrix = Array.from({ length: size }, () =>
+    Array(size).fill(0)
+  );
+
+  for (let edge of edges) {
+    const i = indexMap.get(edge.from.label);
+    const j = indexMap.get(edge.to.label);
+    matrix[i][j] = 1;
+    matrix[j][i] = 1;
+  }
+
+  for (let i = 0; i < size; i++) matrix[i][i] = 1;
+
+  // Process each column
+  for (let k = 0; k < size; k++) {
+    // if column starting from kth row going down = 0, continue
+    // otherwise move non-zero number to kth row
+    clearColumn(matrix, k);
+  }
+  
+
+  outputMatrixWithCopy(matrix, nodes.map(n => n.label));
+ 
+  const convert = document.getElementById("rref");
+
+  convert.innerHTML = `
+    <input type="number" placeholder="Enter Prime" id="prime_input" min="2">
+    <button id="rref_btn">Convert Matrix to RREF Mod <i>P</i></button>
+  `;
+}
 
 
 

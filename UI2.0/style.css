@@ -42,6 +42,10 @@ select {
     border: 1px solid black;
 }
 
+#groupTypeSelect {
+    width: 200px;
+}
+
 .select-wrapper {
     position: relative;
     display: inline-block;
@@ -471,6 +475,19 @@ button:hover{
     background: rgba(0, 0, 0, 0.7);
 }
 
+#sage_container {
+    position: fixed;
+    align-items: center;
+    justify-content: center;
+    width: 100vw;
+    height: 100vh;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9990; /* in front of everything */
+    background: rgba(0, 0, 0, 0.7);
+}
+
 #prop_sub{
     width: 80vw;
     height: 80vh;
@@ -479,7 +496,7 @@ button:hover{
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    z-index: 9999;
+    z-index: 9995;
     opacity: 1;
     border-radius: 25px;
     color: black;
@@ -491,12 +508,27 @@ button:hover{
     right: 10vw;
 }
 
+#center_close2 {
+    position: absolute;
+    top: 10vh;
+    right: 10vw;
+}
+
 #center_img {
     margin: 20px;
     background: none;
 }
 
 #center_img:hover {
+    background-color: #FED766;
+}
+
+#center_img2 {
+    margin: 20px;
+    background: none;
+}
+
+#center_img2:hover {
     background-color: #FED766;
 }
 
@@ -525,20 +557,19 @@ button:hover{
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    overflow-y: auto;
 }
 
 .adj-matrix {
     border-collapse: collapse;
     font-family: "Body", sans-serif;
     font-size: 15px;
-    margin-bottom: 15px;
+    margin-bottom: 5px;
 }
   
 .adj-matrix th,
 .adj-matrix td {
     border: 1px solid #0F1A20;
-    padding: 3px 5px;
+    padding: 1.5px 5px;
     text-align: center;
 }
 
@@ -547,6 +578,7 @@ button:hover{
     align-items: center;
     flex-direction: row;
     margin-bottom: 15px;
+    margin-top: 20px;
     font-style: italic;
 }
 
@@ -656,6 +688,13 @@ button:hover{
     left: 30px;
 }
 
+.generate_random {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
 #historyList {
     height: 150px;
     width: 100%;
@@ -714,3 +753,124 @@ button:hover{
     text-align: center;
 }
 
+#sage_btn {
+    background-color: #0F1A20;
+}
+
+#sage_btn:hover {
+    background-color: #FED766;
+}
+
+
+.sagecell,
+.sagecell iframe {
+  z-index: 10000 !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+} 
+
+
+
+
+#sagecell button {
+    background-color: #0F1A20;
+    color: #EFF1F3;
+    border: none;
+    border-radius: 25px;
+    padding: 10px 20px;
+    font-size: 15px;
+    margin-bottom: 20px;
+    width: 15vw;
+}
+
+#sagecell button:hover {
+    background-color: white;
+    color: black;
+    cursor: pointer;
+    background-color: #FED766;
+
+}
+
+.sagecell_evalButton {
+    font-family: 'Body', sans-serif;
+}
+
+.sagecell_fullScreen {
+    visibility: hidden;
+}
+
+.sagecell_sessionOutput {
+    background-color: white;
+    scrollbar-color: #0F1A20 #EFF1F3;
+    margin-bottom: 20px;
+    height: 20vh;
+    width: 50vw;
+}
+
+.sagecell_poweredBy {
+    display: none;
+}
+
+.CodeMirror {
+    margin-top: 75px;
+    max-height: 30vh;
+    width: 50vw;
+}
+
+#prop_sub2{
+    width: 80vw;
+    height: 80vh;
+    background-color: #EFF1F3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 9995;
+    opacity: 1;
+    border-radius: 25px;
+    color: black;
+}
+
+.sagecell_input {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+#a label {
+    padding: 10px 20px;
+    background-color: rgba(255, 0, 0, 0.5);
+    border-radius: 25px;
+}
+
+#b label {
+    padding: 10px 20px;
+    background-color: rgba(0, 255, 0, 0.5);
+    border-radius: 25px;
+
+}
+
+#c label {
+    padding: 10px 20px;
+    background-color: rgba(0, 0, 255, 0.5);
+    border-radius: 25px;
+}
+
+.CodeMirror {
+    position: inherit;
+}
+
+.CodeMirror-vscrollbar {
+    visibility: hidden;
+}
+
+.CodeMirror-code {
+    height: 30vh;
+}
+
+#prime_input {
+    width: 100px;
+}
