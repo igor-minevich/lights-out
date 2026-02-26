@@ -77,12 +77,12 @@
               
                       <div class="input-wrapper">
                           <label id="row_label" class="row_label input-wrapper">Rows:</label>
-                          <input type="number" id="row_input" class="input_size" value="5" />
+                          <input type="number" id="row_input" class="input_size" value="5" min="1" max="20"/>
                       </div>
               
                       <div class="input-wrapper">
                           <label id="col_label" class="col_input input-wrapper">Columns:</label>
-                          <input type="number" id="col_input" class="input_size" value="5" />
+                          <input type="number" id="col_input" class="input_size" value="5" min="1" max="27"/>
                       </div>
               
                       <div id="verticesDiv" class="input-wrapper" style="display: none;">
@@ -111,12 +111,12 @@
                       </div>
               
                       <div class="input-wrapper">
-                          <label for="top_bottom" id="top_bottom_label">Top and bottom connected:</label>
+                          <label for="top_bottom" id="top_bottom_label">Top and Bottom Connected:</label>
                           <input type="checkbox" id="top_bottom">
                       </div>
               
                       <div class="input-wrapper check_boxes">
-                          <label for="sides" id="sides_label">Sides connected:</label>
+                          <label for="sides" id="sides_label">Sides Connected:</label>
                           <input type="checkbox" id="sides">
                       </div>
                   </div>
@@ -191,6 +191,7 @@
 
 
         <div id='d1'>
+          <p id="par_div">Par: <span id="par">None</span></p>
             <p>
             <canvas id="myCanvas" width="700" height="500"></canvas>
             </p>
@@ -215,14 +216,17 @@
 
               <div class="generate_random line" id="random_puzzle">
                 <p class="subtitle">Generate Random Starting Point</p>
-                <div>
-                  <button id="randomize_btn1" onclick="randomizePuzzle(1)" type="button" style="display: none;">Easy</button>
-                  <button id="randomize_btn2" onclick="randomizePuzzle(2)" type="button" style="display: none;">Medium</button>
-                  <button id="randomize_btn3" onclick="randomizePuzzle(3)" type="button" style="display: none;">Hard</button>
+                <div class="slider_outer">
+                  <div class="slidecontainer">
+                    <p>Trivial</p>
+                    <input type="range" min="0.01" max="0.5" step="0.01" value="0.01" class="slider" id="myRange">
+                    <p>Extreme</p>
+                  </div>                  
+                  <button id="randomize_btn1" onclick="randomizePuzzle()" type="button" style="display: none;">Randomize</button>
                 </div>
               </div>
 
-              <div class="line_break"></div>
+              <div class="line_break" id="hide_line"></div>
             
                   <div class="controls graph-controls line" id="mergedcontrols" style="display:none">
                     <p id="groupTypeDisplay" class="subtitle"></p>
@@ -280,6 +284,30 @@
                       <label for="displayClicks" id="displayClicksInput">Clicks</label>
                     </div>
                   </div>
+
+                  <div class="line_break"></div>
+
+                  <div class="line">
+                    <p class="subtitle">Enable Chess Piece Graph Moves</p>
+                    <div class="input-wrapper">
+                      <label for="chess_moves" id="chess_label">Chess Moves:</label>
+                      <div class="select-wrapper chess-wrapper">
+                        <select name="chess_variation" id="chess_variation" onchange="showN()">
+                          <option value="none">None</option>
+                          <option value="knight">Knight</option>
+                          <option value="rook">Rook</option>
+                          <option value="king">King</option>
+                          <option value="queen">Queen</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="input-wrapper" id="n_inputDiv" style="display: none;">
+                      <label for="n_value" id="n_value_label">Move Size n:</label>
+                      <input type="number" id="n_value" value="1">
+                    </div>
+                  </div>
+                  
 
                   <div class="line_break"></div>
             

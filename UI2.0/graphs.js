@@ -60,8 +60,8 @@ const cubeVertexLayouts = {
 
 
 
-function standardGraph(all_nodes, num_rows, num_cols) {
-    const spacing = 50;
+function standardGraph(all_nodes, num_rows, num_cols, edge_width) {
+    const spacing = edge_width;
 
     const gridWidth = (num_cols - 1) * spacing;
     const gridHeight = (num_rows - 1) * spacing;
@@ -72,12 +72,15 @@ function standardGraph(all_nodes, num_rows, num_cols) {
     for (let y = 0; y < num_rows; y++) {
         var nodeRow = [];
         for (let x = 0; x < num_cols; x++) {
-            nodeRow.push(
-                create_node(
-                    offsetX + x * spacing,
-                    offsetY + y * spacing
-                )
+            const node = create_node(
+                offsetX + x * spacing,
+                offsetY + y * spacing
             );
+              
+            node.gridRow = y;
+            node.gridCol = x;
+              
+            nodeRow.push(node);
         }
         all_nodes.push(nodeRow);
     }
@@ -178,7 +181,7 @@ function wheelGraph(all_nodes) {
     }
 }
 
-function completeGraph(all_nodes) {
+function completeGraph(all_nodes, shrink) {
     const vertices = parseInt(document.getElementById("vertices").value);
     const angle = 2 * Math.PI / vertices;
 
@@ -395,8 +398,8 @@ function crownGraph(all_nodes) {
 }
 
 
-function diagonalGraph(all_nodes, num_rows, num_cols) {
-    const spacing = 50;
+function diagonalGraph(all_nodes, num_rows, num_cols, edge_width) {
+    const spacing = edge_width;
 
     const gridWidth = (num_cols - 1) * spacing;
     const gridHeight = (num_rows - 1) * spacing;

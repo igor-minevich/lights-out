@@ -16,6 +16,7 @@ let selectedRelationIndex = -1;
 let selectedNode = null;
 let isOpen = false;
 let = isGraph6 = false;
+let nodeTrack = 0;
 
 
 const colors = [
@@ -153,6 +154,13 @@ right_close.addEventListener("click", () => {
 
 
 
+
+
+
+
+
+
+
 groupTypeSelect.addEventListener('change', function () {
   const groupOrderInput1 = document.getElementById("groupOrder1");
   const groupOrderInput2 = document.getElementById("groupOrder2");
@@ -248,6 +256,7 @@ center_close2.addEventListener('click', () => {
 
 center_close.addEventListener('click', () => {
   center_close.style.display = 'none';
+  document.getElementById("rref").innerHTML = null;
   document.getElementById('mat_out').innerHTML = null;
   document.getElementById('copyGraph6').innerHTML = null;
   document.getElementById('copyDiv1').innerHTML = null;
@@ -298,6 +307,8 @@ btn_mode.addEventListener('mouseleave', () => {
 })
 
 btn_mode.addEventListener('click', function handleClick() {
+
+  document.getElementById('myRange').value = 0.01;
   btn_mode.style.color = '#EFF1F3';
   if (checkCount === 0){
     checkGenerate();
@@ -376,6 +387,14 @@ btn_mode.addEventListener('click', function handleClick() {
   });
 
   if (btn_mode.textContent === 'Editing') {
+    if (groupType === "freegroup" || groupType === "freeabgroup") {
+      document.getElementById("random_puzzle").style.display = 'none';
+      document.getElementById("hide_line").style.display = 'none';
+    } else {
+      document.getElementById("random_puzzle").style.display = 'flex';
+      document.getElementById("hide_line").style.display = 'block';
+    }
+
     left_arrow.style.display = 'none';
     right_arrow.style.display = 'flex';
     right_arrow.style.opacity = '1';
@@ -390,8 +409,6 @@ btn_mode.addEventListener('click', function handleClick() {
     btn_clear2.style.display = 'none';
     btn_reset.style.display = 'block';
     btn_random1.style.display = 'block';
-    btn_random2.style.display = 'block';
-    btn_random3.style.display = 'block';
     btn_matrix.style.display = 'block';
     editingGroup.style.display = 'none';
     for (const vertex of nodes) {
@@ -481,8 +498,6 @@ btn_mode.addEventListener('click', function handleClick() {
     btn_clear2.style.display = 'block';
     btn_reset.style.display = 'none';
     btn_random1.style.display = 'block';
-    btn_random2.style.display = 'block';
-    btn_random3.style.display = 'block';
     btn_matrix.style.display = 'block';
     document.getElementById('play_button').style.backgroundColor = '#009FB7';
     editingGroup.style.display = 'block';
@@ -557,10 +572,19 @@ function create_node(x, y, labelType) {
     nodeCounter++;
   }
 
-  node = new GraphicalNode(x, y, 20, label);
-  nodes.push(node);
-  draw();
-  return node;
+  if (document.getElementById('vertices').value > 25 || document.getElementById('col_input').value > 12 || document.getElementById('row_input').value > 10 || document.getElementById('set1').value > 12 || document.getElementById('set2').value > 12) {
+    node = new GraphicalNode(x, y, 10, label);
+    nodes.push(node);
+    draw();
+    return node;
+  } else {
+    node = new GraphicalNode(x, y, 20, label);
+    nodes.push(node);
+    draw();
+    return node;
+  }
+
+  
 }
 
 function create_edge(fromNode, toNode, round, dash) { //check if an edge already exists, if it exist do not create another edge. check fromnode to tonode and vice versa.
@@ -820,7 +844,17 @@ function up(e) {
             simplifyBtn.click();
             groupMultiplier = document.getElementById('dihedralMultDisplay').value;
           }
-          applyMoveToVertex(target, groupMultiplier, leftMultiply);
+          if (document.getElementById('chess_variation').value === 'knight') {
+            applyKnightMove(target, groupMultiplier, leftMultiply);
+          } else if (document.getElementById('chess_variation').value === 'rook') {
+            applyRookMove(target, groupMultiplier, leftMultiply);
+          } else if (document.getElementById('chess_variation').value === 'queen') {
+            applyQueenMove(target, groupMultiplier, leftMultiply);
+          } else if (document.getElementById('chess_variation').value === 'king') {
+            applyKingMove(target, groupMultiplier, leftMultiply);
+          } else {
+            applyMoveToVertex(target, groupMultiplier, leftMultiply);
+          }
         } else if (currentMode === 'editing'){
           if (groupType === 'dihedral' || groupType === 'quaternion'){
             simplifyBtn.click();
@@ -843,6 +877,10 @@ function up(e) {
   node_dragged = undefined;
 }
 
+
+
+var all_nodes = [];
+
 function applyMoveToVertex(target, multiplier, leftMultiply = false) {
   if (!target || !target.node) return;
 
@@ -862,7 +900,138 @@ function applyMoveToVertex(target, multiplier, leftMultiply = false) {
       other.node.multiply(multiplier, leftMultiply, false);
     }
   }
+
+  nodeTrack++;
+  console.log(nodeTrack);
 }
+
+
+function applyKnightMove(target, multiplier, leftMultiply = false) {
+  if (!target || !target.node) return;
+
+  const n = parseInt(document.getElementById("n_value").value, 10);
+  if (isNaN(n) || n < 1) return;
+
+  const a = n;
+  const b = n + 1;
+
+  const offsets = [
+    [ a,  b], [ a, -b], [-a,  b], [-a, -b],
+    [ b,  a], [ b, -a], [-b,  a], [-b, -a],
+  ];
+
+  const row = target.gridRow;
+  const col = target.gridCol;
+
+  if (row === undefined || col === undefined) return;
+
+  const numRows = parseInt(document.getElementById("row_input").value, 10);
+  const numCols = parseInt(document.getElementById("col_input").value, 10);
+
+  // Toggle clicked node
+  target.node.multiply(multiplier, leftMultiply, true);
+
+  for (const [dx, dy] of offsets) {
+    const newRow = row + dy;
+    const newCol = col + dx;
+
+    if (
+      newRow >= 0 && newRow < numRows &&
+      newCol >= 0 && newCol < numCols
+    ) {
+      // Find node via flat array
+      const neighbor = nodes.find(
+        n => n.gridRow === newRow && n.gridCol === newCol
+      );
+
+      if (neighbor && neighbor.node) {
+        neighbor.node.multiply(multiplier, leftMultiply, false);
+      }
+    }
+  }
+}
+
+function applyRookMove(target, multiplier, leftMultiply = false) {
+  if (!target || !target.node) return;
+
+  const row = target.gridRow;
+  const col = target.gridCol;
+
+  if (row === undefined || col === undefined) return;
+
+  const numRows = parseInt(document.getElementById("row_input").value, 10);
+  const numCols = parseInt(document.getElementById("col_input").value, 10);
+
+  // Toggle clicked node
+  target.node.multiply(multiplier, leftMultiply, true);
+
+  for (const n of nodes) {
+    if (!n.node) continue;
+
+    if (n.gridRow === row || n.gridCol === col) {
+      if (n !== target) {
+        n.node.multiply(multiplier, leftMultiply, false);
+      }
+    }
+  }
+}
+
+function applyQueenMove(target, multiplier, leftMultiply = false) {
+  if (!target || !target.node) return;
+
+  const row = target.gridRow;
+  const col = target.gridCol;
+
+  if (row === undefined || col === undefined) return;
+
+  // Toggle clicked node
+  target.node.multiply(multiplier, leftMultiply, true);
+
+  for (const n of nodes) {
+    if (!n.node || n === target) continue;
+
+    const sameRow = n.gridRow === row;
+    const sameCol = n.gridCol === col;
+    const sameDiag = Math.abs(n.gridRow - row) === Math.abs(n.gridCol - col);
+
+    if (sameRow || sameCol || sameDiag) {
+      n.node.multiply(multiplier, leftMultiply, false);
+    }
+  }
+}
+
+function applyKingMove(target, multiplier, leftMultiply = false) {
+  if (!target || !target.node) return;
+
+  const row = target.gridRow;
+  const col = target.gridCol;
+
+  if (row === undefined || col === undefined) return;
+
+  const offsets = [
+    [-1, -1], [-1, 0], [-1, 1],
+    [ 0, -1],          [ 0, 1],
+    [ 1, -1], [ 1, 0], [ 1, 1],
+  ];
+
+  // Toggle clicked node
+  target.node.multiply(multiplier, leftMultiply, true);
+
+  for (const [dy, dx] of offsets) {
+    const newRow = row + dy;
+    const newCol = col + dx;
+
+    const neighbor = nodes.find(
+      n => n.gridRow === newRow && n.gridCol === newCol
+    );
+
+    if (neighbor && neighbor.node) {
+      neighbor.node.multiply(multiplier, leftMultiply, false);
+    }
+  }
+}
+
+
 
 function key_up(e) {
   if (btn_mode.textContent == 'Editing') {
@@ -889,28 +1058,40 @@ function key_up(e) {
 }
 
 
+
 function congradulate() {
+  const parText = document.getElementById('par').textContent;
+  const parInt = parseInt(parText.replace(/\D/g, ''), 10); // extract number safely
+
   if (nodes.length === 0) return;
 
   const first = nodes[0].node.toString();
 
+  // Check if all nodes match (puzzle solved)
   for (let i = 1; i < nodes.length; i++) {
     if (nodes[i].node.toString() !== first) {
       return;
     }
   }
 
-  alert(`Congratulations! All vertices are now ${first}!`);
+  // Compare moves to par
+  if (nodeTrack === parInt) {
+    alert("Perfect! You solved the puzzle on par.");
+  } else if (nodeTrack < parInt) {
+    alert(`Amazing! You beat par by ${parInt - nodeTrack} move(s).`);
+  } else {
+    alert(`Nice job! You finished ${nodeTrack - parInt} move(s) over par.`);
+  }
+
+  document.getElementById('par_div').style.display = 'none';
 }
 
 
-
-function randomizePuzzle(mode) {
+// This function randomizes a starting layout of vertex states to be solved back to one single state
+// Difficulty is controlled by an html slider, works for every group besides free and freeab
+function randomizePuzzle() {
   
-  nodeCounter = 0;
-  uNodeCounter = 0;
-  historyData = [];
-  updateHistoryList();
+  clear_puzzle();
 
   if (btn_mode.textContent === 'Editing') return;
 
@@ -919,95 +1100,82 @@ function randomizePuzzle(mode) {
 
   set_group_order();
 
-  if (groupType === "cyclic") {
-    let verticesToScramble;
 
-    if (mode === 1) verticesToScramble = Math.ceil(nodes.length * 0.1);
-    if (mode === 2) verticesToScramble = Math.ceil(nodes.length * 0.25);
-    if (mode === 3) verticesToScramble = nodes.length;
-    console.log(verticesToScramble);
+  const slider = document.getElementById("myRange");
+  const difficultyPercent = parseFloat(slider.value);
+
+  let verticesToScramble = Math.floor(difficultyPercent * nodes.length);
+
+  verticesToScramble = Math.max(1, verticesToScramble);
+
+  if (groupType === "cyclic") {
     let i = 0;
-      
+  
     while (i < verticesToScramble) {
       const randomVertex = nodes[Math.floor(Math.random() * nodes.length)];
       const randomVal = Math.floor(Math.random() * groupOrder);
-      
+  
       if (randomVal === 0) continue;
-      
+  
       applyMoveToVertex(randomVertex, randomVal, false);
       i++;
     }
   }
-
-    // Determine how many vertices to hit based on difficulty
-  let verticesToScramble;
-  if (mode === 1) verticesToScramble = Math.ceil(nodes.length * 0.01);
-  if (mode === 2) verticesToScramble = Math.ceil(nodes.length * 0.25);
-  if (mode === 3) verticesToScramble = nodes.length;
-
-  // Shuffle nodes so random selection is uniform
-  const shuffled = [...nodes].sort(() => Math.random() - 0.5);
-  const targets = shuffled.slice(0, verticesToScramble);
-
-  switch (groupType) {
-
-    case "dihedral": {
-      const gens = ["r", "s"];
-      for (const vertex of targets) {
-        // Ensure vertex has its own node
-        if (!vertex.node) vertex.node = new DihedralNode(groupOrder);
-
-        // Apply 1–2 random moves to this vertex
-        const steps = 1 + Math.floor(Math.random() * 2);
-        for (let i = 0; i < steps; i++) {
-          vertex.node.multiply(gens[Math.floor(Math.random() * gens.length)]);
-        }
-
-        // Propagate via applyMoveToVertex so neighbors are updated
-        applyMoveToVertex(vertex, vertex.node.toString(), false);
-
-        if (vertex.node.toString() !== "e") nonIdentityCount++;
-      }
-      break;
-    }
-
-    case "quaternion": {
-      const gens = ["i", "j", "k"];
-      for (const vertex of targets) {
-        if (!vertex.node) vertex.node = new QuaternionNode(groupOrder);
-
-        const steps = 1 + Math.floor(Math.random() * 2);
-        for (let i = 0; i < steps; i++) {
-          vertex.node.multiply(gens[Math.floor(Math.random() * gens.length)]);
-        }
-
-        applyMoveToVertex(vertex, vertex.node.toString(), false);
-
-        if (vertex.node.toString() !== "1") nonIdentityCount++;
-      }
-      break;
-    }
-
-    case "heisenberg": {
-      for (const vertex of targets) {
-        if (!vertex.node) vertex.node = new HeisenbergNode(groupOrder);
-
-        const steps = 1 + Math.floor(Math.random() * 2);
-        for (let i = 0; i < steps; i++) {
-          const a = Math.floor(Math.random() * groupOrder);
-          const b = Math.floor(Math.random() * groupOrder);
-          const c = Math.floor(Math.random() * groupOrder);
-          vertex.node.multiply([a, b, c]);
-        }
-
-        applyMoveToVertex(vertex, vertex.node.value, false);
-
-        if (vertex.node.toString() !== "0,0,0") nonIdentityCount++;
-      }
-      break;
+  
+  if (groupType === "dihedral") {
+    let i = 0;
+  
+    while (i < verticesToScramble) {
+      const randomVertex = nodes[Math.floor(Math.random() * nodes.length)];
+      const isReflection = Math.random() < 0.5;  
+      const k = Math.floor(Math.random() * groupOrder);
+  
+      if (!isReflection && k === 0) continue;
+  
+      const element = isReflection ? `s r${k}` : `r${k}`;
+  
+      applyMoveToVertex(randomVertex, element, false);
+      i++;
     }
   }
 
+  if (groupType === "quaternion") {
+    const elements = ["-1", "i", "-i", "j", "-j", "k", "-k"]; // exclude identity "1"
+    let i = 0;
+  
+    while (i < verticesToScramble) {
+      const randomVertex = nodes[Math.floor(Math.random() * nodes.length)];
+      const element = elements[Math.floor(Math.random() * elements.length)];
+  
+      applyMoveToVertex(randomVertex, element, false);
+      i++;
+    }
+  }
+
+  if (groupType === "heisenberg") {
+    let i = 0;
+  
+    while (i < verticesToScramble) {
+      const randomVertex = nodes[Math.floor(Math.random() * nodes.length)];
+  
+      // random element in Z_p^3
+      const a = Math.floor(Math.random() * groupOrder);
+      const b = Math.floor(Math.random() * groupOrder);
+      const c = Math.floor(Math.random() * groupOrder);
+  
+      // skip identity
+      if (a === 0 && b === 0 && c === 0) continue;
+  
+      const element = [a, b, c];
+  
+      applyMoveToVertex(randomVertex, element, false);
+      i++;
+    }
+  }
+  
+  document.getElementById('par_div').style.display = 'block';
+  document.getElementById('par').textContent = verticesToScramble;
+  nodeTrack = 0;
   congradulate();
   draw();
 }
@@ -1080,6 +1248,21 @@ document.getElementById('clear2').addEventListener("click", () => {
   hasBeenGenerated = false;
 })
 
+
+
+function showN() {
+  chessVar = document.getElementById('chess_variation');
+  nInputDiv = document.getElementById('n_inputDiv');
+
+  if (chessVar.value === 'knight') {
+    nInputDiv.style.display = 'block';
+  } else {
+    nInputDiv.style.display = 'none';
+  }
+}
+
+
+
 let graphTypeLabel = null;
 
 function generate_puzzle() {
@@ -1099,9 +1282,16 @@ function generate_puzzle() {
 
   switch (variation) {
     case "standard":
-      graphTypeLabel = '(Standard Graph)';
-      standardGraph(all_nodes, num_rows, num_cols);
-      break;
+      if (document.getElementById('col_input').value > 12 || document.getElementById('row_input').value > 10) {
+        graphTypeLabel = '(Standard Graph)';
+        standardGraph(all_nodes, num_rows, num_cols, 25);
+        break;
+      } else {
+        graphTypeLabel = '(Standard Graph)';
+        standardGraph(all_nodes, num_rows, num_cols, 50);
+        break;
+      }
+      
     case "cycle":
       graphTypeLabel = '(Cycle Graph)';
       cycleGraph(all_nodes);
@@ -1143,9 +1333,16 @@ function generate_puzzle() {
         crownGraph(all_nodes);
         break;
     case "diagonal":
-      graphTypeLabel = '(Diagonal Graph)';
-      diagonalGraph(all_nodes, num_rows, num_cols);
-      break;
+      if (document.getElementById('col_input').value > 12 || document.getElementById('row_input').value > 10) {
+        graphTypeLabel = '(Diagonal Graph)';
+        diagonalGraph(all_nodes, num_rows, num_cols, 25);
+        break;
+      } else {
+        graphTypeLabel = '(Diagonal Graph)';
+        diagonalGraph(all_nodes, num_rows, num_cols, 50);
+        break;
+      }
+      
     default:
       alert("Invalid graph variation.");
       break;
@@ -2105,6 +2302,7 @@ function adjacencyMatrix(nodes, edges) {
       'Adjacency Matrix (Graph-Six Input):';
   }
 
+  document.getElementById("rref").innerHTML = null;
   document.getElementById('mat_out').innerHTML = null;
   document.getElementById('copyGraph6').innerHTML = null;
   document.getElementById('elem_divisors').innerHTML = null;
@@ -2228,18 +2426,23 @@ function activationMatrix(nodes, edges) {
     document.getElementById('mat_label').textContent =
       'Activation Matrix (Graph-Six Input):';
   }
+
+  document.getElementById("rref").innerHTML = null;
   document.getElementById('mat_out').innerHTML = null;
   document.getElementById('copyGraph6').innerHTML = null;
-  document.getElementById('elem_divisors').innerHTML = `
-    <button id="elem_btn" type="button" onclick="showDivisors()">Show Elementary Divisors</button>
-  `;
-  document.getElementById('elem_divisors').style.cssText = `
-    border: none;
-    padding: none;
-    border-radius: none;
-    font-size: none;
-    margin: none;
-  `;
+  if (nodes.length <= 25) {
+    document.getElementById('elem_divisors').innerHTML = `
+      <button id="elem_btn" type="button" onclick="showDivisors()">Show Elementary Divisors</button>
+    `;
+    document.getElementById('elem_divisors').style.cssText = `
+      border: none;
+      padding: none;
+      border-radius: none;
+      font-size: none;
+      margin: none;
+    `;
+  }
+  
 
   const indexMap = new Map();
   nodes.forEach((n, i) => indexMap.set(n.label, i));
@@ -2264,26 +2467,28 @@ function activationMatrix(nodes, edges) {
 
   const divisors = elementaryDivisors(matrix);
 
-
-  document.getElementById("elem_btn").addEventListener('click', () => {
-    document.getElementById('elem_divisors').innerHTML = `
-      <span>${formatDivisors(divisors).join(", ")}</span>
-    `;
-
-      document.getElementById('elem_divisors').style.cssText = `
-      border: 1px solid black;
-      padding: 10px 20px;
-      border-radius: 25px;
-      font-size: 15px;
-      margin: 5px;
+  if (size > 25) {
+    return matrix;
+  } else {
+    document.getElementById("elem_btn").addEventListener('click', () => {
+      document.getElementById('elem_divisors').innerHTML = `
+        <span>${formatDivisors(divisors).join(", ")}</span>
       `;
-  });
 
-  return matrix;
+        document.getElementById('elem_divisors').style.cssText = `
+        border: 1px solid black;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-size: 15px;
+        margin: 5px;
+        `;
+    });
+
+    return matrix;
+  }
+  
 }
 
-let currentMatrix = null;
-let currentLabels = null;
 
 function hermiteForm(nodes, edges) {
   if (isGraph6 === false) {
@@ -2322,22 +2527,135 @@ function hermiteForm(nodes, edges) {
 
   for (let i = 0; i < size; i++) matrix[i][i] = 1;
 
-  // Process each column
-  for (let k = 0; k < size; k++) {
-    // if column starting from kth row going down = 0, continue
-    // otherwise move non-zero number to kth row
-    clearColumn(matrix, k);
+  let pivotRow = 0;
+  let pivotCol = 0;
+
+  while (pivotRow < size && pivotCol < size) {
+    // Find pivot in submatrix
+    let found = false;
+    let pivotR = -1;
+    let pivotC = -1;
+
+    for (let c = pivotCol; c < size && !found; c++) {
+      for (let r = pivotRow; r < size; r++) {
+        if (matrix[r][c] !== 0) {
+          pivotR = r;
+          pivotC = c;
+          found = true;
+          break;
+        }
+      }
+    }
+
+    // No pivot = remaining columns are free variables
+    if (!found) break;
+
+    // Swap rows
+    if (pivotR !== pivotRow) {
+      [matrix[pivotRow], matrix[pivotR]] = [matrix[pivotR], matrix[pivotRow]];
+    }
+
+    // Swap columns
+    if (pivotC !== pivotCol) {
+      for (let r = 0; r < size; r++) {
+        [matrix[r][pivotCol], matrix[r][pivotC]] = [matrix[r][pivotC], matrix[r][pivotCol]];
+      }
+    }
+
+    // Clear column
+    clearColumn(matrix, pivotRow);
+
+    pivotRow++;
+    pivotCol++;
   }
-  
 
   outputMatrixWithCopy(matrix, nodes.map(n => n.label));
- 
+
   const convert = document.getElementById("rref");
 
   convert.innerHTML = `
     <input type="number" placeholder="Enter Prime" id="prime_input" min="2">
     <button id="rref_btn">Convert Matrix to RREF Mod <i>P</i></button>
   `;
+
+  document.getElementById("rref_btn").onclick = () => {
+    const p = parseInt(document.getElementById("prime_input").value);
+    if (!p || p < 2) {
+      alert("Enter a valid prime.");
+      return;
+    }
+
+    const { matrix: rrefMatrix } = rrefMod(matrix, p);
+
+    // Override displayed matrix
+    outputMatrixWithCopy(rrefMatrix, nodes.map(n => n.label));
+  };
+}
+
+
+function findInverses(p) {
+  const inv = Array(p).fill(null);
+  for (let i = 1; i < p; i++) {
+    for (let j = 1; j < p; j++) {
+      if ((i * j) % p === 1) {
+        inv[i] = j;
+        break;
+      }
+    }
+  }
+  return inv;
+}
+
+function rrefMod(matrix, p) {
+  const mat = matrix.map(row => row.map(v => ((v % p) + p) % p));
+  const rows = mat.length;
+  const cols = mat[0].length;
+
+  const inverses = findInverses(p);
+  let pivotRow = 0;
+  const pivots = [];
+
+  for (let col = 0; col < cols && pivotRow < rows; col++) {
+    // Find pivot
+    let pivot = -1;
+    for (let r = pivotRow; r < rows; r++) {
+      if (mat[r][col] !== 0) {
+        pivot = r;
+        break;
+      }
+    }
+
+    if (pivot === -1) continue;
+
+    pivots.push(col);
+
+    // Swap rows
+    if (pivot !== pivotRow) {
+      [mat[pivotRow], mat[pivot]] = [mat[pivot], mat[pivotRow]];
+    }
+
+    // Normalize pivot row
+    const pivotVal = mat[pivotRow][col];
+    const inv = inverses[pivotVal];
+    for (let c = 0; c < cols; c++) {
+      mat[pivotRow][c] = (mat[pivotRow][c] * inv) % p;
+    }
+
+    // Eliminate other rows
+    for (let r = 0; r < rows; r++) {
+      if (r !== pivotRow && mat[r][col] !== 0) {
+        const factor = mat[r][col];
+        for (let c = 0; c < cols; c++) {
+          mat[r][c] = (mat[r][c] - factor * mat[pivotRow][c]) % p;
+          mat[r][c] = (mat[r][c] + p) % p;
+        }
+      }
+    }
+
+    pivotRow++;
+  }
+
+  return { matrix: mat, pivots };
 }
 
 
@@ -2353,6 +2671,7 @@ function RAMatrix(nodes, edges) {
       'RA Matrix (Graph-Six Input):';
   }
 
+  document.getElementById("rref").innerHTML = null;
   document.getElementById('mat_out').innerHTML = '';
   document.getElementById('copyGraph6').innerHTML = '';
   document.getElementById('elem_divisors').innerHTML = `
@@ -2641,6 +2960,7 @@ document
       alert('Cannot generate a graph-six string for graphs larger than 62 vertices.');
       return;
     } else {
+      document.getElementById("rref").innerHTML = null;
       document.getElementById('copyDiv1').innerHTML = null;
       showGraph6FromCurrentGraph();
       document.getElementById('elem_divisors').innerHTML = null;
@@ -2660,4 +2980,8 @@ document
           'Graph-Six String (Graph-Six Input):';
       }
     }
-  });
+});
+
+
+
+

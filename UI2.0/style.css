@@ -46,6 +46,10 @@ select {
     width: 200px;
 }
 
+#choose_variation {
+    width: 230px;
+}
+
 .select-wrapper {
     position: relative;
     display: inline-block;
@@ -217,6 +221,10 @@ button:hover{
 }
 
 #d1 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     position: fixed;
     top: 50%;
     left: 50%;
@@ -873,4 +881,70 @@ button:hover{
 
 #prime_input {
     width: 100px;
+}
+
+.slidecontainer {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+  }
+  
+  /* Remove default styles */
+  .slider {
+    margin: 0;
+    -webkit-appearance: none;
+    appearance: none;
+    width: 80%;
+    height: 6px;
+    background: none;
+    border-radius: 25px;
+    border: none;
+    outline: none;
+    transition: 0.2s;
+    margin: 0; /* removes extra spacing */
+  }
+  
+  /* Track (Chrome/Safari) */
+  .slider::-webkit-slider-runnable-track {
+    height: 6px;
+    background: black;
+    border-radius: 3px;
+    transition: 0.2s;
+  }
+  
+  /* Thumb (Chrome/Safari) */
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: #880D1E;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: 0.2s;
+    /* KEY: align center with track edges */
+    margin-top: -5px; /* half thumb - half track height */
+  }
+
+  .slider::-webkit-slider-thumb:hover {
+    background: #FED766;
+  }
+  
+.slider_outer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+#chess_variation {
+    width: 120px;
+}
+
+#par_div {
+    display: none;
+    font-size: 1.17em;
 }
