@@ -14,6 +14,7 @@
     <script src="dihedral.js" defer></script>
     <script src="quaternion.js" defer></script>
     <script src="heisenberg.js"></script>
+    <script src="symmetric.js"></script>
     <script src="free.js" defer></script>
     <script src="freeab.js" defer></script>
     <script src="znode.js" defer></script>
@@ -55,21 +56,23 @@
                   <div class="controls graph-controls input-wrapper" id="graphcontrols">
                       <p class="subtitle">Preset Generator/Editor</p>
                       <div class="input-wrapper">
-                        <label for="variation" id="choose_variation_label">Graph type:</label>
+                        <label for="variation" id="choose_variation_label">Graph Type:</label>
                         <div class="select-wrapper">
                           <select name="variation" id="choose_variation">
                             <option value="standard">Standard Grid</option>
                             <option value="diagonal">Diagonal Grid</option>
-                            <option value="cube">Cube Graph</option>
-                            <option value="folded">Folded Cube Graph</option>
-                            <option value="circulant">Circulant Graph</option>
-                            <option value="complete">Complete Graph</option>
-                            <option value="bipartite">Complete Bipartite Graph</option>
-                            <option value="crown">Crown Graph</option>
-                            <option value="cycle">Cycle Graph</option>
-                            <option value="peterson">Peterson Graph</option>
-                            <option value="star">Star Graph</option>
-                            <option value="wheel">Wheel Graph</option>
+                            <option value="knight">Knight Moves</option>
+                            <option value="cube">Cube</option>
+                            <option value="folded">Folded Cube</option>
+                            <option value="circulant">Circulant</option>
+                            <option value="complete">Complete</option>
+                            <option value="bipartite">Complete Bipartite</option>
+                            <option value="crown">Crown</option>
+                            <option value="cycle">Cycle</option>
+                            <option value="peterson">Peterson</option>
+                            <option value="star">Star</option>
+                            <option value="wheel">Wheel</option>
+                            <option value="random">Random</option>
                           </select>
                         </div>
                         
@@ -96,12 +99,12 @@
                       </div>
               
                       <div id="set1div" class="input-wrapper" style="display: none;">
-                          <label for="set1" id="set1_text">Set one size:</label>
+                          <label for="set1" id="set1_text">Set One size:</label>
                           <input type="number" id="set1" class="input_size" value="3" min="0">
                       </div>
               
                       <div id="set2div" class="input-wrapper" style="display: none;">
-                          <label for="set2">Set two size:</label>
+                          <label for="set2">Set Two Size:</label>
                           <input type="number" id="set2" class="input_size" value="3" min="0">
                       </div>
               
@@ -109,6 +112,11 @@
                           <label for="dim_input" id="dim_label">Dimension:</label>
                           <input type="number" id="dim_input" class="input_size" value="3" min="0" max="5">
                       </div>
+
+                      <div id="probDiv" class="input-wrapper" style="display: none;">
+                        <label for="probability" id="prob_label">Edge Probability:</label>
+                        <input type="number" id="probability" class="input_size" value="0.5" min="0.1" step="0.1" max="1">
+                    </div>
               
                       <div class="input-wrapper">
                           <label for="top_bottom" id="top_bottom_label">Top and Bottom Connected:</label>
@@ -134,10 +142,38 @@
                 <div class="line_break"></div>
 
                 <div class="line">
+                  <p class="subtitle">Change Vertex Sizing/Spacing</p>
+
+                  <div class="input-wrapper">
+                    <label for="vertex_size" id="choose_vertex_size_label">Vertex Size:</label>
+                    <div class="select-wrapper">
+                      <select name="vertex_size" id="choose_vertex_size">
+                        <option value="10">Small</option>
+                        <option value="20" selected>Medium</option>
+                        <option value="30">Large</option>
+                      </select>
+                    </div>  
+                  </div>
+
+                  <div class="input-wrapper" id="edge_div">
+                    <label for="edge_length" id="choose_edge_length_label">Vertex Spacing:</label>
+                    <div class="select-wrapper">
+                      <select name="edge_length" id="choose_edge_length">
+                        <option value="25">Small</option>
+                        <option value="50" selected>Medium</option>
+                        <option value="75">Large</option>
+                      </select>
+                    </div>  
+                  </div>
+                </div>
+
+                <div class="line_break"></div>
+
+                <div class="line">
                   <p class="subtitle">Edit Vertex Connections</p>
                   <div>
                     <button id="connect_all_btn" onclick="connect_to_all()" type="button">Connect Vertex to All</button>
-                    <button id="disconnect_all_btn" onclick="disconnect_from_all()" type="button">Disconnect Vertex From All</button>
+                    <button id="disconnect_all_btn" onclick="disconnect_from_all()" type="button">Disconnect Vertex from All</button>
                   </div>
                   
                 </div>
@@ -147,13 +183,14 @@
                 <div id="editing_group" class="line">
                   <p class="subtitle">Select Group Type for Playing</p>
                   <div>
-                    <label for="groupTypeSelect" id="group_type_label">Group type:</label>
+                    <label for="groupTypeSelect" id="group_type_label">Group Type:</label>
                     <div class="select-wrapper">
                       <select id="groupTypeSelect" onchange="updateGroupType()">
                         <option value="cyclic">Cyclic</option>
                         <option value="dihedral">Dihedral</option>
                         <option value="quaternion">Quaternion</option>
                         <option value="heisenberg">Heisenberg</option>
+                        <option value="symmetric">Symmetric</option>
                         <option value="freeabgroup">Free Abelian</option>
                         <option value="freegroup">Free</option>
                       </select>
@@ -162,7 +199,7 @@
                   </div>
           
                   <div id="displayWhenPlaying">
-                    <label for="groupOrder1" id="editing_dihedral">Group order:</label>
+                    <label for="groupOrder1" id="editing_dihedral">Group Order:</label>
                     <input type="text" id="groupOrder1" class="input_size" value="2" onchange="set_group_order()" />
                   </div>
                 </div>
@@ -172,16 +209,16 @@
                 <div class="controls group-controls line" id="groupcontrols">
                   <p class="subtitle">Save/Load Graphs</p>
                   <div>
-                    <label for="loadSelector" id="load_selector_label">Select a saved graph to load:</label>
+                    <label for="loadSelector" id="load_selector_label">Select a Saved Graph to Load:</label>
                     <div class="select-wrapper" id="save_select">
                       <select id="loadSelector"></select>
                     </div>
                     
                   </div>
                   <div>
-                    <button id="save" onclick="save_puzzle()" type="button">Save graph</button>
-                    <button id="load" onclick="load_puzzle()" type="button">Load graph</button>
-                    <button id="delete" onclick="delete_puzzle()" type="button">Delete graph</button>
+                    <button id="save" onclick="save_puzzle()" type="button">Save Graph</button>
+                    <button id="load" onclick="load_puzzle()" type="button">Load Graph</button>
+                    <button id="delete" onclick="delete_puzzle()" type="button">Delete Graph</button>
                   </div>
                 </div>
             </div>
@@ -191,7 +228,6 @@
 
 
         <div id='d1'>
-          <p id="par_div">Par: <span id="par">None</span></p>
             <p>
             <canvas id="myCanvas" width="700" height="500"></canvas>
             </p>
@@ -206,23 +242,25 @@
 
             <div id="right_contents" style="display: none;">
               <div class="bottom_buttons line" id="resetDiv">
-                <p class="subtitle">Clear Move History</p>
-                <div>
-                  <button id="reset" onclick="clear_puzzle()" type="button" style="display: none;">Reset Puzzle</button>
-                </div>
+                <p class="subtitle">Clear Move History & Randomization</p>
+                <button id="reset" onclick="clear_puzzle()" type="button" style="display: none;">Reset All</button>
               </div>
 
               <div class="line_break"></div>
 
               <div class="generate_random line" id="random_puzzle">
-                <p class="subtitle">Generate Random Starting Point</p>
+                <p class="subtitle">Generate Random Starting Point – Par: <span id="par"></span></p>
                 <div class="slider_outer">
                   <div class="slidecontainer">
                     <p>Trivial</p>
-                    <input type="range" min="0.01" max="0.5" step="0.01" value="0.01" class="slider" id="myRange">
+                    <input type="range" min="0.01" max="0.5" step="0.01" value="0.01" class="slider" id="myRange" onchange="updatePar()">
                     <p>Extreme</p>
-                  </div>                  
-                  <button id="randomize_btn1" onclick="randomizePuzzle()" type="button" style="display: none;">Randomize</button>
+                  </div>      
+                  <div id="puzzle_btns">
+                    <button id="randomize_btn1" onclick="randomizePuzzle()" type="button" style="display: none;">Randomize</button>
+                    <button id="resetPuzzle" onclick="reset_puzzle()" type="button" style="display: none;">Reset Puzzle</button>
+                  </div>            
+                  
                 </div>
               </div>
 
@@ -266,7 +304,7 @@
                         style="display: none;" />
                     </div>
              
-            
+          
                     <div id="multiplicationOptions" style="display:none">
                       <label id="multiplication_label">Side to Multiply:</label>
                       <input type="radio" id="left" name="multiplication" value="left" checked>
@@ -278,8 +316,13 @@
                       <span>Show:</span>
                       <input type="radio" id="displayValues" name="displayOption" value="values">
                       <label for="displayValues" id="displayValuesInput">Values</label>
+
+                      <input type="radio" id="displayCyclic" name="displayOption" value="cyclic">
+                      <label for="displayCyclic" id="displayCyclicInput">Cyclic</label>
+
                       <input type="radio" id="displayLabels" name="displayOption" value="labels">
                       <label for="displayLabels" id="displayLabelsInput">Labels</label>
+                      
                       <input type="radio" id="displayClicks" name="displayOption" value="clicks">
                       <label for="displayClicks" id="displayClicksInput">Clicks</label>
                     </div>
@@ -287,7 +330,7 @@
 
                   <div class="line_break"></div>
 
-                  <div class="line">
+                  <div class="line" id="chessDiv">
                     <p class="subtitle">Enable Chess Piece Graph Moves</p>
                     <div class="input-wrapper">
                       <label for="chess_moves" id="chess_label">Chess Moves:</label>
@@ -309,7 +352,7 @@
                   </div>
                   
 
-                  <div class="line_break"></div>
+                  <div class="line_break" id="chessLine"></div>
             
                   <div id="relationsContainer" class="line" style="display:none;">
                     <p id="relationsFont" class="subtitle">Relations</p>
@@ -381,7 +424,7 @@
     <div class="bottom_nav">
         <button id="sage_btn" type="button" onclick="checkGenerate_sage()">Sage Cell</button>
         <button id="popup" type="button" onclick="checkGenerate_modal()">Graph Properties</button>
-        <a href="#">Instructions</a>
+        <a href="instructions.html" target="_blank">Instructions</a>
         <a href="#">About</a>
         <a href="lights-out/index.html">More Puzzles</a>
     </div>

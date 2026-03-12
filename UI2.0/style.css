@@ -50,6 +50,14 @@ select {
     width: 230px;
 }
 
+#choose_vertex_size {
+    width: 115px;
+}
+
+#choose_edge_length {
+    width: 115px;
+}
+
 .select-wrapper {
     position: relative;
     display: inline-block;
@@ -409,6 +417,10 @@ button:hover{
 
 .check_boxes {
     margin: 5px 0px;
+}
+
+.bottom_check {
+    margin-bottom: 5px;
 }
 
 .line {
@@ -947,4 +959,9 @@ button:hover{
 #par_div {
     display: none;
     font-size: 1.17em;
+}
+
+#puzzle_btns {
+    display: flex;
+    flex-direction: row;
 }

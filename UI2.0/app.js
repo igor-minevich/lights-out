@@ -92,6 +92,7 @@ const btn_clear = document.getElementById('clear');
 const btn_clear2 = document.getElementById('clear2');
 const btn_reset = document.getElementById('reset');
 const btn_random1 = document.getElementById('randomize_btn1');
+const resetPuzzleBtn = document.getElementById('resetPuzzle');
 const btn_random2 = document.getElementById('randomize_btn2');
 const btn_random3 = document.getElementById('randomize_btn3');
 const btn_matrix = document.getElementById('adjacency_matrix');
@@ -172,29 +173,31 @@ groupTypeSelect.addEventListener('change', function () {
   updateGroupTypeDisplay();
 
   if (groupType === "quaternion") {
-    numVert.textContent = "Group order:"
+    numVert.textContent = "Group Order:"
     groupOrderInput1.value = 8;
     groupOrderInput2.value = 8;
     groupOrderInput1.disabled = true;
     document.getElementById("divMultiply").style.display = 'none';
     document.getElementById("divMultiply_dihedral").style.display = 'block';
     document.getElementById("divMultiply_heisenberg").style.display = 'none';
+    document.getElementById('displayWhenPlaying').style.display = 'block';
 
   } else if (groupType === "freeabgroup" || groupType === "freegroup") {
-    numVert.textContent = "Group order:"
-    groupOrderInput1.disabled = true;
+    numVert.textContent = "Group Order:"
+    document.getElementById('displayWhenPlaying').style.display = 'none';
     document.getElementById("divMultiply").style.display = 'block';
     document.getElementById("free_break").style.display = 'block';
     document.getElementById("divMultiply_dihedral").style.display = 'none';
     document.getElementById("divMultiply_heisenberg").style.display = 'none';
 
   } else if (groupType === "dihedral"){
-    numVert.textContent = "Number of vertices:"
+    numVert.textContent = "Number of Vertices:"
     document.getElementById("divMultiply_dihedral").style.display = 'block';
     groupOrderInput1.value = 4;
     groupOrderInput1.disabled = false;
     document.getElementById("divMultiply").style.display = 'none';
     document.getElementById("divMultiply_heisenberg").style.display = 'none';
+    document.getElementById('displayWhenPlaying').style.display = 'block';
   } else if (groupType === 'heisenberg') {
     groupOrderInput1.value = 2;
     groupOrderInput1.disabled = false;
@@ -202,13 +205,23 @@ groupTypeSelect.addEventListener('change', function () {
     document.getElementById("divMultiply_dihedral").style.display = 'none';
     numVert.textContent = "Modulus (p):"
     document.getElementById("divMultiply_heisenberg").style.display = 'block';
-  } else {
-    groupOrderInput1.value = 2;
+    document.getElementById('displayWhenPlaying').style.display = 'block';
+  } else if (groupType === 'symmetric') {
+    groupOrderInput1.value = 4;
     groupOrderInput1.disabled = false;
-    numVert.textContent = "Group order:"
+    numVert.textContent = "Size of Set (n):"
     document.getElementById("divMultiply").style.display = 'block';
     document.getElementById("divMultiply_dihedral").style.display = 'none';
     document.getElementById("divMultiply_heisenberg").style.display = 'none';
+    document.getElementById('displayWhenPlaying').style.display = 'block';
+  } else {
+    groupOrderInput1.value = 2;
+    groupOrderInput1.disabled = false;
+    numVert.textContent = "Group Order:"
+    document.getElementById("divMultiply").style.display = 'block';
+    document.getElementById("divMultiply_dihedral").style.display = 'none';
+    document.getElementById("divMultiply_heisenberg").style.display = 'none';
+    document.getElementById('displayWhenPlaying').style.display = 'block';
   }
 });
 
@@ -272,6 +285,14 @@ center_close.addEventListener('click', () => {
   `;
 });
 
+document.getElementById('choose_variation').addEventListener('change', () => {
+  let type = document.getElementById('choose_variation').value;
+  if (type === 'random') {
+    document.getElementById('edge_div').style.display = 'none';
+  } else {
+    document.getElementById('edge_div').style.display = 'block';
+  }
+});
 
 function updateGroupTypeDisplay() {
   const groupTypeSelect = document.getElementById('groupTypeSelect');
@@ -334,6 +355,17 @@ btn_mode.addEventListener('click', function handleClick() {
     dihedralMultDisplay.value = '1'
   } else if (groupType === "heisenberg"){
     groupOrderLabel.textContent = "Modulus (p):";
+  } else if (groupType === "symmetric") {
+    groupOrderLabel.textContent = "Size of Set (n):";
+    if (document.getElementById('groupOrder1').value === '2') {
+      document.getElementById("groupMultiplier").value = '12';
+    } else if (document.getElementById('groupOrder1').value === '3') {
+      document.getElementById("groupMultiplier").value = '123';
+    } else if (document.getElementById('groupOrder1').value === '4') {
+      document.getElementById("groupMultiplier").value = '1234';
+    } else if (document.getElementById('groupOrder1').value === '5') {
+      document.getElementById("groupMultiplier").value = '12345';
+    }
   } else {
     groupOrderLabel.textContent = "Group order:";
     document.getElementById("groupMultiplier").value = '1';
@@ -387,6 +419,15 @@ btn_mode.addEventListener('click', function handleClick() {
   });
 
   if (btn_mode.textContent === 'Editing') {
+    document.getElementById('par').textContent = 1;
+    if (graphTypeLabel === '(Standard Graph)') {
+      document.getElementById('chessDiv').style.display = 'block';
+      document.getElementById('chessLine').style.display = 'block';
+    } else {
+      document.getElementById('chessDiv').style.display = 'none';
+      document.getElementById('chessLine').style.display = 'none';
+    }
+
     if (groupType === "freegroup" || groupType === "freeabgroup") {
       document.getElementById("random_puzzle").style.display = 'none';
       document.getElementById("hide_line").style.display = 'none';
@@ -409,6 +450,7 @@ btn_mode.addEventListener('click', function handleClick() {
     btn_clear2.style.display = 'none';
     btn_reset.style.display = 'block';
     btn_random1.style.display = 'block';
+    resetPuzzleBtn.style.display = 'block';
     btn_matrix.style.display = 'block';
     editingGroup.style.display = 'none';
     for (const vertex of nodes) {
@@ -424,6 +466,9 @@ btn_mode.addEventListener('click', function handleClick() {
           break;
         case "heisenberg":
           vertex.node = new HeisenbergNode(groupOrder);
+          break;
+        case "symmetric":
+          vertex.node = new SymmetricNode(groupOrder);
           break;
         case "freeabgroup":
           vertex.node = new FreeAbelianNode();
@@ -498,6 +543,7 @@ btn_mode.addEventListener('click', function handleClick() {
     btn_clear2.style.display = 'block';
     btn_reset.style.display = 'none';
     btn_random1.style.display = 'block';
+    resetPuzzleBtn.style.display = 'block';
     btn_matrix.style.display = 'block';
     document.getElementById('play_button').style.backgroundColor = '#009FB7';
     editingGroup.style.display = 'block';
@@ -562,6 +608,7 @@ window.onkeyup = key_up;
 function create_node(x, y, labelType) {
   let node;
   let label;
+  let graphType = document.getElementById('choose_variation').value;
 
   if (labelType === "uNode") {
     label = "u" + uNodeCounter;
@@ -572,19 +619,12 @@ function create_node(x, y, labelType) {
     nodeCounter++;
   }
 
-  if (document.getElementById('vertices').value > 25 || document.getElementById('col_input').value > 12 || document.getElementById('row_input').value > 10 || document.getElementById('set1').value > 12 || document.getElementById('set2').value > 12) {
-    node = new GraphicalNode(x, y, 10, label);
-    nodes.push(node);
-    draw();
-    return node;
-  } else {
-    node = new GraphicalNode(x, y, 20, label);
-    nodes.push(node);
-    draw();
-    return node;
-  }
+  let vertexSize = parseInt(document.getElementById('choose_vertex_size').value);
 
-  
+  node = new GraphicalNode(x, y, vertexSize, label);
+  nodes.push(node);
+  draw();
+  return node;  
 }
 
 function create_edge(fromNode, toNode, round, dash) { //check if an edge already exists, if it exist do not create another edge. check fromnode to tonode and vice versa.
@@ -668,12 +708,14 @@ function draw() {
 
       if (showOption === "clicks" && (groupType === "cyclic" || groupType === "freeabgroup" || groupType === "freegroup")) {
 
-        drawClicks(node, true);
+        drawClicks(node, true);       
       } else {
         if (showOption === "labels") {
           drawLabel(node, true);
         } else if (showOption === "values") {
           drawLabel(node, false);
+        } else if (showOption === 'cyclic' && groupType === "symmetric") {
+          drawCyclicLabel(node);
         }
 
       }
@@ -726,6 +768,8 @@ function move(e) {
           tooltipText = "Value: " + target.node.toString();
         } else if (showOption === "values") {
           tooltipText = "Label: " + target.label;
+        } else if (showOption === "cyclic") {
+          tooltipText = "Value: " + target.node.toString();
         }
       }
 
@@ -949,6 +993,7 @@ function applyKnightMove(target, multiplier, leftMultiply = false) {
       }
     }
   }
+  nodeTrack++;
 }
 
 function applyRookMove(target, multiplier, leftMultiply = false) {
@@ -974,6 +1019,7 @@ function applyRookMove(target, multiplier, leftMultiply = false) {
       }
     }
   }
+  nodeTrack++;
 }
 
 function applyQueenMove(target, multiplier, leftMultiply = false) {
@@ -998,6 +1044,7 @@ function applyQueenMove(target, multiplier, leftMultiply = false) {
       n.node.multiply(multiplier, leftMultiply, false);
     }
   }
+  nodeTrack++;
 }
 
 function applyKingMove(target, multiplier, leftMultiply = false) {
@@ -1029,6 +1076,7 @@ function applyKingMove(target, multiplier, leftMultiply = false) {
       neighbor.node.multiply(multiplier, leftMultiply, false);
     }
   }
+  nodeTrack++;
 }
 
 
@@ -1057,7 +1105,7 @@ function key_up(e) {
   }
 }
 
-
+let hasBeenRandomized = false;
 
 function congradulate() {
   const parText = document.getElementById('par').textContent;
@@ -1075,15 +1123,36 @@ function congradulate() {
   }
 
   // Compare moves to par
-  if (nodeTrack === parInt) {
+  if (hasBeenRandomized === false) {
+    alert(`Nice job! The puzzle is now all one state.`);
+  } else if (nodeTrack === parInt) {
     alert("Perfect! You solved the puzzle on par.");
   } else if (nodeTrack < parInt) {
     alert(`Amazing! You beat par by ${parInt - nodeTrack} move(s).`);
   } else {
     alert(`Nice job! You finished ${nodeTrack - parInt} move(s) over par.`);
   }
+  
 
-  document.getElementById('par_div').style.display = 'none';
+  hasBeenRandomized = false;
+}
+
+
+let initialBoardState = null;
+
+function captureBoardState() {
+  initialBoardState = nodes.map(node => ({
+      label: node.label,
+      value: cloneValue(node.node.value),
+      clicks: node.node.clicks
+  }));
+}
+
+function cloneValue(val) {
+  if (typeof val === "object" && val !== null) {
+      return JSON.parse(JSON.stringify(val));
+  }
+  return val;
 }
 
 
@@ -1104,7 +1173,7 @@ function randomizePuzzle() {
   const slider = document.getElementById("myRange");
   const difficultyPercent = parseFloat(slider.value);
 
-  let verticesToScramble = Math.floor(difficultyPercent * nodes.length);
+  let verticesToScramble = Math.ceil(difficultyPercent * nodes.length);
 
   verticesToScramble = Math.max(1, verticesToScramble);
 
@@ -1117,8 +1186,22 @@ function randomizePuzzle() {
   
       if (randomVal === 0) continue;
   
-      applyMoveToVertex(randomVertex, randomVal, false);
-      i++;
+      if (document.getElementById('chess_variation').value === 'knight') {
+        applyKnightMove(randomVertex, randomVal, false);
+        i++;
+      } else if (document.getElementById('chess_variation').value === 'rook') {
+        applyRookMove(randomVertex, randomVal, false);
+        i++;
+      } else if (document.getElementById('chess_variation').value === 'queen') {
+        applyQueenMove(randomVertex, randomVal, false);
+        i++;
+      } else if (document.getElementById('chess_variation').value === 'king') {
+        applyKingMove(randomVertex, randomVal, false);
+        i++;
+      } else {
+        applyMoveToVertex(randomVertex, randomVal, false);
+        i++;
+      }
     }
   }
   
@@ -1134,8 +1217,22 @@ function randomizePuzzle() {
   
       const element = isReflection ? `s r${k}` : `r${k}`;
   
-      applyMoveToVertex(randomVertex, element, false);
-      i++;
+      if (document.getElementById('chess_variation').value === 'knight') {
+        applyKnightMove(randomVertex, element, false);
+        i++;
+      } else if (document.getElementById('chess_variation').value === 'rook') {
+        applyRookMove(randomVertex, element, false);
+        i++;
+      } else if (document.getElementById('chess_variation').value === 'queen') {
+        applyQueenMove(randomVertex, element, false);
+        i++;
+      } else if (document.getElementById('chess_variation').value === 'king') {
+        applyKingMove(randomVertex, element, false);
+        i++;
+      } else {
+        applyMoveToVertex(randomVertex, element, false);
+        i++;
+      }
     }
   }
 
@@ -1147,8 +1244,22 @@ function randomizePuzzle() {
       const randomVertex = nodes[Math.floor(Math.random() * nodes.length)];
       const element = elements[Math.floor(Math.random() * elements.length)];
   
-      applyMoveToVertex(randomVertex, element, false);
-      i++;
+      if (document.getElementById('chess_variation').value === 'knight') {
+        applyKnightMove(randomVertex, element, false);
+        i++;
+      } else if (document.getElementById('chess_variation').value === 'rook') {
+        applyRookMove(randomVertex, element, false);
+        i++;
+      } else if (document.getElementById('chess_variation').value === 'queen') {
+        applyQueenMove(randomVertex, element, false);
+        i++;
+      } else if (document.getElementById('chess_variation').value === 'king') {
+        applyKingMove(randomVertex, element, false);
+        i++;
+      } else {
+        applyMoveToVertex(randomVertex, element, false);
+        i++;
+      }
     }
   }
 
@@ -1168,16 +1279,39 @@ function randomizePuzzle() {
   
       const element = [a, b, c];
   
-      applyMoveToVertex(randomVertex, element, false);
-      i++;
+      if (document.getElementById('chess_variation').value === 'knight') {
+        applyKnightMove(randomVertex, element, false);
+        i++;
+      } else if (document.getElementById('chess_variation').value === 'rook') {
+        applyRookMove(randomVertex, element, false);
+        i++;
+      } else if (document.getElementById('chess_variation').value === 'queen') {
+        applyQueenMove(randomVertex, element, false);
+        i++;
+      } else if (document.getElementById('chess_variation').value === 'king') {
+        applyKingMove(randomVertex, element, false);
+        i++;
+      } else {
+        applyMoveToVertex(randomVertex, element, false);
+        i++;
+      }
     }
   }
   
-  document.getElementById('par_div').style.display = 'block';
   document.getElementById('par').textContent = verticesToScramble;
   nodeTrack = 0;
+  hasBeenRandomized = true;
+  captureBoardState();
   congradulate();
   draw();
+}
+
+function updatePar() {
+  const slider = document.getElementById("myRange");
+  const difficultyPercent = parseFloat(slider.value);
+
+  let verticesToScramble = Math.ceil(difficultyPercent * nodes.length);
+  document.getElementById('par').textContent = verticesToScramble;
 }
 
 
@@ -1212,6 +1346,9 @@ function clear_puzzle() {
         case "heisenberg":
           vertex.node = new HeisenbergNode(groupOrder);
           break;
+        case "symmetric":
+          vertex.node = new SymmetricNode(groupOrder);
+          break;
         case "freeabgroup":
           vertex.node = new FreeAbelianNode();
           break;
@@ -1226,6 +1363,25 @@ function clear_puzzle() {
     }
   }
 
+  draw();
+}
+
+function reset_puzzle() {
+  if (!initialBoardState) return;
+
+  initialBoardState.forEach(savedNode => {
+      const node = nodes.find(n => n.label === savedNode.label);
+      if (!node) return;
+
+      node.node.value = cloneValue(savedNode.value);
+      node.node.clicks = savedNode.clicks;
+  });
+
+  // Clear history (since it's a fresh start)
+  historyData.length = 0;
+  updateHistoryList();
+  deleteButton.disabled = true;
+  nodeTrack = 0;
   draw();
 }
 
@@ -1261,7 +1417,19 @@ function showN() {
   }
 }
 
-
+function getSpacing(edgeLength) {
+  if (edgeLength === 25) {
+    console.log('small)');
+    return 50;
+    
+  } else if (edgeLength === 50) {
+    console.log('medium)');
+    return 125;
+  } else if (edgeLength === 75) {
+    console.log('large)');
+    return 200;
+  }
+}
 
 let graphTypeLabel = null;
 
@@ -1279,42 +1447,45 @@ function generate_puzzle() {
   var variation = document.getElementById("choose_variation").value;
   var num_rows = parseInt(document.getElementById("row_input").value);
   var num_cols = parseInt(document.getElementById("col_input").value);
+  let edgeLength = parseInt(document.getElementById('choose_edge_length').value);
+  console.log(edgeLength);
+  let spacing = getSpacing(edgeLength);
 
   switch (variation) {
     case "standard":
-      if (document.getElementById('col_input').value > 12 || document.getElementById('row_input').value > 10) {
-        graphTypeLabel = '(Standard Graph)';
-        standardGraph(all_nodes, num_rows, num_cols, 25);
-        break;
-      } else {
-        graphTypeLabel = '(Standard Graph)';
-        standardGraph(all_nodes, num_rows, num_cols, 50);
-        break;
-      }
-      
+      graphTypeLabel = '(Standard Graph)';
+      standardGraph(all_nodes, num_rows, num_cols, edgeLength);
+      break;  
+    case "knight":
+      graphTypeLabel = '(Knight Moves Graph)'
+      knightGraph(all_nodes, num_rows, num_cols, edgeLength);  
     case "cycle":
       graphTypeLabel = '(Cycle Graph)';
-      cycleGraph(all_nodes);
+      cycleGraph(all_nodes, spacing);
       break;
     case "star":
       graphTypeLabel = '(Star Graph)';
-      starGraph(all_nodes);
+      starGraph(all_nodes, spacing);
       break;
     case "wheel":
       graphTypeLabel = '(Wheel Graph)';
-      wheelGraph(all_nodes);
+      wheelGraph(all_nodes, spacing);
+      break;
+    case "random":
+      graphTypeLabel = '(Random Graph)';
+      randomGraph(all_nodes, document.getElementById('vertices').value, document.getElementById('probability').value);
       break;
     case "complete":
       graphTypeLabel = '(Complete Graph)';
-      completeGraph(all_nodes);
+      completeGraph(all_nodes, spacing);
       break;
     case "peterson":
       graphTypeLabel = '(Peterson Graph)';
-      petersonGraph(all_nodes);
+      petersonGraph(all_nodes, spacing);
       break;
     case "circulant":
       graphTypeLabel = '(Circulant Graph)';
-      circulantGraph(all_nodes);
+      circulantGraph(all_nodes, spacing);
       break;
     case "bipartite":
       graphTypeLabel = '(Complete Bipartite Graph)';
@@ -1333,15 +1504,9 @@ function generate_puzzle() {
         crownGraph(all_nodes);
         break;
     case "diagonal":
-      if (document.getElementById('col_input').value > 12 || document.getElementById('row_input').value > 10) {
-        graphTypeLabel = '(Diagonal Graph)';
-        diagonalGraph(all_nodes, num_rows, num_cols, 25);
-        break;
-      } else {
-        graphTypeLabel = '(Diagonal Graph)';
-        diagonalGraph(all_nodes, num_rows, num_cols, 50);
-        break;
-      }
+      graphTypeLabel = '(Diagonal Graph)';
+      diagonalGraph(all_nodes, num_rows, num_cols, edgeLength);
+      break;
       
     default:
       alert("Invalid graph variation.");
@@ -1572,7 +1737,7 @@ function set_group_multiplier(validateInput = true) {
   if (groupType === "freeabgroup" || groupType === "freegroup") {
     const regex = /^([a-zA-Z]\d*|1)*$/;
     if (validateInput && !regex.test(groupMultiplierInput)) {
-      alert("Invalid input. Please enter a combination of letters and numbers or the identity element '1'.");
+      alert("Invalid input. See Instructions page for more information on correct multiplier input.");
       return false;
     }
     groupMultiplier = groupMultiplierInput;
@@ -1585,10 +1750,10 @@ function set_group_multiplier(validateInput = true) {
       parseInt(document.getElementById('c_input').value, 10)
     ];
     console.log(groupMultiplier);
-  }
-  else {
+  
+  } else {
     if (validateInput && isNaN(parseInt(groupMultiplierInput))) {
-      alert("Invalid input. Please enter a numeric value.");
+      alert("Invalid input. See Instructions page for more information on correct multiplier input.");
       return false;
     }
     groupMultiplier = parseInt(groupMultiplierInput);
@@ -1742,6 +1907,7 @@ function updateLayout() {
     "set1div",
     "set2div",
     "dimensionDiv",
+    "probDiv",
     "row_label",
     "col_label",
     "row_input",
@@ -1759,13 +1925,15 @@ function updateLayout() {
   } else if (variation === "peterson") {
     // Nothing to show
   } else if (variation === "bipartite") {
-    document.getElementById('set1_text').textContent = "Set one size:";
+    document.getElementById('set1_text').textContent = "Set One Size:";
     showElements(["set1div", "set2div"]);
   } else if (variation === "crown") {
     document.getElementById('set1_text').textContent = "Size:";
     showElements(["set1div"]);
   } else if (variation === "cube" || variation === "folded") {
     showElements(["dimensionDiv"]);
+  } else if (variation === "random") {
+    showElements(["probDiv", "verticesDiv"]);
   } else if (variation === "circulant") {
     showElements(["verticesDiv", "connectionsDiv"]);
   } else if (variation === "standard" || variation === "diagonal") {
@@ -1778,6 +1946,13 @@ function updateLayout() {
       "top_bottom_label",
       "sides",
       "sides_label"
+    ]);
+  } else if (variation === 'knight') {
+    showElements([
+      "row_label",
+      "col_label",
+      "row_input",
+      "col_input",
     ]);
   }
 }
@@ -1811,6 +1986,24 @@ function drawLabel(node, showLabels) {
   context.fill();
 }
 
+function drawCyclicLabel(node) {
+  context.font = "6px Verdana";
+  context.beginPath();
+  context.fillStyle = "#000000";
+
+  let string = node.node.toCycleString();
+
+  const textMetrics = context.measureText(string);
+  const textWidth = textMetrics.width;
+
+  const xPos = node.x - textWidth / 2;
+  const yPos = node.y + 2;
+
+  context.fillText(string, xPos, yPos);
+  context.fill();
+}
+
+
 function drawClicks(node, showClicks) {
   context.font = "12px Verdana";
   context.beginPath();
@@ -1836,6 +2029,8 @@ document.getElementById("play_button").addEventListener("click", function () {
   const mergedContent = document.getElementById("mergedcontrols");
   const nodeClick = document.getElementById("displayClicks");
   const nodeLabel = document.getElementById("displayLabels");
+  const nodeCyclic = document.getElementById('displayCyclic');
+  const nodeCyclicInput = document.getElementById('displayCyclicInput');
   const nodeClickInput = document.getElementById("displayClicksInput");
   const nodeLabelInput = document.getElementById("displayLabelsInput");
   const nodeDisplay = document.getElementById("nodeDisplayOptions");
@@ -1856,7 +2051,9 @@ document.getElementById("play_button").addEventListener("click", function () {
       nodeLabel.style.display = "inline-block";
       nodeClick.style.display = "inline-block";
       nodeClickInput.style.display = "inline-block";
-      historySide.style.display = "none"
+      historySide.style.display = "none";
+      nodeCyclic.style.display = 'none';
+      nodeCyclicInput.style.display = 'none';
     }
 
     if (groupType === "freeabgroup") {
@@ -1864,8 +2061,10 @@ document.getElementById("play_button").addEventListener("click", function () {
       nodeLabel.style.display = "inline-block";
       nodeClick.style.display = "inline-block";
       nodeClickInput.style.display = "inline-block";
-      historySide.style.display = "none"
-      relationsContainer.style.display = "flex"
+      historySide.style.display = "none";
+      relationsContainer.style.display = "flex";
+      nodeCyclic.style.display = 'none';
+      nodeCyclicInput.style.display = 'none';
     }
 
     if (groupType === "freegroup") {
@@ -1873,21 +2072,27 @@ document.getElementById("play_button").addEventListener("click", function () {
       nodeLabelInput.style.display = "inline-block";
       nodeClick.style.display = "none";
       nodeClickInput.style.display = "none";
-      historySide.style.display = "inline-block"
-      relationsContainer.style.display = "flex"
+      historySide.style.display = "inline-block";
+      relationsContainer.style.display = "flex";
+      nodeCyclic.style.display = 'none';
+      nodeCyclicInput.style.display = 'none';
     }
     if (groupType === "dihedral") {
       nodeLabel.style.display = "inline-block";
       nodeLabelInput.style.display = "inline-block";
       nodeClick.style.display = "none";
       nodeClickInput.style.display = "none";
+      nodeCyclic.style.display = 'none';
+      nodeCyclicInput.style.display = 'none';
     }
     if (groupType === "quaternion") {
       nodeLabel.style.display = "inline-block";
       nodeLabelInput.style.display = "inline-block";
       nodeClick.style.display = "none";
       nodeClickInput.style.display = "none";
-      historySide.style.display = "inline-block"
+      historySide.style.display = "inline-block";
+      nodeCyclic.style.display = 'none';
+      nodeCyclicInput.style.display = 'none';
     }
     if (groupType === "heisenberg") {
       sideMultiplier.style.display = "none";
@@ -1895,7 +2100,19 @@ document.getElementById("play_button").addEventListener("click", function () {
       nodeLabelInput.style.display = "inline-block";
       nodeClick.style.display = "none";
       nodeClickInput.style.display = "none";
-      historySide.style.display = "none"
+      historySide.style.display = "none";
+      nodeCyclic.style.display = 'none';
+      nodeCyclicInput.style.display = 'none';
+    }
+    if (groupType === "symmetric") {
+      sideMultiplier.style.display = "block";
+      nodeLabel.style.display = "inline-block";
+      nodeLabelInput.style.display = "inline-block";
+      nodeClick.style.display = "none";
+      nodeClickInput.style.display = "none";
+      historySide.style.display = "none";
+      nodeCyclic.style.display = 'inline-block';
+      nodeCyclicInput.style.display = 'inline-block';
     }
   }
   else {
@@ -1906,7 +2123,9 @@ document.getElementById("play_button").addEventListener("click", function () {
     historyList.style.display = "none";
     mergedContent.style.display = "none";
     nodeDisplay.style.display = "none";
-    relationsContainer.style.display = "none"
+    relationsContainer.style.display = "none";
+    nodeCyclic.style.display = 'none';
+    nodeCyclicInput.style.display = 'none';
   }
 });
 
@@ -2188,6 +2407,7 @@ function enforceDivisibility(M) {
 
 // (Main driver) Iteratively fixes diagonal entries from top-left to bottom-right
 function smithNormalForm(M) {
+  const startTime = performance.now();
   const rows = M.length;
   const cols = M[0].length;
   const d = Math.min(rows, cols);
@@ -2218,6 +2438,10 @@ function smithNormalForm(M) {
 
   // Enforce Smith divisibility condition
   enforceDivisibility(M);
+  const endTime = performance.now();
+
+  const elapsedTime = endTime - startTime; // Time in milliseconds
+  console.log(`SNF execution time: ${elapsedTime} milliseconds`);
   return M;
 }
 
@@ -2430,7 +2654,7 @@ function activationMatrix(nodes, edges) {
   document.getElementById("rref").innerHTML = null;
   document.getElementById('mat_out').innerHTML = null;
   document.getElementById('copyGraph6').innerHTML = null;
-  if (nodes.length <= 25) {
+  if (edges.length <= 50) {
     document.getElementById('elem_divisors').innerHTML = `
       <button id="elem_btn" type="button" onclick="showDivisors()">Show Elementary Divisors</button>
     `;
@@ -2440,6 +2664,10 @@ function activationMatrix(nodes, edges) {
       border-radius: none;
       font-size: none;
       margin: none;
+    `;
+  } else {
+    document.getElementById('elem_divisors').innerHTML = `
+      <p>(Matrix too large for elementary divisors)</p>
     `;
   }
   
@@ -2465,11 +2693,11 @@ function activationMatrix(nodes, edges) {
 
   outputMatrixWithCopy(matrix, nodes.map(n => n.label));
 
-  const divisors = elementaryDivisors(matrix);
-
-  if (size > 25) {
+  
+  if (edges.length > 50) {
     return matrix;
   } else {
+    const divisors = elementaryDivisors(matrix);
     document.getElementById("elem_btn").addEventListener('click', () => {
       document.getElementById('elem_divisors').innerHTML = `
         <span>${formatDivisors(divisors).join(", ")}</span>
@@ -2530,6 +2758,8 @@ function hermiteForm(nodes, edges) {
   let pivotRow = 0;
   let pivotCol = 0;
 
+  const startTime = performance.now();
+
   while (pivotRow < size && pivotCol < size) {
     // Find pivot in submatrix
     let found = false;
@@ -2570,6 +2800,10 @@ function hermiteForm(nodes, edges) {
   }
 
   outputMatrixWithCopy(matrix, nodes.map(n => n.label));
+  const endTime = performance.now();
+
+  const elapsedTime = endTime - startTime; // Time in milliseconds
+  console.log(`Hermite form execution time: ${elapsedTime} milliseconds`);
 
   const convert = document.getElementById("rref");
 
@@ -2607,6 +2841,7 @@ function findInverses(p) {
 }
 
 function rrefMod(matrix, p) {
+  const startTime = performance.now();
   const mat = matrix.map(row => row.map(v => ((v % p) + p) % p));
   const rows = mat.length;
   const cols = mat[0].length;
@@ -2655,6 +2890,10 @@ function rrefMod(matrix, p) {
     pivotRow++;
   }
 
+  const endTime = performance.now();
+
+  const elapsedTime = endTime - startTime; // Time in milliseconds
+  console.log(`RREF execution time: ${elapsedTime} milliseconds`);
   return { matrix: mat, pivots };
 }
 
@@ -2674,16 +2913,23 @@ function RAMatrix(nodes, edges) {
   document.getElementById("rref").innerHTML = null;
   document.getElementById('mat_out').innerHTML = '';
   document.getElementById('copyGraph6').innerHTML = '';
-  document.getElementById('elem_divisors').innerHTML = `
-    <button id="elem_btn" type="button" onclick="showDivisors()">Show Elementary Divisors</button>
-  `;
-  document.getElementById('elem_divisors').style.cssText = `
-    border: none;
-    padding: none;
-    border-radius: none;
-    font-size: none;
-    margin: none;
-  `;
+  if (edges.length <= 50) {
+    document.getElementById('elem_divisors').innerHTML = `
+      <button id="elem_btn" type="button" onclick="showDivisors()">Show Elementary Divisors</button>
+    `;
+    document.getElementById('elem_divisors').style.cssText = `
+      border: none;
+      padding: none;
+      border-radius: none;
+      font-size: none;
+      margin: none;
+    `;
+  } else {
+    document.getElementById('elem_divisors').innerHTML = `
+      <p>(Matrix too large for elementary divisors)</p>
+    `;
+  }
+  
 
   const indexMap = new Map();
   nodes.forEach((n, i) => indexMap.set(n.label, i));
@@ -2732,24 +2978,28 @@ function RAMatrix(nodes, edges) {
 
   outputMatrixWithCopy(RA, rowLabels);
 
-  const divisors = elementaryDivisors(RA);
 
 
-  document.getElementById("elem_btn").addEventListener('click', () => {
-    document.getElementById('elem_divisors').innerHTML = `
-      <span>${formatDivisors2(divisors).join(", ")}</span>
-    `;
-
-      document.getElementById('elem_divisors').style.cssText = `
-      border: 1px solid black;
-      padding: 10px 20px;
-      border-radius: 25px;
-      font-size: 15px;
-      margin: 5px;
+  if (edges.length > 50) {
+    return RA;
+  } else {
+    const divisors = elementaryDivisors(RA);
+    document.getElementById("elem_btn").addEventListener('click', () => {
+      document.getElementById('elem_divisors').innerHTML = `
+        <span>${formatDivisors2(divisors).join(", ")}</span>
       `;
-  });
 
-  return RA;
+        document.getElementById('elem_divisors').style.cssText = `
+        border: 1px solid black;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-size: 15px;
+        margin: 5px;
+        `;
+    });
+    return RA;
+  }
+  
 }
 
 

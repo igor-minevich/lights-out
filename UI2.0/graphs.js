@@ -60,8 +60,8 @@ const cubeVertexLayouts = {
 
 
 
-function standardGraph(all_nodes, num_rows, num_cols, edge_width) {
-    const spacing = edge_width;
+function standardGraph(all_nodes, num_rows, num_cols, edgeLength) {
+    const spacing = edgeLength;
 
     const gridWidth = (num_cols - 1) * spacing;
     const gridHeight = (num_rows - 1) * spacing;
@@ -111,16 +111,218 @@ function standardGraph(all_nodes, num_rows, num_cols, edge_width) {
     }
 }
 
+function knightGraph(all_nodes, num_rows, num_cols, edgeLength) {
+    all_nodes.length = 0;
+    edges.length = 0;   
+    const spacing = edgeLength;
 
-function cycleGraph(all_nodes) {
+    const gridWidth = (num_cols - 1) * spacing;
+    const gridHeight = (num_rows - 1) * spacing;
+
+    const offsetX = canvas.width / 2 - gridWidth / 2;
+    const offsetY = canvas.height / 2 - gridHeight / 2;
+
+    // --- Create vertices (same as standard graph) ---
+    for (let y = 0; y < num_rows; y++) {
+        var nodeRow = [];
+        for (let x = 0; x < num_cols; x++) {
+            const node = create_node(
+                offsetX + x * spacing,
+                offsetY + y * spacing
+            );
+              
+            node.gridRow = y;
+            node.gridCol = x;
+              
+            nodeRow.push(node);
+        }
+        all_nodes.push(nodeRow);
+    }
+
+    // --- Knight move offsets ---
+    const knightMoves = [
+        [ 2, 1], [ 2,-1],
+        [-2, 1], [-2,-1],
+        [ 1, 2], [ 1,-2],
+        [-1, 2], [-1,-2]
+    ];
+
+    // --- Create edges ---
+    for (let r = 0; r < num_rows; r++) {
+        for (let c = 0; c < num_cols; c++) {
+
+            const fromNode = all_nodes[r][c];
+
+            for (let [dr, dc] of knightMoves) {
+
+                let nr = r + dr;
+                let nc = c + dc;
+
+                // boundary check
+                if (nr >= 0 && nr < num_rows && nc >= 0 && nc < num_cols) {
+
+                    const toNode = all_nodes[nr][nc];
+
+                    // prevent duplicate edges
+                    if (r < nr || (r === nr && c < nc)) {
+                        edges.push({
+                            from: fromNode,
+                            to: toNode,
+                            round: false,
+                            dash: false
+                        });
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+function edgesIntersect(a, b, c, d) {
+    function ccw(p, q, r) {
+        return (r.y - p.y) * (q.x - p.x) > (q.y - p.y) * (r.x - p.x);
+    }
+    return (
+        ccw(a, c, d) !== ccw(b, c, d) &&
+        ccw(a, b, c) !== ccw(a, b, d)
+    );
+}
+
+
+function pointToSegmentDistance(px, py, ax, ay, bx, by) {
+    const dx = bx - ax;
+    const dy = by - ay;
+
+    if (dx === 0 && dy === 0) {
+        return Math.hypot(px - ax, py - ay);
+    }
+
+    const t = ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy);
+    const clamped = Math.max(0, Math.min(1, t));
+
+    const closestX = ax + clamped * dx;
+    const closestY = ay + clamped * dy;
+
+    return Math.hypot(px - closestX, py - closestY);
+}
+
+function randomGraph(all_nodes, vertexCount, edgeProbability) {
+    const vertices = vertexCount ??
+        parseInt(document.getElementById("vertices").value);
+
+    const p = edgeProbability ??
+        parseFloat(document.getElementById("edge_prob").value);
+
+    const width = 700;
+    const height = 500;
+    const margin = 60;
+
+    const nodeDiameter = 60;
+    const nodeRadius = nodeDiameter / 2;
+    const minDistance = nodeDiameter * 1.25;
+
+    const nodes = [];
+
+    function isFarEnough(x, y) {
+        for (const node of nodes) {
+            if (Math.hypot(node.x - x, node.y - y) < minDistance) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // 🔹 Create nodes
+    for (let i = 0; i < vertices; i++) {
+        let x, y, attempts = 0;
+        do {
+            x = margin + Math.random() * (width - 2 * margin);
+            y = margin + Math.random() * (height - 2 * margin);
+            attempts++;
+            if (attempts > 500) break;
+        } while (!isFarEnough(x, y));
+
+        const newNode = create_node(x, y);
+        all_nodes.push(newNode);
+        nodes.push(newNode);
+    }
+
+    // 🔹 Edge intersection test
+    function edgesIntersect(a, b, c, d) {
+        function ccw(p, q, r) {
+            return (r.y - p.y) * (q.x - p.x) > (q.y - p.y) * (r.x - p.x);
+        }
+        return (
+            ccw(a, c, d) !== ccw(b, c, d) &&
+            ccw(a, b, c) !== ccw(a, b, d)
+        );
+    }
+
+    // 🔹 Check if edge passes too close to another node
+    function edgeHitsOtherNode(a, b) {
+        for (const node of nodes) {
+            if (node === a || node === b) continue;
+
+            const dist = pointToSegmentDistance(
+                node.x, node.y,
+                a.x, a.y,
+                b.x, b.y
+            );
+
+            if (dist < nodeRadius * 1.2) {
+                return true; // overlaps a node
+            }
+        }
+        return false;
+    }
+
+    // 🔹 Add edges with geometric constraints
+    for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+            if (Math.random() >= p) continue;
+
+            const fromNode = nodes[i];
+            const toNode = nodes[j];
+
+            let wouldCross = false;
+
+            for (const e of edges) {
+                if (edgesIntersect(fromNode, toNode, e.from, e.to)) {
+                    wouldCross = true;
+                    break;
+                }
+            }
+
+            if (wouldCross) continue;
+            if (edgeHitsOtherNode(fromNode, toNode)) continue;
+
+            edges.push({
+                from: fromNode,
+                to: toNode,
+                round: false,
+                dash: false
+            });
+        }
+    }
+}
+
+
+
+
+
+
+
+
+function cycleGraph(all_nodes, spacing) {
     const vertices = parseInt(document.getElementById("vertices").value);
     const angle = 2 * Math.PI / vertices;
 
     // Create the nodes
     const cycleNodes = [];
     for (let i = 0; i < vertices; i++) {
-        const x = 350 + 200 * Math.cos(angle * i);
-        const y = 250 + 200 * Math.sin(angle * i);
+        const x = 350 + spacing * Math.cos(angle * i);
+        const y = 250 + spacing * Math.sin(angle * i);
         const newNode = create_node(x, y);
         all_nodes.push(newNode);
         cycleNodes.push(newNode);
@@ -136,7 +338,7 @@ function cycleGraph(all_nodes) {
     }
 }
 
-function starGraph(all_nodes) {
+function starGraph(all_nodes, spacing) {
     const vertices = parseInt(document.getElementById("vertices").value);
     const angle = 2 * Math.PI / (vertices - 1);
 
@@ -146,15 +348,15 @@ function starGraph(all_nodes) {
 
     // Create the surrounding nodes and connect them to the central node
     for (let i = 0; i < vertices - 1; i++) {
-        const x = 350 + 200 * Math.cos(angle * i);
-        const y = 250 + 200 * Math.sin(angle * i);
+        const x = 350 + spacing * Math.cos(angle * i);
+        const y = 250 + spacing * Math.sin(angle * i);
         const newNode = create_node(x, y);
         all_nodes.push(newNode);
         edges.push({ from: centralNode, to: newNode, round: false, dash: false });
     }
 }
 
-function wheelGraph(all_nodes) {
+function wheelGraph(all_nodes, spacing) {
     const vertices = parseInt(document.getElementById("vertices").value);
     const angle = 2 * Math.PI / (vertices - 1);
 
@@ -165,8 +367,8 @@ function wheelGraph(all_nodes) {
     // Create the surrounding nodes and connect them to the central node and their neighbors
     const surroundingNodes = [];
     for (let i = 0; i < vertices - 1; i++) {
-        const x = 350 + 200 * Math.cos(angle * i);
-        const y = 250 + 200 * Math.sin(angle * i);
+        const x = 350 + spacing * Math.cos(angle * i);
+        const y = 250 + spacing * Math.sin(angle * i);
         const newNode = create_node(x, y);
         all_nodes.push(newNode);
         surroundingNodes.push(newNode);
@@ -181,13 +383,13 @@ function wheelGraph(all_nodes) {
     }
 }
 
-function completeGraph(all_nodes, shrink) {
+function completeGraph(all_nodes, spacing) {
     const vertices = parseInt(document.getElementById("vertices").value);
     const angle = 2 * Math.PI / vertices;
 
     for (let i = 0; i < vertices; i++) {
-        const x = 350 + 200 * Math.cos(angle * i);
-        const y = 250 + 200 * Math.sin(angle * i);
+        const x = 350 + spacing * Math.cos(angle * i);
+        const y = 250 + spacing * Math.sin(angle * i);
         all_nodes.push(create_node(x, y));
     }
 
@@ -199,15 +401,15 @@ function completeGraph(all_nodes, shrink) {
     }
 }
 
-function petersonGraph(all_nodes) {
+function petersonGraph(all_nodes, spacing) {
     const outerAngle = 2 * Math.PI / 5;
     const innerAngle = 2 * Math.PI / 5;
 
     // Create the outer nodes (pentagon)
     const outerNodes = [];
     for (let i = 0; i < 5; i++) {
-        const x = 350 + 200 * Math.cos(outerAngle * i);
-        const y = 250 + 200 * Math.sin(outerAngle * i);
+        const x = 350 + spacing * Math.cos(outerAngle * i);
+        const y = 250 + spacing * Math.sin(outerAngle * i);
         const newNode = create_node(x, y);
         all_nodes.push(newNode);
         outerNodes.push(newNode);
@@ -216,8 +418,8 @@ function petersonGraph(all_nodes) {
     // Create the inner nodes (star)
     const innerNodes = [];
     for (let i = 0; i < 5; i++) {
-        const x = 350 + 100 * Math.cos(innerAngle * i + innerAngle / 2);
-        const y = 250 + 100 * Math.sin(innerAngle * i + innerAngle / 2);
+        const x = 350 + (spacing/2) * Math.cos(innerAngle * i + innerAngle / 2);
+        const y = 250 + (spacing/2) * Math.sin(innerAngle * i + innerAngle / 2);
         const newNode = create_node(x, y);
         all_nodes.push(newNode);
         innerNodes.push(newNode);
@@ -245,7 +447,7 @@ function petersonGraph(all_nodes) {
     }
 }
 
-function circulantGraph(all_nodes) {
+function circulantGraph(all_nodes, spacing) {
     const vertices = parseInt(document.getElementById("vertices").value);
     const connectionsInput = document.getElementById("connections").value;
     const connectionsArray = connectionsInput.split(",");
@@ -267,8 +469,8 @@ function circulantGraph(all_nodes) {
     const angle = 2 * Math.PI / vertices;
 
     for (let i = 0; i < vertices; i++) {
-        const x = 350 + 200 * Math.cos(angle * i);
-        const y = 250 + 200 * Math.sin(angle * i);
+        const x = 350 + spacing * Math.cos(angle * i);
+        const y = 250 + spacing * Math.sin(angle * i);
         all_nodes.push(create_node(x, y));
     }
 
@@ -398,8 +600,8 @@ function crownGraph(all_nodes) {
 }
 
 
-function diagonalGraph(all_nodes, num_rows, num_cols, edge_width) {
-    const spacing = edge_width;
+function diagonalGraph(all_nodes, num_rows, num_cols, edgeLength) {
+    const spacing = edgeLength;
 
     const gridWidth = (num_cols - 1) * spacing;
     const gridHeight = (num_rows - 1) * spacing;

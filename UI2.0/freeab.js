@@ -12,6 +12,19 @@ class FreeAbelianNode {
         return "1";
     }
 
+    toSuperscript(num) {
+        const sup = {
+            "0": "⁰","1": "¹","2": "²","3": "³",
+            "4": "⁴","5": "⁵","6": "⁶","7": "⁷",
+            "8": "⁸","9": "⁹","-": "⁻"
+        };
+    
+        return num.toString()
+            .split("")
+            .map(ch => sup[ch] || ch)
+            .join("");
+    }
+
     multiply(input, leftMultiply, clicked) {
         let a = this.value;
         let b = input;
@@ -64,13 +77,19 @@ class FreeAbelianNode {
             }
         }
 
-        // Reconstruct the result string
+        // Reconstruct the result string (alphabetized)
         result = '';
-        resultMap.forEach((value, key) => {
+
+        let sortedKeys = Array.from(resultMap.keys()).sort((a, b) => {
+            return a.toLowerCase().localeCompare(b.toLowerCase());
+        });
+
+        for (let key of sortedKeys) {
+            let value = resultMap.get(key);
             if (value > 0) {
                 result += key + (value > 1 ? value : '');
             }
-        });
+        }
 
         // return result.length === 0 ? this.identity() : result;
         return result;
@@ -105,7 +124,13 @@ class FreeAbelianNode {
     }
 
     toString() {
-        return this.value === '' ? this.identity() : this.value;
+        let val = this.value === '' ? this.identity() : this.value;
+    
+        let regex = /([a-zA-Z])(\d+)/g;
+    
+        return val.replace(regex, (match, gen, exp) => {
+            return gen + this.toSuperscript(exp);
+        });
     }
 
     reduceString(s) {
