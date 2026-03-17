@@ -8,112 +8,47 @@ const ring = (count, radius, phase = 0) =>
     });
     
 
-const cubeVertexLayouts = {
-    1: [
-        [-100, 0],
-        [ 100, 0]
-    ],
+function generateHypercubeLayers(d, spacingX, spacingY) {
+    const layers = Array.from({ length: d + 1 }, () => []);
+    const vertexCount = 1 << d;
 
-    2: [
-        [-100, -100],
-        [ 100, -100],
-        [-100,  100],
-        [ 100,  100]
-    ],
+    for (let i = 0; i < vertexCount; i++) {
+        const weight = i.toString(2).split("1").length - 1;
+        layers[weight].push(i);
+    }
 
-    3: [
-        [-150, -150],
-        [  50, -150],
-        [-150,   50],
-        [  50,   50],
+    const layout = new Array(vertexCount);
 
-        [-50, -50],
-        [150, -50],
-        [-50, 150],
-        [150, 150]
-    ],
+    const totalHeight = d * spacingY;
+    const yOffset = totalHeight / 2;
 
-    4: [
-        // outer ring (octagon)
-        [-100, -200],
-        [ 100, -200],
-        [-200, -100],
-        [ 200, -100],
-        [-100,  200],
-        [ 100,  200],
-        [-200,  100],
-        [ 200,  100],
+    layers.forEach((layer, layerIndex) => {
 
-        // inner ring (offset octagon)
-        [-120,  -60],
-        [ -60, -120],
-        [  60, -120],
-        [ 120,  -60],
-        [ 120,   60],
-        [  60,  120],
-        [ -60,  120],
-        [-120,   60]
-    ]
-};
+        const width = (layer.length - 1) * spacingX;
 
+        layer.forEach((vertex, i) => {
+
+            const x = i * spacingX - width / 2;
+            const y = layerIndex * spacingY - yOffset;
+
+            layout[vertex] = [x, y];
+        });
+
+    });
+
+    return layout;
+}
 
 
 
 
 function standardGraph(all_nodes, num_rows, num_cols, edgeLength) {
-    const spacing = edgeLength;
 
-    const gridWidth = (num_cols - 1) * spacing;
-    const gridHeight = (num_rows - 1) * spacing;
-
-    const offsetX = canvas.width / 2 - gridWidth / 2;
-    const offsetY = canvas.height / 2 - gridHeight / 2;
-
-    for (let y = 0; y < num_rows; y++) {
-        var nodeRow = [];
-        for (let x = 0; x < num_cols; x++) {
-            const node = create_node(
-                offsetX + x * spacing,
-                offsetY + y * spacing
-            );
-              
-            node.gridRow = y;
-            node.gridCol = x;
-              
-            nodeRow.push(node);
-        }
-        all_nodes.push(nodeRow);
-    }
-    // horizontal edges
-    for (let i = 0; i <= num_rows - 1; i++) {
-        for (let k = 0; k < num_cols - 1; k++) {
-            edges.push({ from: all_nodes[i][k], to: all_nodes[i][k + 1], round: false, dash: false });
-        }
-    }
-    // vertical edges
-    for (let i = 0; i < num_rows - 1; i++) {
-        for (let k = 0; k <= num_cols - 1; k++) {
-            edges.push({ from: all_nodes[i][k], to: all_nodes[i + 1][k], round: false, dash: false });
-        }
-    }
-    if (document.getElementById("top_bottom").checked) {
-
-        // connecting top and bottom edges
-        for (let i = 0; i <= num_cols - 1; i++) {
-            edges.push({ from: all_nodes[0][i], to: all_nodes[num_rows - 1][i], round: true, dash: false });
-        }
-    }
-    if (document.getElementById("sides").checked) {
-        // connecting left and right edges
-        for (let i = 0; i <= num_rows - 1; i++) {
-            edges.push({ from: all_nodes[i][0], to: all_nodes[i][num_cols - 1], round: true, dash: false });
-        }
-    }
-}
-
-function knightGraph(all_nodes, num_rows, num_cols, edgeLength) {
     all_nodes.length = 0;
-    edges.length = 0;   
+    edges.length = 0;
+
+    const edgeSet = new Set(); // prevents duplicates
+
     const spacing = edgeLength;
 
     const gridWidth = (num_cols - 1) * spacing;
@@ -122,58 +57,164 @@ function knightGraph(all_nodes, num_rows, num_cols, edgeLength) {
     const offsetX = canvas.width / 2 - gridWidth / 2;
     const offsetY = canvas.height / 2 - gridHeight / 2;
 
-    // --- Create vertices (same as standard graph) ---
+    // --- Create vertices ---
     for (let y = 0; y < num_rows; y++) {
-        var nodeRow = [];
+        let nodeRow = [];
         for (let x = 0; x < num_cols; x++) {
+
             const node = create_node(
                 offsetX + x * spacing,
                 offsetY + y * spacing
             );
-              
+
             node.gridRow = y;
             node.gridCol = x;
-              
+
             nodeRow.push(node);
         }
         all_nodes.push(nodeRow);
     }
 
-    // --- Knight move offsets ---
+    // --- Move definitions ---
+
     const knightMoves = [
-        [ 2, 1], [ 2,-1],
-        [-2, 1], [-2,-1],
-        [ 1, 2], [ 1,-2],
-        [-1, 2], [-1,-2]
+        [ 2, 1],[ 2,-1],[-2, 1],[-2,-1],
+        [ 1, 2],[ 1,-2],[-1, 2],[-1,-2]
     ];
 
-    // --- Create edges ---
+    const kingMoves = [
+        [ 1,0],[-1,0],[0,1],[0,-1],
+        [ 1,1],[ 1,-1],[-1,1],[-1,-1]
+    ];
+
+    const rookDirs = [
+        [ 1,0],[-1,0],[0,1],[0,-1]
+    ];
+
+    const bishopDirs = [
+        [ 1,1],[ 1,-1],[-1,1],[-1,-1]
+    ];
+
+    // --- checkbox state ---
+
+    const knight = document.getElementById('knightMove').checked;
+    const rook   = document.getElementById('rookMove').checked;
+    const king   = document.getElementById('kingMove').checked;
+    const queen  = document.getElementById('queenMove').checked;
+
+    const bishop = queen;
+    const rookLike = rook || queen;
+
+    const noMoves = !(knight || rook || king || queen);
+
+    // --- edge helper ---
+    function addEdge(n1, n2) {
+
+        const r1 = n1.gridRow;
+        const c1 = n1.gridCol;
+        const r2 = n2.gridRow;
+        const c2 = n2.gridCol;
+
+        const key =
+            r1 < r2 || (r1 === r2 && c1 < c2)
+            ? `${r1},${c1}-${r2},${c2}`
+            : `${r2},${c2}-${r1},${c1}`;
+
+        if (!edgeSet.has(key)) {
+            edgeSet.add(key);
+            edges.push({from:n1,to:n2,round:false,dash:false});
+        }
+    }
+
+    // --- Generate edges ---
+
     for (let r = 0; r < num_rows; r++) {
         for (let c = 0; c < num_cols; c++) {
 
             const fromNode = all_nodes[r][c];
 
-            for (let [dr, dc] of knightMoves) {
+            // standard grid if nothing selected
+            if (noMoves) {
 
-                let nr = r + dr;
-                let nc = c + dc;
+                if (c + 1 < num_cols)
+                    addEdge(fromNode, all_nodes[r][c+1]);
 
-                // boundary check
-                if (nr >= 0 && nr < num_rows && nc >= 0 && nc < num_cols) {
+                if (r + 1 < num_rows)
+                    addEdge(fromNode, all_nodes[r+1][c]);
+            }
 
-                    const toNode = all_nodes[nr][nc];
+            // knight
+            if (knight) {
+                for (let [dr,dc] of knightMoves) {
 
-                    // prevent duplicate edges
-                    if (r < nr || (r === nr && c < nc)) {
-                        edges.push({
-                            from: fromNode,
-                            to: toNode,
-                            round: false,
-                            dash: false
-                        });
+                    let nr = r + dr;
+                    let nc = c + dc;
+
+                    if (nr>=0 && nr<num_rows && nc>=0 && nc<num_cols)
+                        addEdge(fromNode, all_nodes[nr][nc]);
+                }
+            }
+
+            // king
+            if (king) {
+                for (let [dr,dc] of kingMoves) {
+
+                    let nr = r + dr;
+                    let nc = c + dc;
+
+                    if (nr>=0 && nr<num_rows && nc>=0 && nc<num_cols)
+                        addEdge(fromNode, all_nodes[nr][nc]);
+                }
+            }
+
+            // rook / queen
+            if (rookLike) {
+
+                for (let [dr,dc] of rookDirs) {
+
+                    let nr=r+dr;
+                    let nc=c+dc;
+
+                    while (nr>=0 && nr<num_rows && nc>=0 && nc<num_cols) {
+
+                        addEdge(fromNode, all_nodes[nr][nc]);
+
+                        nr+=dr;
+                        nc+=dc;
                     }
                 }
             }
+
+            // bishop / queen
+            if (bishop) {
+
+                for (let [dr,dc] of bishopDirs) {
+
+                    let nr=r+dr;
+                    let nc=c+dc;
+
+                    while (nr>=0 && nr<num_rows && nc>=0 && nc<num_cols) {
+
+                        addEdge(fromNode, all_nodes[nr][nc]);
+
+                        nr+=dr;
+                        nc+=dc;
+                    }
+                }
+            }
+        }
+    }
+
+    // --- torus options still work ---
+    if (document.getElementById("top_bottom").checked) {
+        for (let i = 0; i < num_cols; i++) {
+            addEdge(all_nodes[0][i], all_nodes[num_rows-1][i]);
+        }
+    }
+
+    if (document.getElementById("sides").checked) {
+        for (let i = 0; i < num_rows; i++) {
+            addEdge(all_nodes[i][0], all_nodes[i][num_cols-1]);
         }
     }
 }
@@ -487,7 +528,8 @@ function circulantGraph(all_nodes, spacing) {
 }
 
 
-function cubeGraph() {
+function cubeGraph(all_nodes, edgeLength) {
+
     const d = parseInt(document.getElementById("dim_input").value);
     if (isNaN(d) || d < 1 || d > 5) return;
 
@@ -498,21 +540,21 @@ function cubeGraph() {
     const cx = canvas.width / 2;
     const cy = canvas.height / 2;
 
-    const layout = cubeVertexLayouts[d];
+    const layout = generateHypercubeLayers(d, edgeLength, edgeLength);
     const vertexCount = layout.length;
     const vertexNodes = [];
 
-    // --- Create vertices ---
     for (const [x, y] of layout) {
-        vertexNodes.push(
-            create_node(cx + x, cy + y)
-        );
+        const node = create_node(cx + x, cy + y);
+        nodes.push(node);
+        vertexNodes.push(node);
     }
 
-    // --- Create edges (Hamming distance = 1) ---
     for (let i = 0; i < vertexCount; i++) {
         for (let j = i + 1; j < vertexCount; j++) {
+
             const diff = i ^ j;
+
             if ((diff & (diff - 1)) === 0) {
                 edges.push({
                     from: vertexNodes[i],
@@ -525,6 +567,81 @@ function cubeGraph() {
     }
 
     draw();
+}
+
+
+
+
+
+function foldedCubeGraph(all_nodes, edgeLength) {
+
+    const d = parseInt(document.getElementById("dim_input").value);
+    if (isNaN(d) || d < 1 || d > 5) return;
+
+    nodes.length = 0;
+    edges.length = 0;
+
+    const canvas = context.canvas;
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+
+    const layout = generateHypercubeLayers(d, edgeLength, edgeLength);
+    const vertexCount = 1 << d;
+    const vertexNodes = [];
+
+    // --- create vertices ---
+    for (const [x, y] of layout) {
+
+        const node = create_node(cx + x, cy + y);
+        nodes.push(node);
+        vertexNodes.push(node);
+
+    }
+
+    // --- standard hypercube edges ---
+    for (let i = 0; i < vertexCount; i++) {
+
+        for (let j = i + 1; j < vertexCount; j++) {
+
+            const diff = i ^ j;
+
+            if ((diff & (diff - 1)) === 0) {
+
+                edges.push({
+                    from: vertexNodes[i],
+                    to: vertexNodes[j],
+                    round: false,
+                    dash: false
+                });
+
+            }
+        }
+    }
+
+    if (d === 1) {
+        draw();
+    } else {
+        // --- folded edges (connect complements) ---
+        const mask = (1 << d) - 1;
+
+        for (let i = 0; i < vertexCount; i++) {
+
+            const j = i ^ mask;
+
+            if (i < j) {
+                edges.push({
+                    from: vertexNodes[i],
+                    to: vertexNodes[j],
+                    round: false,
+                    dash: true   // dashed to distinguish fold edges
+                });
+            }
+        }
+
+        draw();
+    }
+
+    
 }
 
 

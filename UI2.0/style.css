@@ -42,6 +42,7 @@ select {
     border: 1px solid black;
 }
 
+
 #groupTypeSelect {
     width: 200px;
 }
@@ -965,3 +966,4 @@ button:hover{
     display: flex;
     flex-direction: row;
 }
+

@@ -17,6 +17,12 @@ let selectedNode = null;
 let isOpen = false;
 let = isGraph6 = false;
 let nodeTrack = 0;
+let scale = 1;
+let offsetX = 0;
+let offsetY = 0;
+
+const MIN_SCALE = 0.2;
+const MAX_SCALE = 5;
 
 
 const colors = [
@@ -261,6 +267,20 @@ function showSageCell() {
   }
 }
 
+document.getElementById('chessMovesDiv').addEventListener('change', () => {
+  if (document.getElementById('queenMove').checked) {
+    document.getElementById('rookMove').checked = false;
+    document.getElementById('kingMove').checked = false;
+  }
+});
+
+document.getElementById('chessMovesDiv2').addEventListener('change', () => {
+  if (document.getElementById('queenMove').checked) {
+    document.getElementById('rookMove').checked = false;
+    document.getElementById('kingMove').checked = false;
+  }
+});
+
 
 center_close2.addEventListener('click', () => {
   center_close.style.display = 'none';
@@ -285,14 +305,6 @@ center_close.addEventListener('click', () => {
   `;
 });
 
-document.getElementById('choose_variation').addEventListener('change', () => {
-  let type = document.getElementById('choose_variation').value;
-  if (type === 'random') {
-    document.getElementById('edge_div').style.display = 'none';
-  } else {
-    document.getElementById('edge_div').style.display = 'block';
-  }
-});
 
 function updateGroupTypeDisplay() {
   const groupTypeSelect = document.getElementById('groupTypeSelect');
@@ -555,6 +567,7 @@ btn_mode.addEventListener('click', function handleClick() {
   }
   // Call the toggleVisuals function to display/hide elements based on "playing" or "editing" mode.
   toggleVisuals();
+  resetView();
 });
 
 
@@ -657,9 +670,77 @@ for (const option of displayOptions) {
   option.addEventListener("change", draw);
 }
 
+canvas.addEventListener("wheel", (event) => {
+  if (btn_mode.textContent == 'Playing') {
+    event.preventDefault();
+
+    const zoom = event.deltaY < 0 ? 1.1 : 0.9;
+    const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale * zoom));
+
+    const mouseX = event.offsetX;
+    const mouseY = event.offsetY;
+
+    // keep zoom centered on mouse
+    offsetX = mouseX - (mouseX - offsetX) * (newScale / scale);
+    offsetY = mouseY - (mouseY - offsetY) * (newScale / scale);
+
+    scale = newScale;
+
+    draw();
+  }
+  
+});
+
+let isDragging = false;
+let lastX, lastY;
+
+canvas.addEventListener("mousedown", (e) => {
+  if (btn_mode.textContent == 'Playing') {
+    isDragging = true;
+    lastX = e.offsetX;
+    lastY = e.offsetY;
+  }
+});
+
+canvas.addEventListener("mousemove", (e) => {
+  if (btn_mode.textContent == 'Playing') {
+    if (!isDragging) return;
+
+    const dx = e.offsetX - lastX;
+    const dy = e.offsetY - lastY;
+
+    offsetX += dx;
+    offsetY += dy;
+
+    lastX = e.offsetX;
+    lastY = e.offsetY;
+
+    drawGraph();
+  }
+});
+
+function resetView() {
+
+  scale = 1;
+
+  offsetX = 0;
+  offsetY = 0;
+
+  drawGraph();
+}
+
+canvas.addEventListener("mouseup", () => isDragging = false);
+canvas.addEventListener("mouseleave", () => isDragging = false);
 
 function draw() {
   context.clearRect(0, 0, window.innerWidth, window.innerHeight);
+  context.clearRect(0, 0, canvas.width, canvas.height);
+
+  context.save();
+
+  context.translate(offsetX, offsetY);
+  context.scale(scale, scale);
+  
   // Reset the stroke style before drawing the edges
   context.strokeStyle = "black";
   context.lineWidth = 1;
@@ -722,6 +803,7 @@ function draw() {
     }
 
   }
+  context.restore();
 }
 
 function move(e) {
@@ -794,6 +876,13 @@ function down(e) {
   }
 }
 
+function screenToWorld(x, y) {
+  return {
+    x: (x - offsetX) / scale,
+    y: (y - offsetY) / scale
+  };
+}
+
 function up(e) {
   var pos = getMousePos(e);
   if (btn_mode.textContent == 'Editing') {
@@ -859,7 +948,9 @@ function up(e) {
     }
   }
   else { // if Playing mode selected
-    let target = within(e.offsetX, e.offsetY);
+    const world = screenToWorld(e.offsetX, e.offsetY);
+
+    let target = within(world.x, world.y);
 
     // Get the selected radio button value
     const selectedMultiplication = getSelectedMultiplication();
@@ -1392,6 +1483,12 @@ document.getElementById('generate').addEventListener("click", () => {
   hasBeenGenerated = true;
 })
 
+document.getElementById('choose_vertex_size').addEventListener('change', () => {
+  if (hasBeenGenerated === true) {
+    generate_puzzle();
+  }
+})
+
 document.getElementById('graph6_btn').addEventListener("click", () => {
   hasBeenGenerated = true;
 })
@@ -1417,21 +1514,19 @@ function showN() {
   }
 }
 
-function getSpacing(edgeLength) {
-  if (edgeLength === 25) {
-    console.log('small)');
+function getSpacing(size) {
+  if (size === 10) {
     return 50;
-    
-  } else if (edgeLength === 50) {
-    console.log('medium)');
+  } else if (size === 20) {
     return 125;
-  } else if (edgeLength === 75) {
-    console.log('large)');
+  } else if (size === 30) {
     return 200;
   }
 }
 
 let graphTypeLabel = null;
+
+
 
 function generate_puzzle() {
   isGraph6 = false;
@@ -1447,18 +1542,15 @@ function generate_puzzle() {
   var variation = document.getElementById("choose_variation").value;
   var num_rows = parseInt(document.getElementById("row_input").value);
   var num_cols = parseInt(document.getElementById("col_input").value);
-  let edgeLength = parseInt(document.getElementById('choose_edge_length').value);
+  let edgeLength = parseInt(document.getElementById('choose_vertex_size').value) * 3;
   console.log(edgeLength);
-  let spacing = getSpacing(edgeLength);
+  let spacing = getSpacing(parseInt(document.getElementById('choose_vertex_size').value));
 
   switch (variation) {
     case "standard":
       graphTypeLabel = '(Standard Graph)';
       standardGraph(all_nodes, num_rows, num_cols, edgeLength);
       break;  
-    case "knight":
-      graphTypeLabel = '(Knight Moves Graph)'
-      knightGraph(all_nodes, num_rows, num_cols, edgeLength);  
     case "cycle":
       graphTypeLabel = '(Cycle Graph)';
       cycleGraph(all_nodes, spacing);
@@ -1493,11 +1585,11 @@ function generate_puzzle() {
       break;
     case "cube":
       graphTypeLabel = '(Cube Graph)';
-      cubeGraph(all_nodes);
+      cubeGraph(all_nodes, edgeLength);
       break;
     case "folded":
       graphTypeLabel = '(Folded Cube Graph)';
-      foldedGraph(all_nodes);
+      foldedCubeGraph(all_nodes, edgeLength);
       break;
     case "crown":
       graphTypeLabel = '(Crown Graph)';
@@ -1922,20 +2014,26 @@ function updateLayout() {
 
   if (variation === "complete" || variation === "wheel" || variation === "star" || variation === "cycle") {
     showElements(["verticesDiv"]);
+    document.getElementById('choose_vertex_size_label').textContent = 'Graph Size:';
   } else if (variation === "peterson") {
-    // Nothing to show
+    document.getElementById('choose_vertex_size_label').textContent = 'Graph Size:';
   } else if (variation === "bipartite") {
     document.getElementById('set1_text').textContent = "Set One Size:";
     showElements(["set1div", "set2div"]);
+    document.getElementById('choose_vertex_size_label').textContent = 'Graph Size:';
   } else if (variation === "crown") {
     document.getElementById('set1_text').textContent = "Size:";
     showElements(["set1div"]);
+    document.getElementById('choose_vertex_size_label').textContent = 'Graph Size:';
   } else if (variation === "cube" || variation === "folded") {
     showElements(["dimensionDiv"]);
+    document.getElementById('choose_vertex_size_label').textContent = 'Graph Size:';
   } else if (variation === "random") {
     showElements(["probDiv", "verticesDiv"]);
+    document.getElementById('choose_vertex_size_label').textContent = 'Vertex Size:';
   } else if (variation === "circulant") {
     showElements(["verticesDiv", "connectionsDiv"]);
+    document.getElementById('choose_vertex_size_label').textContent = 'Graph Size:';
   } else if (variation === "standard" || variation === "diagonal") {
     showElements([
       "row_label",
@@ -1947,13 +2045,7 @@ function updateLayout() {
       "sides",
       "sides_label"
     ]);
-  } else if (variation === 'knight') {
-    showElements([
-      "row_label",
-      "col_label",
-      "row_input",
-      "col_input",
-    ]);
+    document.getElementById('choose_vertex_size_label').textContent = 'Graph Size:';
   }
 }
 
@@ -1987,7 +2079,7 @@ function drawLabel(node, showLabels) {
 }
 
 function drawCyclicLabel(node) {
-  context.font = "6px Verdana";
+  context.font = "12px Verdana";
   context.beginPath();
   context.fillStyle = "#000000";
 

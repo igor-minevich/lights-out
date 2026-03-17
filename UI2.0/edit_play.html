@@ -61,7 +61,6 @@
                           <select name="variation" id="choose_variation">
                             <option value="standard">Standard Grid</option>
                             <option value="diagonal">Diagonal Grid</option>
-                            <option value="knight">Knight Moves</option>
                             <option value="cube">Cube</option>
                             <option value="folded">Folded Cube</option>
                             <option value="circulant">Circulant</option>
@@ -127,6 +126,22 @@
                           <label for="sides" id="sides_label">Sides Connected:</label>
                           <input type="checkbox" id="sides">
                       </div>
+
+                      <div id="chessMovesDiv" class="bottom_check">
+                        <span>Chess Moves:</span>
+                        <input type="checkbox" id="knightMove" name="knightMove" value="knight">
+                        <label for="knightMove" id="knightMoveLabel">Knight</label>
+  
+                        <input type="checkbox" id="rookMove" name="rookMove" value="rook">
+                        <label for="rookMove" id="rookMoveLabel">Rook</label>
+                      </div>
+                      <div id="chessMovesDiv2" class="bottom_check">
+                        <input type="checkbox" id="kingMove" name="kingMove" value="king">
+                        <label for="kingMove" id="kingMoveLabel">King</label>
+                        
+                        <input type="checkbox" id="queenMove" name="queenMove" value="queen">
+                        <label for="queenMove" id="queenMoveLabel">Queen</label>
+                      </div>
                   </div>
 
                   <div class="bottom_buttons">
@@ -142,26 +157,15 @@
                 <div class="line_break"></div>
 
                 <div class="line">
-                  <p class="subtitle">Change Vertex Sizing/Spacing</p>
+                  <p class="subtitle">Change Graph Sizing</p>
 
                   <div class="input-wrapper">
-                    <label for="vertex_size" id="choose_vertex_size_label">Vertex Size:</label>
+                    <label for="vertex_size" id="choose_vertex_size_label">Graph Size:</label>
                     <div class="select-wrapper">
                       <select name="vertex_size" id="choose_vertex_size">
                         <option value="10">Small</option>
                         <option value="20" selected>Medium</option>
                         <option value="30">Large</option>
-                      </select>
-                    </div>  
-                  </div>
-
-                  <div class="input-wrapper" id="edge_div">
-                    <label for="edge_length" id="choose_edge_length_label">Vertex Spacing:</label>
-                    <div class="select-wrapper">
-                      <select name="edge_length" id="choose_edge_length">
-                        <option value="25">Small</option>
-                        <option value="50" selected>Medium</option>
-                        <option value="75">Large</option>
                       </select>
                     </div>  
                   </div>
