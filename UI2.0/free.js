@@ -11,6 +11,19 @@ class FreeGroupNode {
         return '1';
     }
 
+    toSuperscript(num) {
+        const sup = {
+            "0": "⁰","1": "¹","2": "²","3": "³",
+            "4": "⁴","5": "⁵","6": "⁶","7": "⁷",
+            "8": "⁸","9": "⁹","-": "⁻"
+        };
+    
+        return num.toString()
+            .split("")
+            .map(ch => sup[ch] || ch)
+            .join("");
+    }
+
     multiply(input, leftMultiply, clicked) {
         let a = this.value;
         let b = input;
@@ -137,7 +150,14 @@ class FreeGroupNode {
     }
 
     toString() {
-        return this.value === '' ? this.identity() : this.value;
+        let val = this.value === '' ? this.identity() : this.value;
+
+        // Match generator + exponent
+        let regex = /([a-zA-Z])(\d+)/g;
+
+        return val.replace(regex, (match, gen, exp) => {
+            return gen + this.toSuperscript(exp);
+        });
     }
 }
 

@@ -15,28 +15,65 @@ class SymmetricNode {
         if (Array.isArray(el)) {
             el = el.join("");
         }
-    
+
         if (typeof el === "number") {
             el = String(el);
         }
-    
+
         if (typeof el !== "string") {
             return null;
         }
-    
+
         const cleaned = el.trim();
-    
+
+        // -----------------------------
+        // CASE 1: Cycle notation
+        // -----------------------------
+        if (cleaned.includes("(")) {
+            // Start with identity
+            const perm = this.identity();
+
+            // Match all cycles like (123)
+            const cycles = cleaned.match(/\(([^)]+)\)/g);
+            if (!cycles) return null;
+
+            for (let cycle of cycles) {
+                // Remove parentheses and split digits
+                const nums = cycle
+                    .replace(/[()]/g, "")
+                    .split("")
+                    .map(Number);
+
+                // Validate digits
+                for (let d of nums) {
+                    if (d < 1 || d > this.n) return null;
+                }
+
+                // Apply cycle: (a b c) means a→b, b→c, c→a
+                for (let i = 0; i < nums.length; i++) {
+                    const from = nums[i] - 1;
+                    const to = nums[(i + 1) % nums.length];
+                    perm[from] = to;
+                }
+            }
+
+            return perm;
+        }
+
+        // -----------------------------
+        // CASE 2: One-line notation
+        // -----------------------------
         if (cleaned.length !== this.n) return null;
         if (!/^\d+$/.test(cleaned)) return null;
-    
+
         const digits = cleaned.split("").map(Number);
-    
+
         for (let d of digits) {
             if (d < 1 || d > this.n) return null;
         }
-    
+
         if (new Set(digits).size !== this.n) return null;
-    
+
         return digits;
     }
 

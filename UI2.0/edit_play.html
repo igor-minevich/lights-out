@@ -68,7 +68,7 @@
                             <option value="bipartite">Complete Bipartite</option>
                             <option value="crown">Crown</option>
                             <option value="cycle">Cycle</option>
-                            <option value="peterson">Peterson</option>
+                            <option value="peterson">Petersen</option>
                             <option value="star">Star</option>
                             <option value="wheel">Wheel</option>
                             <option value="random">Random</option>
@@ -115,33 +115,87 @@
                       <div id="probDiv" class="input-wrapper" style="display: none;">
                         <label for="probability" id="prob_label">Edge Probability:</label>
                         <input type="number" id="probability" class="input_size" value="0.5" min="0.1" step="0.1" max="1">
-                    </div>
-              
-                      <div class="input-wrapper">
-                          <label for="top_bottom" id="top_bottom_label">Top and Bottom Connected:</label>
-                          <input type="checkbox" id="top_bottom">
-                      </div>
-              
-                      <div class="input-wrapper check_boxes">
-                          <label for="sides" id="sides_label">Sides Connected:</label>
-                          <input type="checkbox" id="sides">
                       </div>
 
-                      <div id="chessMovesDiv" class="bottom_check">
-                        <span>Chess Moves:</span>
-                        <input type="checkbox" id="knightMove" name="knightMove" value="knight">
-                        <label for="knightMove" id="knightMoveLabel">Knight</label>
-  
-                        <input type="checkbox" id="rookMove" name="rookMove" value="rook">
-                        <label for="rookMove" id="rookMoveLabel">Rook</label>
+                      <div id="extra_btnDiv">
+                        <button type="button" id="show_extra_ops">Show More Options</button>
                       </div>
-                      <div id="chessMovesDiv2" class="bottom_check">
-                        <input type="checkbox" id="kingMove" name="kingMove" value="king">
-                        <label for="kingMove" id="kingMoveLabel">King</label>
-                        
-                        <input type="checkbox" id="queenMove" name="queenMove" value="queen">
-                        <label for="queenMove" id="queenMoveLabel">Queen</label>
+                      
+
+              
+                      <div id="extra_ops_cont">
+                        <div id="ludr">
+                          <div><label for="left_length" id="left_label">Left:</label>
+                          <input type="number" id="left_length" class="input_size" value="1" min="0" step="1">
+                          <input type="checkbox" id="leftAll" value="all">
+                          <label for="leftAll" id="leftAllLabel">Connected</label>
+                          <input type="checkbox" id="leftMax" value="max">
+                          <label for="leftMax" id="leftMaxLabel">Max</label></div>
+                          
+
+                          <div><label for="right_length" id="right_label">Right:</label>
+                          <input type="number" id="right_length" class="input_size" value="1" min="0" step="1">
+                          <input type="checkbox" id="rightAll" value="all">
+                          <label for="rightAll" id="rightAllLabel">Connected</label>
+                          <input type="checkbox" id="rightMax" value="max">
+                          <label for="rightMax" id="rightMaxLabel">Max</label></div>
+                          
+
+                          <div><label for="up_length" id="up_label">Up:</label>
+                          <input type="number" id="up_length" class="input_size" value="1" min="0" step="1">
+                          <input type="checkbox" id="upAll" value="all">
+                          <label for="upAll" id="upAllLabel">Connected</label>
+                          <input type="checkbox" id="upMax" value="max">
+                          <label for="upMax" id="upMaxLabel">Max</label>
+                          </div>
+                          
+
+                          <div><label for="down_length" id="down_label">Down:</label>
+                          <input type="number" id="down_length" class="input_size" value="1" min="0" step="1">
+                          <input type="checkbox" id="downAll" value="all">
+                          <label for="downAll" id="downAllLabel">Connected</label>
+                          <input type="checkbox" id="downMax" value="max">
+                          <label for="downMax" id="downMaxLabel">Max</label>
+                          </div>
+                          
+
+                          <div><label for="diag_length" id="diag_label">Diagonal:</label>
+                          <input type="number" id="diag_length" class="input_size" value="0" min="0" step="1">
+                          <input type="checkbox" id="diagAll" value="all">
+                          <label for="diagAll" id="diagAllLabel">Connected</label>
+                          <input type="checkbox" id="diagMax" value="max">
+                          <label for="diagMax" id="diagMaxLabel">Max</label>
+                          </div>
+                          
+                        </div>
+
+                        <div class="input-wrapper">
+                          <label for="top_bottom" id="top_bottom_label">Top and Bottom Connected:</label>
+                          <input type="checkbox" id="top_bottom">
+                        </div>
+                
+                        <div class="input-wrapper check_boxes">
+                            <label for="sides" id="sides_label">Sides Connected:</label>
+                            <input type="checkbox" id="sides">
+                        </div>
+
+                        <div id="chessMovesDiv" class="bottom_check">
+                          <span>Chess Moves:</span>
+                          <input type="checkbox" id="knightMove" name="knightMove" value="knight">
+                          <label for="knightMove" id="knightMoveLabel">Knight</label>
+    
+                          <input type="checkbox" id="rookMove" name="rookMove" value="rook">
+                          <label for="rookMove" id="rookMoveLabel">Rook</label>
+                        </div>
+                        <div id="chessMovesDiv2" class="bottom_check">
+                          <input type="checkbox" id="kingMove" name="kingMove" value="king">
+                          <label for="kingMove" id="kingMoveLabel">King</label>
+                          
+                          <input type="checkbox" id="queenMove" name="queenMove" value="queen">
+                          <label for="queenMove" id="queenMoveLabel">Queen</label>
+                        </div>
                       </div>
+                      
                   </div>
 
                   <div class="bottom_buttons">
@@ -322,7 +376,7 @@
                       <label for="displayValues" id="displayValuesInput">Values</label>
 
                       <input type="radio" id="displayCyclic" name="displayOption" value="cyclic">
-                      <label for="displayCyclic" id="displayCyclicInput">Cyclic</label>
+                      <label for="displayCyclic" id="displayCyclicInput">Cycle</label>
 
                       <input type="radio" id="displayLabels" name="displayOption" value="labels">
                       <label for="displayLabels" id="displayLabelsInput">Labels</label>
@@ -334,29 +388,20 @@
 
                   <div class="line_break"></div>
 
-                  <div class="line" id="chessDiv">
-                    <p class="subtitle">Enable Chess Piece Graph Moves</p>
-                    <div class="input-wrapper">
-                      <label for="chess_moves" id="chess_label">Chess Moves:</label>
-                      <div class="select-wrapper chess-wrapper">
-                        <select name="chess_variation" id="chess_variation" onchange="showN()">
-                          <option value="none">None</option>
-                          <option value="knight">Knight</option>
-                          <option value="rook">Rook</option>
-                          <option value="king">King</option>
-                          <option value="queen">Queen</option>
-                        </select>
-                      </div>
-                    </div>
+                  <div class="line">
+                    <p class="subtitle">Change Text Sizing</p>
 
-                    <div class="input-wrapper" id="n_inputDiv" style="display: none;">
-                      <label for="n_value" id="n_value_label">Move Size n:</label>
-                      <input type="number" id="n_value" value="1">
+                    <div class="input-wrapper">
+                      <div class="slidecontainer">
+                        <p>Small</p>
+                        <input type="range" min="1" max="24" step="1" value="12" class="slider" id="textRange" onchange="updateTextSize()">
+                        <p>Large</p>
+                      </div>     
                     </div>
                   </div>
-                  
 
-                  <div class="line_break" id="chessLine"></div>
+                  <div class="line_break"></div>
+                  
             
                   <div id="relationsContainer" class="line" style="display:none;">
                     <p id="relationsFont" class="subtitle">Relations</p>

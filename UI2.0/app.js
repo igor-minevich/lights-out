@@ -20,6 +20,7 @@ let nodeTrack = 0;
 let scale = 1;
 let offsetX = 0;
 let offsetY = 0;
+let textSize = 12;
 
 const MIN_SCALE = 0.2;
 const MAX_SCALE = 5;
@@ -272,12 +273,18 @@ document.getElementById('chessMovesDiv').addEventListener('change', () => {
     document.getElementById('rookMove').checked = false;
     document.getElementById('kingMove').checked = false;
   }
+  if (hasBeenGenerated === true) {
+    generate_puzzle();
+  }
 });
 
 document.getElementById('chessMovesDiv2').addEventListener('change', () => {
   if (document.getElementById('queenMove').checked) {
     document.getElementById('rookMove').checked = false;
     document.getElementById('kingMove').checked = false;
+  }
+  if (hasBeenGenerated === true) {
+    generate_puzzle();
   }
 });
 
@@ -342,6 +349,8 @@ btn_mode.addEventListener('mouseleave', () => {
 btn_mode.addEventListener('click', function handleClick() {
 
   document.getElementById('myRange').value = 0.01;
+  document.getElementById('textRange').value = 12;
+  textSize = 12;
   btn_mode.style.color = '#EFF1F3';
   if (checkCount === 0){
     checkGenerate();
@@ -432,21 +441,6 @@ btn_mode.addEventListener('click', function handleClick() {
 
   if (btn_mode.textContent === 'Editing') {
     document.getElementById('par').textContent = 1;
-    if (graphTypeLabel === '(Standard Graph)') {
-      document.getElementById('chessDiv').style.display = 'block';
-      document.getElementById('chessLine').style.display = 'block';
-    } else {
-      document.getElementById('chessDiv').style.display = 'none';
-      document.getElementById('chessLine').style.display = 'none';
-    }
-
-    if (groupType === "freegroup" || groupType === "freeabgroup") {
-      document.getElementById("random_puzzle").style.display = 'none';
-      document.getElementById("hide_line").style.display = 'none';
-    } else {
-      document.getElementById("random_puzzle").style.display = 'flex';
-      document.getElementById("hide_line").style.display = 'block';
-    }
 
     left_arrow.style.display = 'none';
     right_arrow.style.display = 'flex';
@@ -979,17 +973,7 @@ function up(e) {
             simplifyBtn.click();
             groupMultiplier = document.getElementById('dihedralMultDisplay').value;
           }
-          if (document.getElementById('chess_variation').value === 'knight') {
-            applyKnightMove(target, groupMultiplier, leftMultiply);
-          } else if (document.getElementById('chess_variation').value === 'rook') {
-            applyRookMove(target, groupMultiplier, leftMultiply);
-          } else if (document.getElementById('chess_variation').value === 'queen') {
-            applyQueenMove(target, groupMultiplier, leftMultiply);
-          } else if (document.getElementById('chess_variation').value === 'king') {
-            applyKingMove(target, groupMultiplier, leftMultiply);
-          } else {
-            applyMoveToVertex(target, groupMultiplier, leftMultiply);
-          }
+          applyMoveToVertex(target, groupMultiplier, leftMultiply);
         } else if (currentMode === 'editing'){
           if (groupType === 'dihedral' || groupType === 'quaternion'){
             simplifyBtn.click();
@@ -1198,32 +1182,87 @@ function key_up(e) {
 
 let hasBeenRandomized = false;
 
+// function congradulate() {
+//   const parText = document.getElementById('par').textContent;
+//   const parInt = parseInt(parText.replace(/\D/g, ''), 10); // extract number safely
+
+//   if (nodes.length === 0) return;
+//   if (nodes.every(node => node.node.clicks === 0)) return;
+
+//   const first = nodes[0].node.toString();
+
+//   // Check if all nodes match (puzzle solved)
+//   for (let i = 1; i < nodes.length; i++) {
+//     if (nodes[i].node.toString() !== first) {
+//       return;
+//     }
+//   }
+
+//   // Compare moves to par
+//   if (hasBeenRandomized === false) {
+//     alert(`Nice job! The puzzle is now all one state.`);
+//   } else if (nodeTrack === parInt) {
+//     alert("Perfect! You solved the puzzle on par.");
+//   } else if (nodeTrack < parInt) {
+//     alert(`Amazing! You beat par by ${parInt - nodeTrack} move(s).`);
+//   } else {
+//     alert(`Nice job! You finished ${nodeTrack - parInt} move(s) over par.`);
+//   }
+  
+
+//   hasBeenRandomized = false;
+// }
+
 function congradulate() {
   const parText = document.getElementById('par').textContent;
-  const parInt = parseInt(parText.replace(/\D/g, ''), 10); // extract number safely
+  const parInt = parseInt(parText.replace(/\D/g, ''), 10);
 
-  if (nodes.length === 0) return;
+  if (hasBeenRandomized) {
+    if (nodes.length === 0) return;
 
-  const first = nodes[0].node.toString();
+    const first = nodes[0].node.toString();
 
-  // Check if all nodes match (puzzle solved)
-  for (let i = 1; i < nodes.length; i++) {
-    if (nodes[i].node.toString() !== first) {
-      return;
+    // Check if all nodes match
+    const allSame = nodes.every(node => node.node.toString() === first);
+  if (!allSame) return;
+    // Par-based messages
+    if (nodeTrack === parInt) {
+      alert("Perfect! You solved the puzzle on par.");
+    } else if (nodeTrack < parInt) {
+      alert(`Amazing! You beat par by ${parInt - nodeTrack} move(s).`);
+    } else {
+      alert(`Nice job! You finished ${nodeTrack - parInt} move(s) over par.`);
+    }
+  } else {
+    if (nodes.length === 0) return;
+
+    // Ignore untouched board
+    if (nodes.every(node => node.node.clicks === 0)) return;
+
+    const first = nodes[0].node.toString();
+
+    // Check if all nodes match
+    const allSame = nodes.every(node => node.node.toString() === first);
+    if (!allSame) return;
+
+    // Identify what state we ended in
+    const identity = "0";
+    const isAllIdentity = nodes.every(node => node.node.toString() === identity);
+
+    // Detect quiet pattern (no repeated clicks)
+    const isQuietPattern = nodes.every(node => node.node.clicks <= 1);
+
+
+    // Special case: quiet identity solution
+    if (isAllIdentity && isQuietPattern) {
+      alert("Beautiful! You found a quiet pattern solution (no repeated clicks).");
+    }
+
+    // Special case: non-identity uniform state (like all 's' in dihedral)
+    else if (!isAllIdentity) {
+      alert(`Nice! You solved the puzzle to an all "${first}" state.`);
     }
   }
-
-  // Compare moves to par
-  if (hasBeenRandomized === false) {
-    alert(`Nice job! The puzzle is now all one state.`);
-  } else if (nodeTrack === parInt) {
-    alert("Perfect! You solved the puzzle on par.");
-  } else if (nodeTrack < parInt) {
-    alert(`Amazing! You beat par by ${parInt - nodeTrack} move(s).`);
-  } else {
-    alert(`Nice job! You finished ${nodeTrack - parInt} move(s) over par.`);
-  }
-  
 
   hasBeenRandomized = false;
 }
@@ -1276,23 +1315,9 @@ function randomizePuzzle() {
       const randomVal = Math.floor(Math.random() * groupOrder);
   
       if (randomVal === 0) continue;
-  
-      if (document.getElementById('chess_variation').value === 'knight') {
-        applyKnightMove(randomVertex, randomVal, false);
-        i++;
-      } else if (document.getElementById('chess_variation').value === 'rook') {
-        applyRookMove(randomVertex, randomVal, false);
-        i++;
-      } else if (document.getElementById('chess_variation').value === 'queen') {
-        applyQueenMove(randomVertex, randomVal, false);
-        i++;
-      } else if (document.getElementById('chess_variation').value === 'king') {
-        applyKingMove(randomVertex, randomVal, false);
-        i++;
-      } else {
-        applyMoveToVertex(randomVertex, randomVal, false);
-        i++;
-      }
+
+      applyMoveToVertex(randomVertex, randomVal, false);
+      i++;
     }
   }
   
@@ -1307,23 +1332,9 @@ function randomizePuzzle() {
       if (!isReflection && k === 0) continue;
   
       const element = isReflection ? `s r${k}` : `r${k}`;
-  
-      if (document.getElementById('chess_variation').value === 'knight') {
-        applyKnightMove(randomVertex, element, false);
-        i++;
-      } else if (document.getElementById('chess_variation').value === 'rook') {
-        applyRookMove(randomVertex, element, false);
-        i++;
-      } else if (document.getElementById('chess_variation').value === 'queen') {
-        applyQueenMove(randomVertex, element, false);
-        i++;
-      } else if (document.getElementById('chess_variation').value === 'king') {
-        applyKingMove(randomVertex, element, false);
-        i++;
-      } else {
-        applyMoveToVertex(randomVertex, element, false);
-        i++;
-      }
+
+      applyMoveToVertex(randomVertex, element, false);
+      i++;
     }
   }
 
@@ -1335,22 +1346,8 @@ function randomizePuzzle() {
       const randomVertex = nodes[Math.floor(Math.random() * nodes.length)];
       const element = elements[Math.floor(Math.random() * elements.length)];
   
-      if (document.getElementById('chess_variation').value === 'knight') {
-        applyKnightMove(randomVertex, element, false);
-        i++;
-      } else if (document.getElementById('chess_variation').value === 'rook') {
-        applyRookMove(randomVertex, element, false);
-        i++;
-      } else if (document.getElementById('chess_variation').value === 'queen') {
-        applyQueenMove(randomVertex, element, false);
-        i++;
-      } else if (document.getElementById('chess_variation').value === 'king') {
-        applyKingMove(randomVertex, element, false);
-        i++;
-      } else {
-        applyMoveToVertex(randomVertex, element, false);
-        i++;
-      }
+      applyMoveToVertex(randomVertex, element, false);
+      i++;
     }
   }
 
@@ -1370,22 +1367,124 @@ function randomizePuzzle() {
   
       const element = [a, b, c];
   
-      if (document.getElementById('chess_variation').value === 'knight') {
-        applyKnightMove(randomVertex, element, false);
+      applyMoveToVertex(randomVertex, element, false);
+      i++;
+    }
+  }
+
+  if (groupType === "symmetric") {
+    let i = 0;
+
+    while (i < verticesToScramble) {
+      const randomVertex = nodes[Math.floor(Math.random() * nodes.length)];
+      const n = groupOrder;
+
+      // 🚫 Skip trivial case
+      if (n <= 1) {
         i++;
-      } else if (document.getElementById('chess_variation').value === 'rook') {
-        applyRookMove(randomVertex, element, false);
-        i++;
-      } else if (document.getElementById('chess_variation').value === 'queen') {
-        applyQueenMove(randomVertex, element, false);
-        i++;
-      } else if (document.getElementById('chess_variation').value === 'king') {
-        applyKingMove(randomVertex, element, false);
-        i++;
-      } else {
-        applyMoveToVertex(randomVertex, element, false);
-        i++;
+        continue;
       }
+
+      let perm = [];
+      let used = new Set();
+
+      // Build permutation one element at a time
+      for (let j = 0; j < n; j++) {
+        let choice;
+
+        do {
+          choice = Math.floor(Math.random() * n) + 1;
+        } while (used.has(choice));
+
+        perm.push(choice);
+        used.add(choice);
+      }
+
+      // Skip identity permutation
+      let isIdentity = true;
+      for (let j = 0; j < n; j++) {
+        if (perm[j] !== j + 1) {
+          isIdentity = false;
+          break;
+        }
+      }
+
+      if (isIdentity) continue;
+
+      // Optional: convert to string if you want consistency
+      // const element = perm.join("");
+      console.log(perm);
+
+      applyMoveToVertex(randomVertex, perm, false);
+      i++;
+    }
+  }
+
+  if (groupType === "freegroup") {
+    const generators = ["a", "b", "A", "B"];
+
+    const inverse = {
+      a: "A",
+      A: "a",
+      b: "B",
+      B: "b"
+    };
+
+    let i = 0;
+
+    while (i < verticesToScramble) {
+      const randomVertex = nodes[Math.floor(Math.random() * nodes.length)];
+
+      const length = Math.floor(Math.random() * 6) + 1;
+
+      let word = "";
+      let prev = null;
+
+      for (let j = 0; j < length; j++) {
+        let choices = generators;
+
+        if (prev) {
+          choices = generators.filter(g => g !== inverse[prev]);
+        }
+
+        const next = choices[Math.floor(Math.random() * choices.length)];
+        word += next;
+        prev = next;
+      }
+
+      // Apply directly — reduction happens inside multiply
+      applyMoveToVertex(randomVertex, word, false);
+
+      i++;
+    }
+  }
+
+  if (groupType === "freeabgroup") {
+    let i = 0;
+
+    while (i < verticesToScramble) {
+      const randomVertex = nodes[Math.floor(Math.random() * nodes.length)];
+
+      // Pick random exponents (tune range for difficulty)
+      const range = 3; // gives values in [-3, 3]
+      let m = Math.floor(Math.random() * (2 * range + 1)) - range;
+      let n = Math.floor(Math.random() * (2 * range + 1)) - range;
+
+      // Skip identity (0,0)
+      if (m === 0 && n === 0) continue;
+
+      let word = "";
+
+      // Build a^m
+      if (m > 0) word += "a".repeat(m);
+      if (m < 0) word += "A".repeat(-m);
+
+      // Build b^n
+      if (n > 0) word += "b".repeat(n);
+      if (n < 0) word += "B".repeat(-n);
+
+      applyMoveToVertex(randomVertex, word, false);
+      i++;
     }
   }
   
@@ -1397,12 +1496,18 @@ function randomizePuzzle() {
   draw();
 }
 
+
 function updatePar() {
   const slider = document.getElementById("myRange");
   const difficultyPercent = parseFloat(slider.value);
 
   let verticesToScramble = Math.ceil(difficultyPercent * nodes.length);
   document.getElementById('par').textContent = verticesToScramble;
+}
+
+function updateTextSize() {
+  const slider = document.getElementById("textRange");
+  textSize = parseFloat(slider.value);
 }
 
 
@@ -1481,38 +1586,29 @@ let hasBeenGenerated = false;
 
 document.getElementById('generate').addEventListener("click", () => {
   hasBeenGenerated = true;
-})
+});
 
 document.getElementById('choose_vertex_size').addEventListener('change', () => {
   if (hasBeenGenerated === true) {
     generate_puzzle();
   }
-})
+});
+
+
 
 document.getElementById('graph6_btn').addEventListener("click", () => {
   hasBeenGenerated = true;
-})
+});
 
 document.getElementById('clear').addEventListener("click", () => {
   hasBeenGenerated = false;
-})
+});
 
 document.getElementById('clear2').addEventListener("click", () => {
   hasBeenGenerated = false;
-})
+});
 
 
-
-function showN() {
-  chessVar = document.getElementById('chess_variation');
-  nInputDiv = document.getElementById('n_inputDiv');
-
-  if (chessVar.value === 'knight') {
-    nInputDiv.style.display = 'block';
-  } else {
-    nInputDiv.style.display = 'none';
-  }
-}
 
 function getSpacing(size) {
   if (size === 10) {
@@ -1842,7 +1938,8 @@ function set_group_multiplier(validateInput = true) {
       parseInt(document.getElementById('c_input').value, 10)
     ];
     console.log(groupMultiplier);
-  
+  } else if (groupType === 'symmetric') {
+    groupMultiplier = groupMultiplierInput;
   } else {
     if (validateInput && isNaN(parseInt(groupMultiplierInput))) {
       alert("Invalid input. See Instructions page for more information on correct multiplier input.");
@@ -1990,7 +2087,21 @@ function hideShowElements(ids, displayStyle) {
 
 
 
-document.getElementById("choose_variation").addEventListener("change", updateLayout);
+document.getElementById("choose_variation").addEventListener("change", () => {
+  updateLayout();
+  if (document.getElementById('choose_variation').value === 'standard') {
+      document.getElementById('extra_btnDiv').style.display = 'flex';
+    } else {
+      document.getElementById('extra_btnDiv').style.display = 'none';
+      document.getElementById("extra_ops_cont").style.display = 'none';
+    }
+});
+
+document.getElementById("extra_btnDiv").addEventListener('click', () => {
+  document.getElementById("extra_ops_cont").style.display = 'block';
+  document.getElementById("extra_btnDiv").style.display = 'none';
+});
+
 function updateLayout() {
   const variation = document.getElementById("choose_variation").value;
   const elementsToHide = [
@@ -2063,7 +2174,7 @@ function getSelectedMultiplication() {
 }
 
 function drawLabel(node, showLabels) {
-  context.font = "12px Verdana";
+  context.font = `${textSize}px Verdana`;
   context.beginPath();
   context.fillStyle = "#000000";
   let string = showLabels ? node.label.toString() : node.node.toString();
@@ -2072,14 +2183,14 @@ function drawLabel(node, showLabels) {
   const textMetrics = context.measureText(string);
   const textWidth = textMetrics.width;
   const xPos = node.x - textWidth / 2;
-  const yPos = node.y + 4;
+  const yPos = node.y + (textSize / 3);
 
   context.fillText(string, xPos, yPos);
   context.fill();
 }
 
 function drawCyclicLabel(node) {
-  context.font = "12px Verdana";
+  context.font = `${textSize}px Verdana`;
   context.beginPath();
   context.fillStyle = "#000000";
 
@@ -2097,7 +2208,7 @@ function drawCyclicLabel(node) {
 
 
 function drawClicks(node, showClicks) {
-  context.font = "12px Verdana";
+  context.font = `${textSize}px Verdana`;
   context.beginPath();
   context.fillStyle = "#000000";
   let string = showClicks ? node.node.clicks.toString() : node.node.toString();

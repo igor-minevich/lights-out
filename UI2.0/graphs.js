@@ -1,11 +1,4 @@
-const ring = (count, radius, phase = 0) =>
-    Array.from({ length: count }, (_, i) => {
-        const a = phase + (2 * Math.PI * i) / count;
-        return [
-            Math.round(radius * Math.cos(a)),
-            Math.round(radius * Math.sin(a))
-        ];
-    });
+
     
 
 function generateHypercubeLayers(d, spacingX, spacingY) {
@@ -533,7 +526,7 @@ function cubeGraph(all_nodes, edgeLength) {
     const d = parseInt(document.getElementById("dim_input").value);
     if (isNaN(d) || d < 1 || d > 5) return;
 
-    nodes.length = 0;
+    all_nodes.length = 0;
     edges.length = 0;
 
     const canvas = context.canvas;
@@ -546,7 +539,7 @@ function cubeGraph(all_nodes, edgeLength) {
 
     for (const [x, y] of layout) {
         const node = create_node(cx + x, cy + y);
-        nodes.push(node);
+        all_nodes.push(node);
         vertexNodes.push(node);
     }
 
@@ -578,7 +571,7 @@ function foldedCubeGraph(all_nodes, edgeLength) {
     const d = parseInt(document.getElementById("dim_input").value);
     if (isNaN(d) || d < 1 || d > 5) return;
 
-    nodes.length = 0;
+    all_nodes.length = 0;
     edges.length = 0;
 
     const canvas = context.canvas;
@@ -593,7 +586,7 @@ function foldedCubeGraph(all_nodes, edgeLength) {
     for (const [x, y] of layout) {
 
         const node = create_node(cx + x, cy + y);
-        nodes.push(node);
+        all_nodes.push(node);
         vertexNodes.push(node);
 
     }
