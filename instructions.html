@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructions – Lights-Out Puzzle</title>
+    <link rel="stylesheet" href="instructions.css">
+    <link rel="icon" type="image/x-icon" href="light-bulb.png">
+</head>
+<body id="back_clr" onload="setView()">
+    <div class="top_nav">
+        <h1 class="title">
+          <span>I</span><span>n</span><span>s</span><span>t</span><span>r</span><span>u</span><span>c</span><span>t</span><span>i</span><span>o</span><span>n</span><span>s</span>
+        </h1>
+    </div>
+    <div class="main_content" id="main_content">
+        <div id="left_ops">
+            <p id="no_margin">Graph Editing</p>
+            <button class="" type="button" id="overE" onclick="changeView('overE')">Introduction & Getting Started</button>
+            <button class="" type="button" id="graphT" onclick="changeView('graphT')">Graph Types & Preset Editing</button>
+            <button class="" type="button" id="graph6" onclick="changeView('graph6')">Graph-Six String Input</button>
+            <button class="" type="button" id="groupE" onclick="changeView('groupE')">Overview of Group Types</button>
+            <p>Graph Properties & Sage Cell</p>
+            <button class="" type="button" id="graphP" onclick="changeView('graphP')">Graph Properties</button>
+            <button class="" type="button" id="sageC" onclick="changeView('sageC')">Sage Cell</button>
+            <p>Playing Mode</p>
+            <button class="" type="button" id="overP" onclick="changeView('overP')">Overview (Playing)</button>
+            <button class="" type="button" id="groupP" onclick="changeView('groupP')">Group Types (Playing)</button>
+            <button class="" type="button" id="puzzleR" onclick="changeView('puzzleR')">Puzzle Randomization</button>
+            <button class="" type="button" id="addF" onclick="changeView('addF')">Additional Features</button>
+        </div>
+
+        <div id="exp_view">
+            <div class="exp_op" id="overE_view">
+                <h1>Graph Theory, the Lights-Out Puzzle, and Beginner Navigation</h1>
+                <p>
+                    When you first open the Lights-Out Puzzle on Graphs page, you will see a blank canvas in the center of the screen. This canvas is where your graph will be created and displayed. On the left side of the screen there is a flashing button that opens the editing menu, and along the bottom of the page are additional navigation options that led you to this guide.
+                </p>
+                <img src="instructions_imgs/edit_page.png" alt="" class="main_img">
+                <p>
+                The left editing menu contains several tools for creating and customizing graphs. From this menu you can generate common and abstract graph structures, edit vertex connections, select group types for playing, and save your creations as playable Lights-Out puzzles. In addition, the central canvas can be clicked to create new vertices and connect/disconnect existing ones. The editing mode is designed to make building graphs simple and interactive, allowing you to experiment freely and immediately see the results of your changes.
+                </p>
+                <img src="instructions_imgs/edit_menu.png" alt="" class="main_img">
+                <p>
+                If you are unfamiliar with graph theory, the structures you create here may initially look unusual. In mathematics, <strong>graph theory</strong> studies networks of connections. A graph is made up of <em>vertices</em> (points) and <em>edges</em> (lines connecting those points). Despite this simple definition, graphs can represent a huge variety of systems: social networks, transportation routes, electrical circuits, computer networks, and many other connected structures.
+                </p>
+                <p>
+                The goal of this website is to combine these mathematical ideas with the classic <em>Lights-Out</em> puzzle. Instead of a fixed grid, puzzles are played on graphs of any shape. Clicking a vertex toggles its state along with the vertices connected to it, and the challenge is to determine a sequence of moves that turns all vertices off/on. Different graph structures lead to different puzzle behaviors, which makes experimenting with graphs both visually interesting and mathematically meaningful.
+                </p>
+                <p>
+                Exploring the editing mode is a great way to become familiar with these concepts. By building graphs yourself, you can see how different patterns of connections affect the puzzle mechanics and learn how mathematicians classify different types of graphs.
+                </p>
+                <img src="instructions_imgs/cycle.png" alt="" class="main_img">
+                <p>
+                For example, the graph shown above is called a <strong>Cycle Graph</strong> on 7 vertices. In a cycle graph, each vertex connects to exactly two others, forming a closed loop. Many other common graph families exist, and several of them can be generated directly from the editing menu.
+                </p>
+                <p>
+                The remaining sections of these instructions will walk through the editing tools in more detail. They will show you how to generate more common graph type, modify their structure, and ultimately design your own Lights-Out puzzles while exploring the ideas of graph theory along the way.
+                </p>
+            </div>
+
+            <div class="exp_op" id="graphT_view" style="display: none;">
+                <h1>Graph Types, Preset Editing, and Canvas Interaction</h1>
+                <p>
+                In the left editing menu, you will find a section labeled <i>Preset Generator/Editor</i>. As the name suggests, this tool allows you to quickly generate many common types of graphs. Instead of manually creating every vertex and edge, the preset generator builds entire graph structures automatically using a few adjustable parameters.
+                </p>
+                <img src="instructions_imgs/preset_drop.png" alt="" class="main_img">
+                <p>
+                The presets include a wide variety of graph families, ranging from simple grid layouts to randomly generated graphs. These presets are useful both for quickly creating Lights-Out puzzles and for exploring different types of graph structures that appear throughout graph theory.
+                </p>
+                <p>
+                The graph you will likely use most often is the <strong>Standard Grid</strong>, which is also the graph loaded by default when the page first opens. This graph matches the traditional layout used in the classic Lights-Out puzzle: vertices are arranged in rows and columns, and each vertex is connected to its immediate neighbors. Because of this familiar structure, the grid graph provides a clear visual representation of how toggling one vertex affects the others.
+                </p>
+                <p>
+                Grid graphs also have one unique feature within this editor: they are the only graph type that supports <strong>chess move variations</strong>. These variations allow vertices to influence others according to movements like the knight, rook, or queen from chess. These options will be discussed in more detail in a later section.
+                </p>
+                <p>
+                A standard 5×5 grid is shown below. These are the same default parameters you will see when first opening the preset generator.
+                </p>
+                <img src="instructions_imgs/5x5.png" alt="" class="main_img">
+                <p>
+                As you explore the preset list, you will notice that different graph types require different parameters. These parameters determine how the graph is constructed. For example:
+                </p>
+                <ul>
+                <li><strong>Grid graphs</strong> require row and column values, along with options for connecting opposite sides.</li>
+                <li><strong>Cycle</strong>, <strong>wheel</strong>, <strong>star</strong>, and <strong>complete graphs</strong> only require the number of vertices.</li>
+                <li><strong>Complete bipartite graphs</strong> require two set sizes.</li>
+                <li><strong>Circulant graphs</strong> use two numbers separated by a comma to define connection distances.</li>
+                </ul>
+                <p>
+                Experimenting with these parameters is strongly encouraged. Adjusting the values and regenerating the graph is one of the easiest ways to understand how different graph structures behave. If you are unsure what type of input is required, the default values shown in the menu are a good guide.
+                </p>
+                <p>
+                In addition to preset generation, you can always edit graphs directly on the canvas. Some editing tools remain available regardless of which graph type is selected. One example is the <strong>Connect Vertex to All</strong> and <strong>Disconnect Vertex from All</strong> options.
+                </p>
+                <p>
+                To use this feature, select a vertex on the canvas (or click an empty area to create a new one) and then choose the option from the editing menu. The selected vertex will immediately reflect your choice, the example below showing this visually.
+                </p>
+                <div class="img_sec">
+                    <img src="instructions_imgs/before.png" alt="" class="half_img">
+                    <img src="instructions_imgs/after.png" alt="" class="half_img">
+                </div>
+                <p>
+                Because graphs can be constructed in so many different ways, the preset generator provides a powerful starting point for experimentation. Try exploring different graph families, adjusting parameters, and modifying the resulting structures directly on the canvas.
+                </p>
+                <p>
+                In the next section, you will learn about another method of generating graphs: importing them using <strong>graph-six strings</strong>, a compact format used by mathematicians to encode graph structures.
+                </p>
+            </div>
+
+            <div class="exp_op" id="graph6_view" style="display: none;">
+                <h1>Graph-Six String Input Overview</h1>
+                <p>
+                Another compact way to generate graphs is through a format known as <i>graph-six</i> strings. A graph-six string is a sequence of letters, numbers, and symbols that encodes the entire structure of a graph. Although these strings may look random at first glance, they actually contain precise information describing which vertices are connected to one another.
+                </p>
+                <p>
+                You can find the graph-six input field at the very top of the left editing menu, shown below.
+                </p>
+                <img src="instructions_imgs/graph6_input.png" alt="" class="main_img">
+                <p>
+                Inside the input box you will see the example string <strong>FhCKG</strong>. While this sequence may appear arbitrary, it corresponds to a very specific graph. When the string is entered and generated, it produces the <strong>Cycle Graph on 7 vertices</strong>, which you saw earlier in the editing overview.
+                </p>
+                <img src="instructions_imgs/cycle.png" alt="" class="main_img">
+                <p>
+                In other words, graph-six provides a compact way to represent a graph using only a short line of text. This format is widely used in mathematical software and graph databases because it makes it easy to store, share, and reproduce graphs exactly.
+                </p>
+                <p>
+                You can experiment with the feature by entering some of the example strings below and seeing which graphs they generate. Try matching the resulting graphs to their corresponding presets in the generator menu.
+                </p>
+                <ul>
+                    <li>Dhc</li>
+                    <li>Ch</li>
+                    <li>D~{</li>
+                    <li>Ds_</li>
+                </ul>
+                <p>
+                For new users, graph-six strings may not be the most intuitive way to build graphs, and many people will prefer using the preset generator and direct canvas editing at first. However, this feature becomes very useful as you explore more advanced ideas. It allows graphs to be shared easily between different tools and mathematical programs.
+                </p>
+                <p>
+                Later sections will show how graph-six strings can be used together with the embedded Sage Cell on this site to study graph properties and experiment with Lights-Out puzzles from a more mathematical perspective.
+                </p>
+            </div>
+            
+            <div class="exp_op" id="groupE_view" style="display: none;">
+                <h1>Theoretical Background for Puzzle Group Types</h1>
+                <p>
+                The final setting worth mentioning in the editing menu is the <strong>Group Type</strong> selector. While this option appears during editing, it primarily affects how the puzzle behaves when played. References to a multiplier field will also be brought up for clarity, which can be found in the playing mode's pullout menu. You can find the group type menu located just below the <i>Edit Vertex Connections</i> section.
+                </p>
+                <img src="instructions_imgs/group_type_menu.png" alt="" class="main_img">
+                <p>
+                In the traditional Lights-Out puzzle, each vertex simply switches between two states: on and off. In this project, however, vertex states are determined by elements of a mathematical <strong>group</strong>. Each click on a vertex applies a group operation to that vertex and to its neighbors. Depending on which group you choose, the puzzle can behave very differently.
+                </p>
+                <p>
+                Different groups introduce different algebraic structures, which means the same graph can produce very different puzzle mechanics. Some groups behave similarly to the classic puzzle, while others create more complex interactions between vertex states. Below is a brief explanation of each available group type and what makes it interesting to experiment with.
+                </p>
+                <h2>Cyclic</h2>
+                <p>
+                The <strong>Cyclic Group</strong> is the default group type and the best place to begin. The name reflects how the vertex states behave: each click cycles the value of a vertex through a fixed set of numbers before returning to the starting state.
+                </p>
+                <p>
+                The cyclic group contains a parameter called its <strong>group order</strong>, which determines how many states exist in the cycle. For example, if the order is three, each vertex can take on the values 0, 1, or 2. Clicking a vertex with a multiplier of 1 increases its value (and those of its neighbors) by one, wrapping back to 0 after reaching the maximum value.
+                </p>
+                <p>
+                In this case, it would take three clicks of the same vertex (with multiplier 1) to return it to the identity state of 0. When the order is two, the puzzle behaves exactly like the classic Lights-Out game, where vertices simply toggle on and off. Because of its simplicity and familiarity, the cyclic group is strongly recommended for beginners.
+                </p>
+                <h2>Dihedral</h2>
+                <p>
+                The <strong>Dihedral Group</strong> is a step up in complexity compared to the cyclic group. Mathematically, the dihedral group describes the symmetries of a regular polygon. These symmetries include both <em>rotations</em> and <em>reflections</em>.
+                </p>               
+                <p>
+                This group takes a parameter representing the number of vertices of the polygon. This value determines how many possible symmetries exist. For example, a parameter of 5 corresponds to the symmetries of a regular pentagon, which includes 5 rotations and 5 reflections.
+                </p>                
+                <p>
+                Multipliers in the dihedral group are written using two generators: <strong>r</strong> for rotation and <strong>s</strong> for reflection. You may combine these to form different group elements. For example:
+                </p>                
+                <ul>
+                <li><strong>r</strong> – a single rotation</li>
+                <li><strong>r<sup>2</sup></strong> – two rotations</li>
+                <li><strong>s</strong> – a reflection</li>
+                <li><strong>sr<sup>2</sup></strong> – a reflection followed by two rotations</li>
+                </ul>                
+                <p>
+                When a vertex is clicked, the multiplier you choose is applied to that vertex and its neighbors. Because reflections and rotations interact in non-commutative ways, the order of operations can matter. This makes dihedral puzzles more strategic and often more challenging than cyclic ones.
+                </p>               
+                <h2>Quaternion</h2>                
+                <p>
+                The <strong>Quaternion Group</strong> is another non-commutative group and is closely related to complex number arithmetic. Its elements are typically written as:
+                </p>                
+                <p>
+                <i>1, -1, i, -i, j, -j, k, -k</i>
+                </p>               
+                <p>
+                These elements follow special multiplication rules similar to complex numbers but extended into three imaginary directions. For example:
+                </p>                
+                <ul>
+                <li><strong>i² = j² = k² = -1</strong></li>
+                <li><strong>ij = k</strong></li>
+                <li><strong>jk = i</strong></li>
+                <li><strong>ki = j</strong></li>
+                </ul>                
+                <p>
+                Reversing the order of multiplication produces the negative result (for example, <i>ji = -k</i>). Because of these relationships, quaternion elements often simplify when multiplied together.
+                </p>                
+                <p>
+                In the puzzle, vertices take values from this set, and the multiplier you enter determines which element is applied when clicking a vertex. As operations combine during gameplay, the values at vertices simplify according to the quaternion multiplication rules. This group introduces interesting algebraic behavior where the sequence of moves can affect the final result.
+                </p>                
+                <h2>Heisenberg</h2>
+                <p>
+                The <strong>Heisenberg Group</strong> comes from linear algebra and can be represented using upper triangular 3×3 matrices. These matrices have the form:
+                </p>
+                <p>
+                [ 1  a  c ]<br>
+                [ 0  1  b ]<br>
+                [ 0  0  1 ]
+                </p>
+                <p>
+                In the puzzle, each group element is represented by three integers corresponding to the parameters <strong>a, b, c</strong>. These values determine the matrix used in the group operation.
+                </p>
+                <p>
+                The group also includes a parameter called the <strong>modulus (p)</strong>. All arithmetic in the group is performed <em>modulo p</em>. This means the values of a, b, and c wrap around after reaching p, similar to how numbers cycle in modular arithmetic.
+                </p>
+                <p>
+                For example, if the modulus is <strong>p = 5</strong>, then all values are taken modulo 5. Adding 3 and 4 would result in 2, since 7 ≡ 2 (mod 5). This keeps all vertex values within the range from 0 to p−1.
+                </p>
+                <p>
+                When two elements are multiplied, their parameters combine according to the rules of matrix multiplication. In simplified terms:
+                </p>
+                <ul>
+                <li>a values add together (mod p)</li>
+                <li>b values add together (mod p)</li>
+                <li>c values combine using addition plus a multiplication between a and b (also mod p)</li>
+                </ul>
+                <p>
+                In the multiplier input field, you enter three integers representing the values of <strong>a, b,</strong> and <strong>c</strong>. When a vertex is clicked, this group element is multiplied with the values stored at the affected vertices.
+                </p>
+                <p>
+                Changing the modulus <strong>p</strong> affects the overall complexity of the puzzle. Larger values of p allow for more possible vertex states and therefore a much larger space of configurations, often making puzzles more intricate and challenging to solve.
+                </p>          
+                <h2>Symmetric</h2>               
+                <p>
+                The <strong>Symmetric Group</strong> consists of all possible permutations of a set of elements. The group parameter determines the size <strong>n</strong>, meaning the group contains every possible rearrangement of the numbers 1 through n.
+                </p>               
+                <p>
+                For example, if the parameter is 3, the group contains all permutations of the set {1, 2, 3}. These permutations can be written as sequences of digits representing where each element is sent.
+                </p>                
+                <p>
+                Some examples include:
+                </p>                
+                <ul>
+                <li><strong>123</strong> – the identity permutation (nothing changes)</li>
+                <li><strong>321</strong> – reverses the order</li>
+                <li><strong>231</strong> – moves 1→2, 2→3, and 3→1</li>
+                </ul>                
+                <p>
+                Multipliers in the puzzle correspond to these permutation strings. When a vertex is clicked, the permutation you specify is composed with the permutations stored at the affected vertices. Since permutation composition is generally non-commutative, performing moves in a different order can produce different results.
+                </p>                
+                <p>
+                The symmetric group connects the puzzle to one of the most fundamental objects in abstract algebra and allows for a wide variety of puzzle behaviors depending on the chosen parameter size.
+                </p>
+                <h2>Free &amp; Free Abelian</h2>
+                <p>
+                The <strong>Free Group</strong> and <strong>Free Abelian Group</strong> represent two contrasting algebraic ideas. Both allow vertices to accumulate combinations of generators rather than cycling through a fixed number of states.
+                </p>
+                <p>
+                In a free abelian group, generators commute with one another, meaning the order of operations does not matter. This makes the behavior somewhat similar to working with vectors or integer coordinates.
+                </p>
+                <p>
+                In a free group, however, generators do not commute, and sequences of operations can build longer and more complicated expressions. This can lead to puzzles where vertex states grow more complex as the game progresses.
+                </p>
+                <p>
+                These group types are often most interesting for experimentation and mathematical exploration than they are for puzzles, especially when enforcing custom relations for each.
+                </p>
+            </div>
+
+            <div class="exp_op" id="graphP_view" style="display: none;">
+                <h1>Graph Properties</h1>
+            </div>
+
+            <div class="exp_op" id="sageC_view" style="display: none;">
+                <h1>Sage Cell</h1>
+            </div>
+
+            <div class="exp_op" id="overP_view" style="display: none;">
+                <h1>Overview of Playing Mode</h1>
+            </div>
+
+            <div class="exp_op" id="groupP_view" style="display: none;">
+                <h1>Group Types in Playing Mode</h1>
+            </div>
+
+            <div class="exp_op" id="puzzleR_view" style="display: none;">
+                <h1>Creating and Solving Puzzles</h1>
+            </div>
+
+            <div class="exp_op" id="addF_view" style="display: none;">
+                <h1>Additional Important Features</h1>
+            </div>
+        </div>
+    </div>
+    <script src="ins.js" defer></script>
+</body>
+</html>
