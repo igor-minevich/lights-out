@@ -25,19 +25,37 @@ class CyclicNode {
     }
 
     color() {
+        // Infinite cyclic → neutral
         if (this.n === 0) {
-            // Z (infinite cyclic)
             return "rgb(255,255,255)";
         }
-    
-        let t = this.value / Math.max(1, this.n - 1);
-        const MIN = 180; // same lightness floor as dihedral
-    
-        // white → light red gradient
-        let g = Math.round(255 - t * (255 - MIN));
-        let b = g;
-    
-        return `rgb(255,${g},${b})`;
+
+        const MIN = 180;
+        const MAX = 240;
+
+        // Identity
+        if (this.value === 0) {
+            return `rgb(255,255,255)`;
+        }
+
+        // Special case: Z₂ → non-identity is yellow
+        if (this.n === 2) {
+            return `rgb(255,${MAX},${MIN})`;
+        }
+
+        // Normalize
+        const t = this.value / Math.max(1, this.n - 1);
+
+        /*
+        Reverse gradient so higher values → darker,
+        matching your other groups
+        */
+        const g = Math.round(MAX - t * (MAX - MIN));
+
+        const r = 255;
+        const b = MIN;
+
+        return `rgb(${r},${g},${b})`;
     }
     
 

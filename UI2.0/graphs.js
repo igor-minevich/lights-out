@@ -129,11 +129,76 @@ function standardGraph(all_nodes, num_rows, num_cols, edgeLength) {
             // standard grid if nothing selected
             if (noMoves) {
 
-                if (c + 1 < num_cols)
-                    addEdge(fromNode, all_nodes[r][c+1]);
+                // --- read inputs ---
+                const hLen = parseInt(document.getElementById("h_length").value) || 0;
+                const vLen = parseInt(document.getElementById("v_length").value) || 0;
+                const dLen = parseInt(document.getElementById("diag_length").value) || 0;
 
-                if (r + 1 < num_rows)
-                    addEdge(fromNode, all_nodes[r+1][c]);
+                const hAll = document.getElementById("hAll").checked;
+                const vAll = document.getElementById("vAll").checked;
+                const dAll = document.getElementById("diagAll").checked;
+
+                const hMax = document.getElementById("hMax").checked;
+                const vMax = document.getElementById("vMax").checked;
+                const dMax = document.getElementById("diagMax").checked;
+
+                // helper: generate step list
+                function getSteps(len, all, max) {
+                    if (len <= 0) return [];
+                    if (all) {
+                        return Array.from({ length: len }, (_, i) => i + 1);
+                    }
+                    // max OR default → single step
+                    return [len];
+                }
+
+                const hSteps = getSteps(hLen, hAll, hMax);
+                const vSteps = getSteps(vLen, vAll, vMax);
+                const dSteps = getSteps(dLen, dAll, dMax);
+
+                // --- Horizontal ---
+                for (let step of hSteps) {
+
+                    let nc1 = c + step;
+                    let nc2 = c - step;
+
+                    if (nc1 < num_cols)
+                        addEdge(fromNode, all_nodes[r][nc1]);
+
+                    if (nc2 >= 0)
+                        addEdge(fromNode, all_nodes[r][nc2]);
+                }
+
+                // --- Vertical ---
+                for (let step of vSteps) {
+
+                    let nr1 = r + step;
+                    let nr2 = r - step;
+
+                    if (nr1 < num_rows)
+                        addEdge(fromNode, all_nodes[nr1][c]);
+
+                    if (nr2 >= 0)
+                        addEdge(fromNode, all_nodes[nr2][c]);
+                }
+
+                // --- Diagonal ---
+                const diagDirs = [
+                    [ 1, 1],[ 1,-1],
+                    [-1, 1],[-1,-1]
+                ];
+
+                for (let step of dSteps) {
+                    for (let [dr, dc] of diagDirs) {
+
+                        let nr = r + dr * step;
+                        let nc = c + dc * step;
+
+                        if (nr>=0 && nr<num_rows && nc>=0 && nc<num_cols) {
+                            addEdge(fromNode, all_nodes[nr][nc]);
+                        }
+                    }
+                }
             }
 
             // knight

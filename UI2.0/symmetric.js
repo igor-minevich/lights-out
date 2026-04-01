@@ -156,20 +156,23 @@ class SymmetricNode {
 
     // Visual encoding (maps permutation to color)
     color() {
+        const MIN = 180;
         const scale = this.n - 1 || 1;
 
-        const r = 255 * (this.value[0] - 1) / scale;
-        const g = 255 * (this.value[1] - 1) / scale;
-        const b = 255 * (this.value[2 % this.n] - 1) / scale;
+        // Normalize first 3 coordinates into [0,1]
+        const t1 = (this.value[0] - 1) / scale;
+        const t2 = (this.value[1] - 1) / scale;
+        const t3 = (this.value[2 % this.n] - 1) / scale;
 
-        const alpha = 0.5;
-        const bg = 255;
+        /*
+        Instead of raw RGB (0–255),
+        map into pastel band [MIN → 255]
+        */
+        const r = Math.round(MIN + t1 * (255 - MIN));
+        const g = Math.round(MIN + t2 * (255 - MIN));
+        const b = Math.round(MIN + t3 * (255 - MIN));
 
-        const rr = Math.round(alpha * r + (1 - alpha) * bg);
-        const gg = Math.round(alpha * g + (1 - alpha) * bg);
-        const bb = Math.round(alpha * b + (1 - alpha) * bg);
-
-        return `rgb(${rr},${gg},${bb})`;
+        return `rgb(${r},${g},${b})`;
     }
 
     toString() {

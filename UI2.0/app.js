@@ -21,6 +21,7 @@ let scale = 1;
 let offsetX = 0;
 let offsetY = 0;
 let textSize = 12;
+let stop_play = false;
 
 const MIN_SCALE = 0.2;
 const MAX_SCALE = 5;
@@ -87,10 +88,12 @@ const left_close = document.getElementById('left_close');
 const right_close = document.getElementById('right_close');
 const center_close = document.getElementById('center_close');
 const center_close2 = document.getElementById('center_close2');
+const center_close3 = document.getElementById('center_close3');
 const left_text_appear = document.getElementById('left_text');
 const right_text_appear = document.getElementById('right_text');
 const modal = document.getElementById('properties_container');
 const sage_cont = document.getElementById('sage_container');
+
 
 const EDGE = '#009999';
 const SELECTED = '#88aaaa';
@@ -246,6 +249,40 @@ function checkGenerate_modal () {
   }
 }
 
+
+let currentEditingNode = null;
+
+function openNodeEditMenu(node) {
+  currentEditingNode = node;
+
+  document.getElementById('center_close3').style.display = 'block';
+
+  const container = document.getElementById("node_edit_cont");
+  const labelInput = document.getElementById("node_label_input");
+  const colorInput = document.getElementById("node_color_input");
+
+  container.style.display = "flex";
+  isOpen = true;
+
+  // preload existing values
+  labelInput.value = node.customLabel || node.label || "";
+  colorInput.value = node.customColor || "#ffffff";
+}
+
+document.getElementById("node_label_input").addEventListener("input", function () {
+  if (currentEditingNode) {
+    currentEditingNode.customLabel = this.value;
+    draw();
+  }
+});
+
+document.getElementById("node_color_input").addEventListener("input", function () {
+  if (currentEditingNode) {
+    currentEditingNode.customColor = this.value;
+    draw();
+  }
+});
+
 function checkGenerate_sage () {
   showSageCell();
   center_close2.style.display = 'block';
@@ -269,9 +306,33 @@ function showSageCell() {
 }
 
 document.getElementById('chessMovesDiv').addEventListener('change', () => {
+  if (
+    document.getElementById('queenMove').checked ||
+    document.getElementById('kingMove').checked ||
+    document.getElementById('rookMove').checked ||
+    document.getElementById('knightMove').checked
+  ) {
+    document.querySelectorAll('.disable_input').forEach(el => {
+      el.disabled = true;
+    });
+  } else {
+    document.querySelectorAll('.disable_input').forEach(el => {
+      el.disabled = false;
+    });
+  }
+
   if (document.getElementById('queenMove').checked) {
     document.getElementById('rookMove').checked = false;
     document.getElementById('kingMove').checked = false;
+  }
+  if (document.getElementById('queenMove').checked || document.getElementById('rookMove').checked) {
+    document.getElementById('top_bottom').checked = false;
+    document.getElementById('sides').checked = false;
+    document.getElementById('top_bottom').disabled = true;
+    document.getElementById('sides').disabled = true;
+  } else {
+    document.getElementById('top_bottom').disabled = false;
+    document.getElementById('sides').disabled = false;
   }
   if (hasBeenGenerated === true) {
     generate_puzzle();
@@ -279,10 +340,51 @@ document.getElementById('chessMovesDiv').addEventListener('change', () => {
 });
 
 document.getElementById('chessMovesDiv2').addEventListener('change', () => {
+  if (
+    document.getElementById('queenMove').checked ||
+    document.getElementById('kingMove').checked ||
+    document.getElementById('rookMove').checked ||
+    document.getElementById('knightMove').checked
+  ) {
+    document.querySelectorAll('.disable_input').forEach(el => {
+      el.disabled = true;
+    });
+  } else {
+    document.querySelectorAll('.disable_input').forEach(el => {
+      el.disabled = false;
+    });
+  }
+
   if (document.getElementById('queenMove').checked) {
     document.getElementById('rookMove').checked = false;
     document.getElementById('kingMove').checked = false;
+    document.getElementById('rookMove').disabled = true;
+    document.getElementById('kingMove').disabled = true;
+  } else {
+    document.getElementById('rookMove').disabled = false;
+    document.getElementById('kingMove').disabled = false;
   }
+  if (document.getElementById('queenMove').checked || document.getElementById('rookMove').checked) {
+    document.getElementById('top_bottom').checked = false;
+    document.getElementById('sides').checked = false;
+    document.getElementById('top_bottom').disabled = true;
+    document.getElementById('sides').disabled = true;
+  } else {
+    document.getElementById('top_bottom').disabled = false;
+    document.getElementById('sides').disabled = false;
+  }
+  if (hasBeenGenerated === true) {
+    generate_puzzle();
+  }
+});
+
+document.getElementById('top_bot_con').addEventListener('change', () => {
+  if (hasBeenGenerated === true) {
+    generate_puzzle();
+  }
+});
+
+document.getElementById('sid_con').addEventListener('change', () => {
   if (hasBeenGenerated === true) {
     generate_puzzle();
   }
@@ -290,8 +392,13 @@ document.getElementById('chessMovesDiv2').addEventListener('change', () => {
 
 
 center_close2.addEventListener('click', () => {
-  center_close.style.display = 'none';
+  center_close2.style.display = 'none';
   sage_cont.style.display = 'none';
+});
+
+center_close3.addEventListener('click', () => {
+  center_close3.style.display = 'none';
+  document.getElementById('node_edit_cont').style.display = 'none';
 });
 
 center_close.addEventListener('click', () => {
@@ -357,7 +464,9 @@ btn_mode.addEventListener('click', function handleClick() {
   } else {
     checkCount = 0;
   }
-  if (currentMode === 'editing'){
+  if (labelOpen){
+    edit_label.click();
+  } else if (stateOpen) {
     edit_state.click();
   }
 
@@ -387,6 +496,10 @@ btn_mode.addEventListener('click', function handleClick() {
     } else if (document.getElementById('groupOrder1').value === '5') {
       document.getElementById("groupMultiplier").value = '12345';
     }
+  } else if (groupType === 'cyclic' || groupType === 'freeabgroup') {
+    document.getElementById('displayClicks').checked = true;
+    groupOrderLabel.textContent = "Group order:";
+    document.getElementById("groupMultiplier").value = '1';
   } else {
     groupOrderLabel.textContent = "Group order:";
     document.getElementById("groupMultiplier").value = '1';
@@ -452,6 +565,7 @@ btn_mode.addEventListener('click', function handleClick() {
     document.getElementById('play_button').style.backgroundColor = '#880D1E';
     document.getElementById('back_clr').style.background = 'linear-gradient(340deg,rgba(136, 13, 30, 1) 0%, rgba(15, 26, 32, 1) 59%)';
     document.getElementById('playing_toggle').style.display = 'block';
+    document.getElementById('vertex_edit_toggle').style.display = 'block';
     btn_clear.style.display = 'none';
     btn_clear2.style.display = 'none';
     btn_reset.style.display = 'block';
@@ -545,6 +659,7 @@ btn_mode.addEventListener('click', function handleClick() {
     });
 
     document.getElementById('playing_toggle').style.display = 'none';
+    document.getElementById('vertex_edit_toggle').style.display = 'none';
     btn_clear.style.display = 'block';
     btn_clear2.style.display = 'block';
     btn_reset.style.display = 'none';
@@ -769,12 +884,18 @@ function draw() {
       let node = nodes[i];
       context.setLineDash([]);
       context.beginPath();
-      context.fillStyle = node.node ? node.node.color() : colors[0];
+      if (stop_play) {
+        context.fillStyle = node.customColor || "rgb(255,255,255)";
+      } else {
+        context.fillStyle = node.node ? node.node.color() : colors[0];
+      }
+      
       context.arc(node.x, node.y, node.radius, 0, Math.PI * 2, true);
       context.fill();
       if (node.clicked) {
         context.lineWidth = 5;
         context.strokeStyle = "rgba(0, 255, 0, 0.5)";
+        
       } else {
         context.lineWidth = 1;
         context.strokeStyle = "black";
@@ -806,7 +927,7 @@ function move(e) {
 
 
 
-  if (node_dragged && e.buttons) {
+  if (node_dragged && e.buttons && !isOpen) {
     var pos = getMousePos(e);
     if (pos.x > 0 && pos.x <= canvas.width && pos.y > 0 && pos.y <= canvas.height) {
       node_dragged.x = e.offsetX;
@@ -886,7 +1007,7 @@ function up(e) {
       selection = undefined;
 
     // if there is nothing selected, then select the node
-    else if (target && !selection && !node_dragged.moving)
+    else if (target && !selection && !node_dragged.moving && !isOpen)
       selection = target;
 
     // create node where you clicked and select it (if clicked away from existing nodes, i.e. no target)
@@ -957,11 +1078,16 @@ function up(e) {
 
     if (target) {
       if (selectedNode !== target) {
-        if (selectedNode) {
-          selectedNode.clicked = false;
-        }
+        if (selectedNode) selectedNode.clicked = false;
+
         selectedNode = target;
         selectedNode.clicked = true;
+      }
+
+      // 🔥 NEW: open edit menu if stop_play is true
+      if (stop_play) {
+        openNodeEditMenu(target);
+        return; // stop further gameplay logic
       }
       // Update group multiplier validation when a node is clicked
       const isValidInput = set_group_multiplier(true);
@@ -1217,15 +1343,17 @@ function congradulate() {
   const parText = document.getElementById('par').textContent;
   const parInt = parseInt(parText.replace(/\D/g, ''), 10);
 
-  if (hasBeenRandomized) {
-    if (nodes.length === 0) return;
+  if (nodes.length === 0) return;
 
+  // =========================
+  // PAR / RANDOMIZED CASE
+  // =========================
+  if (hasBeenRandomized) {
     const first = nodes[0].node.toString();
 
-    // Check if all nodes match
     const allSame = nodes.every(node => node.node.toString() === first);
-  if (!allSame) return;
-    // Par-based messages
+    if (!allSame) return;
+
     if (nodeTrack === parInt) {
       alert("Perfect! You solved the puzzle on par.");
     } else if (nodeTrack < parInt) {
@@ -1233,35 +1361,73 @@ function congradulate() {
     } else {
       alert(`Nice job! You finished ${nodeTrack - parInt} move(s) over par.`);
     }
+
+    hasBeenRandomized = false;
+    return;
+  }
+
+  // =========================
+  // NON-RANDOMIZED CASE
+  // =========================
+
+  // Ignore untouched board (use history, not clicks)
+  if (historyData.length === 0) return;
+
+  const first = nodes[0].node.toString();
+
+  // Check if all nodes match
+  const allSame = nodes.every(node => node.node.toString() === first);
+  if (!allSame) return;
+
+  // =========================
+  // DETERMINE IDENTITY
+  // =========================
+  let identity;
+  const groupTypeValue = document.getElementById('groupTypeSelect').value;
+
+  if (groupTypeValue === 'cyclic') {
+    identity = "0";
+  } else if (groupTypeValue === 'dihedral') {
+    identity = "e";
+  } else if (groupTypeValue === 'heisenberg') {
+    identity = "0,0,0";
+  } else if (groupTypeValue === 'symmetric') {
+    let perm = '';
+    for (let j = 0; j < groupOrder; j++) {
+      perm += `${j + 1}`;
+    }
+    identity = perm;
   } else {
-    if (nodes.length === 0) return;
+    identity = "1";
+  }
 
-    // Ignore untouched board
-    if (nodes.every(node => node.node.clicks === 0)) return;
+  const isAllIdentity = nodes.every(node => node.node.toString() === identity);
 
-    const first = nodes[0].node.toString();
+  // =========================
+  // QUIET PATTERN DETECTION
+  // =========================
 
-    // Check if all nodes match
-    const allSame = nodes.every(node => node.node.toString() === first);
-    if (!allSame) return;
+  // Count how many times each node label appears
+  const labelCounts = {};
+  for (const item of historyData) {
+    labelCounts[item.label] = (labelCounts[item.label] || 0) + 1;
+  }
 
-    // Identify what state we ended in
-    const identity = "0";
-    const isAllIdentity = nodes.every(node => node.node.toString() === identity);
+  // Quiet = every node used at most once
+  const isQuietPattern = Object.values(labelCounts).every(count => count === 1);
 
-    // Detect quiet pattern (no repeated clicks)
-    const isQuietPattern = nodes.every(node => node.node.clicks <= 1);
+  // Prevent trivial cancel cases (like clicking same node twice → identity)
+  const isNonTrivial = historyData.length > 1;
 
+  // =========================
+  // MESSAGES
+  // =========================
 
-    // Special case: quiet identity solution
-    if (isAllIdentity && isQuietPattern) {
-      alert("Beautiful! You found a quiet pattern solution (no repeated clicks).");
-    }
-
-    // Special case: non-identity uniform state (like all 's' in dihedral)
-    else if (!isAllIdentity) {
-      alert(`Nice! You solved the puzzle to an all "${first}" state.`);
-    }
+  if (isAllIdentity && isQuietPattern && isNonTrivial) {
+    alert("Beautiful! You found a quiet pattern solution.");
+  } 
+  else {
+    alert(`Nice! You solved the puzzle to an all "${first}" state.`);
   }
 
   hasBeenRandomized = false;
@@ -1516,6 +1682,7 @@ function clear_puzzle() {
   uNodeCounter = 0;
   historyData = [];
   updateHistoryList();
+  resetEditedVertices();
 
   if (btn_mode.textContent == 'Editing') {
     nodes = [];
@@ -1578,6 +1745,17 @@ function reset_puzzle() {
   updateHistoryList();
   deleteButton.disabled = true;
   nodeTrack = 0;
+  draw();
+}
+
+function resetEditedVertices() {
+  for (let i = 0; i < nodes.length; i++) {
+    let node = nodes[i];
+
+    node.customLabel = "";
+    node.customColor = null;
+  }
+
   draw();
 }
 
@@ -1957,24 +2135,105 @@ function set_group_multiplier(validateInput = true) {
 
 //Functions for the edit state mode in playing
 const edit_state = document.getElementById('editState');
+const edit_label = document.getElementById('editState2');
 let currentMode = 'playing';
+let labelOpen = false;
+let stateOpen = false;
 
 edit_state.addEventListener("click", () => {
-    const isEditing = edit_state.classList.toggle('editing');
+    if (!labelOpen) {
+      const isEditing = edit_state.classList.toggle('editing');
 
-    currentMode = isEditing ? "editing" : "playing";
+      currentMode = isEditing ? "editing" : "playing";
 
-    edit_state.setAttribute("aria-pressed", isEditing);
+      edit_state.setAttribute("aria-pressed", isEditing);
 
-    console.log("Current mode:", currentMode);
+      console.log("Current mode:", currentMode);
 
-    if (currentMode === 'editing') {
-      document.getElementById('dihedralMultLabel').textContent = 'New state:';
-      document.getElementById('groupMultiplier_label').textContent = 'New state:';
-    } else{
-      document.getElementById('dihedralMultLabel').textContent = 'Multiplier:';
-      document.getElementById('groupMultiplier_label').textContent = 'Multiplier:';
+      if (currentMode === 'editing') {
+        document.getElementById('dihedralMultLabel').textContent = 'New state:';
+        document.getElementById('groupMultiplier_label').textContent = 'New state:';
+      } else{
+        document.getElementById('dihedralMultLabel').textContent = 'Multiplier:';
+        document.getElementById('groupMultiplier_label').textContent = 'Multiplier:';
+      }
+      if (currentMode === 'editing') {
+        stateOpen = true;
+      } else {
+        stateOpen = false;
+      }
+    } else {
+      edit_label.click();
+
+      const isEditing = edit_state.classList.toggle('editing');
+
+      currentMode = isEditing ? "editing" : "playing";
+
+      edit_state.setAttribute("aria-pressed", isEditing);
+
+      console.log("Current mode:", currentMode);
+
+      if (currentMode === 'editing') {
+        document.getElementById('dihedralMultLabel').textContent = 'New state:';
+        document.getElementById('groupMultiplier_label').textContent = 'New state:';
+      } else{
+        document.getElementById('dihedralMultLabel').textContent = 'Multiplier:';
+        document.getElementById('groupMultiplier_label').textContent = 'Multiplier:';
+      }
+      if (currentMode === 'editing') {
+        stateOpen = true;
+      } else {
+        stateOpen = false;
+      }
     }
+    
+});
+
+//Functions for the edit state mode in playing
+
+
+edit_label.addEventListener("click", () => {
+    if (!stateOpen) {
+      const isEditing = edit_label.classList.toggle('editing');
+
+      currentMode = isEditing ? "editing" : "playing";
+
+      edit_label.setAttribute("aria-pressed", isEditing);
+
+      console.log("Current mode:", currentMode);
+
+      if (currentMode === 'editing') {
+        stop_play = true;
+      } else{
+        stop_play = false;
+      }
+      if (currentMode === 'editing') {
+        labelOpen = true;
+      } else {
+        labelOpen = false;
+      }
+    } else {
+      edit_state.click();
+      const isEditing = edit_label.classList.toggle('editing');
+
+      currentMode = isEditing ? "editing" : "playing";
+
+      edit_label.setAttribute("aria-pressed", isEditing);
+
+      console.log("Current mode:", currentMode);
+
+      if (currentMode === 'editing') {
+        stop_play = true;
+      } else{
+        stop_play = false;
+      }
+      if (currentMode === 'editing') {
+        labelOpen = true;
+      } else {
+        labelOpen = false;
+      }
+    }
+    
 });
 
 
@@ -2177,7 +2436,25 @@ function drawLabel(node, showLabels) {
   context.font = `${textSize}px Verdana`;
   context.beginPath();
   context.fillStyle = "#000000";
-  let string = showLabels ? node.label.toString() : node.node.toString();
+
+  let string;
+
+  if (stop_play) {
+    // 🔥 PRIORITY: custom label in stop mode
+    if (node.customLabel && node.customLabel !== "") {
+      string = node.customLabel.toString();
+    } else {
+      // fallback to normal behavior
+      string = showLabels
+        ? (node.label ? node.label.toString() : "")
+        : (node.node ? node.node.toString() : "");
+    }
+  } else {
+    // normal gameplay behavior
+    string = showLabels
+      ? (node.label ? node.label.toString() : "")
+      : (node.node ? node.node.toString() : "");
+  }
 
   // Center the text
   const textMetrics = context.measureText(string);
@@ -2449,18 +2726,19 @@ function updateRelationsList() {
 
 // -------------------------------------------------------------------
 
-// Extended Euclidean Algorithm
+// Extended Euclidean Algorithm | 
+// x*a + y*b = gcd
 function extendedEuclidean(a, b) {
-  // Remainders
+  // Remainders, a then b
   let old_r = a, r = b;
 
   // Coefficients tracking
-  let old_s = 1, s = 0;
-  let old_t = 0, t = 1;
+  let old_s = BigInt(1), s = BigInt(0);
+  let old_t = BigInt(0), t = BigInt(1);
 
-  while (r !== 0) {
+  while (r !== 0n) {
     // Quotient
-    const q = Math.floor(old_r / r);
+    const q = (old_r / r);
 
     // Standard remainder update
     [old_r, r] = [r, old_r - q * r];
@@ -2508,21 +2786,24 @@ function clearColumn(M, k) {
   const rows = M.length;
   const cols = M[0].length;
 
+   console.log('entering step 1');
+
   // Step 1: ensure pivot is nonzero (swap if needed)
-  if (M[k][k] === 0) {
+  if (M[k][k] === 0n) {
     for (let i = k + 1; i < rows; i++) {
-      if (M[i][k] !== 0) {
+      if (M[i][k] !== 0n) {
         [M[k], M[i]] = [M[i], M[k]];
         break;
       }
     }
   }
 
-  if (M[k][k] === 0) return M; // nothing to do
+  if (M[k][k] === 0n) return M; // nothing to do
 
   // Step 2: clear entries below pivot
+  console.log('entering step 2');
   for (let i = k + 1; i < rows; i++) {
-    if (M[i][k] === 0) continue;
+    if (M[i][k] === 0n) continue;
 
     const a = M[k][k];
     const b = M[i][k];
@@ -2537,21 +2818,25 @@ function clearColumn(M, k) {
       M[i][c] = (-b / gcd) * rowK[c] + (a / gcd) * rowI[c];
     }
   }
+  console.log('entering step 3');
 
   // Step 3: make pivot positive
-  if (M[k][k] < 0) {
-    for (let c = 0; c < cols; c++) M[k][c] *= -1;
+  if (M[k][k] < 0n) {
+    for (let c = 0; c < cols; c++) M[k][c] *= -1n;
   }
+  console.log('entering step 4');
 
   // Step 4: reduce entries above pivot (optional but canonical)
   for (let i = 0; i < k; i++) {
-    const factor = Math.floor(M[i][k] / M[k][k]);
-    if (factor !== 0) {
+    if (M[i][k] % M[k][k] === 0n) {
+      const factor = M[i][k] / M[k][k];
       for (let c = 0; c < cols; c++) {
         M[i][c] -= factor * M[k][c];
       }
     }
   }
+
+  console.log('finished');
 
   return M;
 }
@@ -2559,25 +2844,31 @@ function clearColumn(M, k) {
 
 // Clear all entries to the right of pivot M[k][k] in row k
 function clearRow(M, k) {
+  console.log('entering first for loop');
   for (let j = k + 1; j < M[0].length; j++) {
-    if (M[k][j] === 0) continue;
+    if (M[k][j] === 0n) continue;
 
     const a = M[k][k];
     const b = M[k][j];
 
     // Compute coefficients of two entries
+    console.log('starting euclidean, ' + a + ', ' + b);
     const { gcd, x, y } = extendedEuclidean(a, b);
+    console.log(gcd + ', ' + x + ', ' + y);
 
     // Cache entire columns to avoid overwrite 
     const colK = M.map(r => r[k]);
     const colJ = M.map(r => r[j]);
 
     // Apply 2x2 unimodular matrix transformation(column-wise)
+    console.log('entering inner for loop');
     for (let r = 0; r < M.length; r++) {
       M[r][k] = x * colK[r] + y * colJ[r];
       M[r][j] = (-b / gcd) * colK[r] + (a / gcd) * colJ[r];
     }
+    console.log('finished inner for loop');
   }
+  console.log('finished');
 }
 
 // Ensure the Smith divisibility condition: M[k][k] | M[k+1][k+1]
@@ -2589,9 +2880,9 @@ function enforceDivisibility(M) {
     change = false;
 
     for (let k = 0; k < L - 1; k++) {
-      if (M[k+1][k+1] === 0) break;
+      if (M[k+1][k+1] === 0n) break;
 
-      if (M[k+1][k+1] % M[k][k] !== 0) {
+      if (M[k+1][k+1] % M[k][k] !== 0n) {
         const a = M[k][k];
         const b =  M[k+1][k+1];
 
@@ -2614,15 +2905,20 @@ function smithNormalForm(M) {
   const rows = M.length;
   const cols = M[0].length;
   const d = Math.min(rows, cols);
+  for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+          M[i][j] = BigInt(M[i][j]);
+        }
+      }
 
   for (let k = 0; k < d; k++) {
     // Ensure the pivot is nonzero by swapping
-    if (M[k][k] === 0) {
+    if (M[k][k] === 0n) {
       let found = false;
 
       for (let i = k; i < rows && !found; i++) {
         for (let j = k; j < cols; j++) {
-          if (M[i][j] !== 0) {
+          if (M[i][j] !== 0n) {
             swapRows(M, k, i);
             swapCols(M, k, j);
             found = true;
@@ -2632,13 +2928,16 @@ function smithNormalForm(M) {
       }
       // Entire remaining submatrix is zero
       if (!found) break;
+      console.log('attempt: ' + k);
     }
 
     // Clear column and row around the pivot
     clearColumn(M, k);
     clearRow(M, k);
+    console.log('attempt outside if: ' + k);
   }
 
+  console.log('Starting ED');
   // Enforce Smith divisibility condition
   enforceDivisibility(M);
   const endTime = performance.now();
@@ -2710,16 +3009,22 @@ function formatDivisors2(divisors) {
 
 // Function called upon button click that initiates SNF functions and formatting
 function elementaryDivisors(matrix) {
-  const snf = smithNormalForm(matrix);
+  const absBigInt = (n) => (n < 0n ? -n : n);
+
+  const copy = matrix.map(row => row.map(v => BigInt(v))); // deep copy
+
+  const snf = smithNormalForm(copy);
+
   const divisors = [];
   for (let i = 0; i < snf.length; i++) {
-    divisors.push(Math.abs(snf[i][i]));
+    divisors.push(absBigInt(snf[i][i]));
   }
   return divisors;
 }
 
 // -------------------------------------------------------------------
 
+let isAdj = false;
 function adjacencyMatrix(nodes, edges) {
   if (isGraph6 === false) {
     document.getElementById('mat_label').textContent =
@@ -2756,6 +3061,7 @@ function adjacencyMatrix(nodes, edges) {
     matrix[j][i] = 1;
   }
 
+  isAdj = true;
   outputMatrixWithCopy(matrix, nodes.map(n => n.label));
   return matrix;
 }
@@ -2813,19 +3119,34 @@ function renderMatrixHTML(matrix, labels) {
 }
 
 
+function adjacencyMatrixToSage(matrix) {
+  const rows = matrix
+    .map(row => `[${row.join(", ")}]`)
+    .join(",\n  ");
+
+  return `M = matrix([\n  ${rows}\n])\nG = Graph(M)\nG.show()`;
+}
+
 function matrixToSage(matrix) {
   const rows = matrix
     .map(row => `[${row.join(", ")}]`)
     .join(",\n  ");
 
-  return `matrix(ZZ, [\n  ${rows}\n])`;
+  return `M = matrix([\n  ${rows}\n])`;
 }
 
 function copyMatrixToSage(matrix) {
-  const sageText = matrixToSage(matrix);
-  navigator.clipboard.writeText(sageText).then(() => {
-    alert("Matrix copied in Sage format!");
-  });
+  if (isAdj) {
+    const sageText = adjacencyMatrixToSage(matrix);
+    navigator.clipboard.writeText(sageText).then(() => {
+      alert("Matrix copied in Sage format!");
+    });
+  } else {
+    const sageText = matrixToSage(matrix);
+    navigator.clipboard.writeText(sageText).then(() => {
+      alert("Matrix copied in Sage format!");
+    });
+  }
 }
 
 
@@ -2857,7 +3178,7 @@ function activationMatrix(nodes, edges) {
   document.getElementById("rref").innerHTML = null;
   document.getElementById('mat_out').innerHTML = null;
   document.getElementById('copyGraph6').innerHTML = null;
-  if (edges.length <= 50) {
+  if (edges.length <= 500) {
     document.getElementById('elem_divisors').innerHTML = `
       <button id="elem_btn" type="button" onclick="showDivisors()">Show Elementary Divisors</button>
     `;
@@ -2894,10 +3215,12 @@ function activationMatrix(nodes, edges) {
     matrix[i][i] = 1;
   }
 
+  isAdj = false;
+
   outputMatrixWithCopy(matrix, nodes.map(n => n.label));
 
   
-  if (edges.length > 50) {
+  if (edges.length > 5000) {
     return matrix;
   } else {
     const divisors = elementaryDivisors(matrix);
@@ -2971,7 +3294,7 @@ function hermiteForm(nodes, edges) {
 
     for (let c = pivotCol; c < size && !found; c++) {
       for (let r = pivotRow; r < size; r++) {
-        if (matrix[r][c] !== 0) {
+        if (matrix[r][c] !== 0n) {
           pivotR = r;
           pivotC = c;
           found = true;
@@ -3001,6 +3324,7 @@ function hermiteForm(nodes, edges) {
     pivotRow++;
     pivotCol++;
   }
+  isAdj = false;
 
   outputMatrixWithCopy(matrix, nodes.map(n => n.label));
   const endTime = performance.now();
@@ -3057,7 +3381,7 @@ function rrefMod(matrix, p) {
     // Find pivot
     let pivot = -1;
     for (let r = pivotRow; r < rows; r++) {
-      if (mat[r][col] !== 0) {
+      if (mat[r][col] !== 0n) {
         pivot = r;
         break;
       }
@@ -3081,7 +3405,7 @@ function rrefMod(matrix, p) {
 
     // Eliminate other rows
     for (let r = 0; r < rows; r++) {
-      if (r !== pivotRow && mat[r][col] !== 0) {
+      if (r !== pivotRow && mat[r][col] !== 0n) {
         const factor = mat[r][col];
         for (let c = 0; c < cols; c++) {
           mat[r][c] = (mat[r][c] - factor * mat[pivotRow][c]) % p;
@@ -3116,7 +3440,7 @@ function RAMatrix(nodes, edges) {
   document.getElementById("rref").innerHTML = null;
   document.getElementById('mat_out').innerHTML = '';
   document.getElementById('copyGraph6').innerHTML = '';
-  if (edges.length <= 50) {
+  if (edges.length <= 500) {
     document.getElementById('elem_divisors').innerHTML = `
       <button id="elem_btn" type="button" onclick="showDivisors()">Show Elementary Divisors</button>
     `;
@@ -3179,11 +3503,12 @@ function RAMatrix(nodes, edges) {
     ...andLabels
   ];
 
+  isAdj = false;
   outputMatrixWithCopy(RA, rowLabels);
 
 
 
-  if (edges.length > 50) {
+  if (edges.length > 5000) {
     return RA;
   } else {
     const divisors = elementaryDivisors(RA);
@@ -3213,7 +3538,7 @@ function graphFromAdjacencyMatrix() {
   nodes.length = 0;
   edges.length = 0;
 
-  if (!ADJ_MATRIX || ADJ_MATRIX.length === 0) {
+  if (!ADJ_MATRIX || ADJ_MATRIX.length === 0n) {
     console.error("Adjacency matrix is empty.");
     return;
   }

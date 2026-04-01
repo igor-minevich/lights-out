@@ -93,34 +93,35 @@ class QuaternionNode {
 
     color() {
         const { sign, base } = this.parseElement(this.value);
-    
-        // Identity / -identity (r-like behavior)
-        if (base === "1") {
-            const MIN = 180;
-            const g = sign === 1 ? 255 : MIN;
-            return `rgb(255,${g},${g})`;
-        }
-    
-        /*
-          Map i, j, k to evenly spaced "k-values"
-          so we can reuse the dihedral-style interpolation
-        */
-        const indexMap = { i: 0, j: 1, k: 2 };
-        const v = indexMap[base];
-        const t = v / 2; // 0, 0.5, 1
-    
+
         const MIN = 180;
-    
-        let r = Math.round(MIN + t * (255 - MIN));
-        let b = 255;
-    
-        // Darken slightly if negative
-        if (sign === -1) {
-            r = Math.max(MIN, r - 40);
-            b = Math.max(MIN, b - 40);
+
+        // Identity and -1
+        if (base === "1") {
+            if (sign === 1) {
+                return `rgb(255,255,255)`; // identity
+            } else {
+                return `rgb(${MIN},${MIN},${MIN})`; // -1 light gray
+            }
         }
-    
-        return `rgb(${r},${MIN},${b})`;
+
+        // Pastel base colors (matching dihedral "darkest" tones)
+        const baseColors = {
+            i: [255, MIN, MIN], // pastel red
+            j: [MIN, 255, MIN], // pastel green
+            k: [MIN, MIN, 255]  // pastel blue
+        };
+
+        let [r, g, b] = baseColors[base];
+
+        // Negative elements → lighter (closer to white)
+        if (sign === -1) {
+            r = Math.round((r + 255) / 2);
+            g = Math.round((g + 255) / 2);
+            b = Math.round((b + 255) / 2);
+        }
+
+        return `rgb(${r},${g},${b})`;
     }
     
 
