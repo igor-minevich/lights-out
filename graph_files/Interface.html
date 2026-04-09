@@ -21,7 +21,7 @@
     <link rel="stylesheet" href="https://sagecell.sagemath.org/static/embedded_sagecell.css">
     <script src="https://sagecell.sagemath.org/static/embedded_sagecell.js"></script>
 </head>
-<body onload="updateSavedPuzzles()" id="back_clr">
+<body onload="updateSavedPuzzles()" id="back_clr" class="no-highlight">
   <div id="sudo_main" style="display: none;"></div>
     <div class="top_nav">
         <h1 class="title">
@@ -32,6 +32,7 @@
         <div>
             <h3>Current Mode (Click to Change):</h3>
             <button id="play_button" type="button">Editing</button>
+            <button id="make_puzzle_btn" type="button">Make Puzzle</button>
         </div>
     </div>
     <div class="main_content" id="main_content">
@@ -41,15 +42,6 @@
                 <p class="child2" id="left_text">Create & Edit Graphs</p>
             </div>
             <div id="left_contents" style="display: none;">
-                <div class="input-wrapper line" id="graph6-wrapper">
-                    <p class="subtitle">Graph-Six Generator</p>
-                    <div id="graph6_sub">
-                      <input id="graph6" type="text" placeholder="String Input"/>
-                      <button type="button" onclick="graphFromGraph6()" id="graph6_btn">Generate Graph</button>
-                      <button id="clear2" onclick="clear_puzzle()" type="button">Clear Graph</button>
-                    </div>
-                </div>
-                <div class="line_break"></div>
 
 
                 <div class="line">
@@ -125,57 +117,40 @@
               
                       <div id="extra_ops_cont">
                         <div id="ludr">
-                          <div><label for="left_length" id="left_label">Left:</label>
-                          <input type="number" id="left_length" class="input_size" value="1" min="0" step="1">
-                          <input type="checkbox" id="leftAll" value="all">
-                          <label for="leftAll" id="leftAllLabel">Connected</label>
-                          <input type="checkbox" id="leftMax" value="max">
-                          <label for="leftMax" id="leftMaxLabel">Max</label></div>
+                          <div><label for="h_length" id="h_label">Horizontal:</label>
+                          <input type="number" id="h_length" class="input_size disable_input" value="1" min="0" step="1">
+                          <input type="checkbox" id="hAll" value="all" class="disable_input">
+                          <label for="hAll" id="hAllLabel">Contiguous</label>
+                          <input type="checkbox" id="hMax" value="max" class="disable_input">
+                          <label for="hMax" id="hMaxLabel">Max</label></div>
                           
 
-                          <div><label for="right_length" id="right_label">Right:</label>
-                          <input type="number" id="right_length" class="input_size" value="1" min="0" step="1">
-                          <input type="checkbox" id="rightAll" value="all">
-                          <label for="rightAll" id="rightAllLabel">Connected</label>
-                          <input type="checkbox" id="rightMax" value="max">
-                          <label for="rightMax" id="rightMaxLabel">Max</label></div>
-                          
-
-                          <div><label for="up_length" id="up_label">Up:</label>
-                          <input type="number" id="up_length" class="input_size" value="1" min="0" step="1">
-                          <input type="checkbox" id="upAll" value="all">
-                          <label for="upAll" id="upAllLabel">Connected</label>
-                          <input type="checkbox" id="upMax" value="max">
-                          <label for="upMax" id="upMaxLabel">Max</label>
-                          </div>
-                          
-
-                          <div><label for="down_length" id="down_label">Down:</label>
-                          <input type="number" id="down_length" class="input_size" value="1" min="0" step="1">
-                          <input type="checkbox" id="downAll" value="all">
-                          <label for="downAll" id="downAllLabel">Connected</label>
-                          <input type="checkbox" id="downMax" value="max">
-                          <label for="downMax" id="downMaxLabel">Max</label>
+                          <div><label for="v_length" id="v_label">Vertical:</label>
+                          <input type="number" id="v_length" class="input_size disable_input" value="1" min="0" step="1">
+                          <input type="checkbox" id="vAll" value="all" class="disable_input">
+                          <label for="vAll" id="vAllLabel">Contiguous</label>
+                          <input type="checkbox" id="vMax" value="max" class="disable_input">
+                          <label for="vMax" id="vMaxLabel">Max</label>
                           </div>
                           
 
                           <div><label for="diag_length" id="diag_label">Diagonal:</label>
-                          <input type="number" id="diag_length" class="input_size" value="0" min="0" step="1">
-                          <input type="checkbox" id="diagAll" value="all">
-                          <label for="diagAll" id="diagAllLabel">Connected</label>
-                          <input type="checkbox" id="diagMax" value="max">
+                          <input type="number" id="diag_length" class="input_size disable_input" value="0" min="0" step="1">
+                          <input type="checkbox" id="diagAll" value="all" class="disable_input">
+                          <label for="diagAll" id="diagAllLabel">Contiguous</label>
+                          <input type="checkbox" id="diagMax" value="max" class="disable_input">
                           <label for="diagMax" id="diagMaxLabel">Max</label>
                           </div>
                           
                         </div>
 
-                        <div class="input-wrapper">
+                        <div class="input-wrapper" id="top_bot_con">
                           <label for="top_bottom" id="top_bottom_label">Top and Bottom Connected:</label>
                           <input type="checkbox" id="top_bottom">
                         </div>
                 
-                        <div class="input-wrapper check_boxes">
-                            <label for="sides" id="sides_label">Sides Connected:</label>
+                        <div class="input-wrapper check_boxes" id="sid_con">
+                            <label for="sides" id="sides_label">Left and Right Connected:</label>
                             <input type="checkbox" id="sides">
                         </div>
 
@@ -211,7 +186,7 @@
                 <div class="line_break"></div>
 
                 <div class="line">
-                  <p class="subtitle">Change Graph Sizing</p>
+                  <p class="subtitle">Change Preset-Graph Sizing</p>
 
                   <div class="input-wrapper">
                     <label for="vertex_size" id="choose_vertex_size_label">Graph Size:</label>
@@ -225,6 +200,16 @@
                   </div>
                 </div>
 
+                <div class="line_break"></div>
+
+                <div class="input-wrapper line" id="graph6-wrapper">
+                    <p class="subtitle">Graph-Six Generator</p>
+                    <div id="graph6_sub">
+                      <input id="graph6" type="text" placeholder="String Input"/>
+                      <button type="button" onclick="graphFromGraph6()" id="graph6_btn">Generate Graph</button>
+                      <button id="clear2" onclick="clear_puzzle()" type="button">Clear Graph</button>
+                    </div>
+                </div>
                 <div class="line_break"></div>
 
                 <div class="line">
@@ -299,15 +284,8 @@
             </div>
 
             <div id="right_contents" style="display: none;">
-              <div class="bottom_buttons line" id="resetDiv">
-                <p class="subtitle">Clear Move History & Randomization</p>
-                <button id="reset" onclick="clear_puzzle()" type="button" style="display: none;">Reset All</button>
-              </div>
-
-              <div class="line_break"></div>
-
               <div class="generate_random line" id="random_puzzle">
-                <p class="subtitle">Generate Random Starting Point – Par: <span id="par"></span></p>
+                <p class="subtitle" id="puzzleTitle">Puzzle Mode – Par: <span id="par"></span></p>
                 <div class="slider_outer">
                   <div class="slidecontainer">
                     <p>Trivial</p>
@@ -315,18 +293,25 @@
                     <p>Extreme</p>
                   </div>      
                   <div id="puzzle_btns">
-                    <button id="randomize_btn1" onclick="randomizePuzzle()" type="button" style="display: none;">Randomize</button>
+                    <button id="randomize_btn1" onclick="randomizePuzzle()" type="button" style="display: none;">Generate Puzzle</button>
                     <button id="resetPuzzle" onclick="reset_puzzle()" type="button" style="display: none;">Reset Puzzle</button>
                   </div>            
                   
                 </div>
               </div>
 
+              <div class="line_break"></div>
+
+              <div class="bottom_buttons line" id="resetDiv">
+                <p class="subtitle">Clear Move History & Puzzle</p>
+                <button id="reset" onclick="clear_puzzle()" type="button" style="display: none;">Reset All</button>
+              </div>
+
               <div class="line_break" id="hide_line"></div>
             
                   <div class="controls graph-controls line" id="mergedcontrols" style="display:none">
                     <p id="groupTypeDisplay" class="subtitle"></p>
-                    <div>
+                    <div id="playing_order">
                       <label for="groupOrder2" id="dihedralChange">Group order:</label>
                       <input type="text" id="groupOrder2" value="2" onchange="set_group_order()" />
                     </div>
@@ -353,6 +338,28 @@
                         <div id="c">
                           <label for="c_input">C</label>
                           <input id="c_input" type="number" value="1">
+                        </div>
+                      </div>
+                      <div class="heisenberg_matrix">
+                        <p class="subtitle">Matrix Representation</p>
+                        <div class="hmatrix">
+                          <table>
+                            <tr>
+                              <td>1</td>
+                              <td id="matrix_a">A</td>
+                              <td id="matrix_c">C</td>
+                            </tr>
+                            <tr>
+                              <td>0</td>
+                              <td>1</td>
+                              <td id="matrix_b">B</td>
+                            </tr>
+                            <tr>
+                              <td>0</td>
+                              <td>0</td>
+                              <td>1</td>
+                            </tr>
+                          </table>
                         </div>
                       </div>
                   </div>
@@ -431,6 +438,21 @@
                   </div>
 
                   <div class="line_break"></div>
+
+                  <div id="vertex_edit_toggle" class="line" style="display: none;">
+                    <p class="subtitle">Edit Vertex Labels and Colors</p>
+                    <button id="editState2" type="button" aria-pressed="false">
+                      <span class="mode_label2 left">Playing</span>
+                  
+                      <div class="toggle_track2">
+                        <div class="toggle_window2"></div>
+                      </div>
+                  
+                      <span class="mode_label2 right">Edit Label/Color</span>
+                    </button>
+                  </div>
+
+                  <div class="line_break"></div>
                   
             
                   <div id="history" class="line" style="display:none">
@@ -471,31 +493,28 @@
     
     
     <div class="bottom_nav">
-        <button id="sage_btn" type="button" onclick="checkGenerate_sage()">Sage Cell</button>
-        <button id="popup" type="button" onclick="checkGenerate_modal()">Graph Properties</button>
+        <button id="sage_btn" type="button" onclick="checkGenerate_sage()">Sage Cell & Graph Properties</button>
         <a href="instructions.html" target="_blank">Instructions</a>
-        <a href="#">About</a>
-        <a href="lights-out/index.html">More Puzzles</a>
+        <a href="../index.html">More Puzzles</a>
     </div>
 
-    <div id="properties_container" style="display: none;">
-      <div id="prop_sub">
-        <div id="center_close" style="display: none;"><img src="close.png" alt="" class="close_img" id="center_img"></div>
-        <div class="inputDiv">
-          <button id="graph6_from_graph" type="button">Graph-Six from Graph</button>
-          <button id="adjacency_matrix" onclick="adjacencyMatrix(nodes, edges)" type="button">Generate Adjacency Matrix</button>
-          <button id="activation_matrix" onclick="activationMatrix(nodes, edges)" type="button">Generate Activation Matrix</button>
-          <button id="hermite_matrix" onclick="hermiteForm(nodes, edges)" type="button">Generate Hermite Form</button>
-          <button id="ra_matrix" onclick="RAMatrix(nodes, edges)" type="button">Generate RA Matrix</button>
+
+
+    <div id="node_edit_cont" style="display: none;">
+      <div id="prop_sub3">
+        <div id="center_close3" style="display: none;">
+          <img src="close.png" alt="" class="close_img" id="center_img2">
         </div>
-        <div class="outputDiv">
-          <div id="mat_label"></div>
-          <div id="mat_out"></div>
-          <div id="copyDiv1"></div>
-          <div id="elem_divisors"></div>
-          <div id="rref"></div>
-          <div id="actDivs"></div>
-          <div id="copyGraph6"></div>
+
+        <div id="edit_menu">
+          <div>
+            <label for="node_label_input">Vertex Label:</label>
+            <input type="text" id="node_label_input">
+          </div>
+          <div id="color_cntrl">
+            <label for="node_color_input">Vertex Color:</label>
+            <input type="color" id="node_color_input">
+          </div>
         </div>
       </div>
     </div>
@@ -505,6 +524,10 @@
       <div id="prop_sub2">
         <div id="center_close2" style="display: none;">
           <img src="close.png" alt="" class="close_img" id="center_img2">
+        </div>
+
+        <div class="inputDiv" id="graph_props" style="display: none;">
+          <button id="graph6_from_graph" type="button">Copy General Graph Information Code</button>         
         </div>
         
         <div id="sagecell"></div>

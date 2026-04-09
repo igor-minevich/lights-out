@@ -129,11 +129,96 @@ function standardGraph(all_nodes, num_rows, num_cols, edgeLength) {
             // standard grid if nothing selected
             if (noMoves) {
 
-                if (c + 1 < num_cols)
-                    addEdge(fromNode, all_nodes[r][c+1]);
+                // --- read inputs ---
+                const hLen = parseInt(document.getElementById("h_length").value) || 0;
+                const vLen = parseInt(document.getElementById("v_length").value) || 0;
+                const dLen = parseInt(document.getElementById("diag_length").value) || 0;
 
-                if (r + 1 < num_rows)
-                    addEdge(fromNode, all_nodes[r+1][c]);
+                const hAll = document.getElementById("hAll").checked;
+                const vAll = document.getElementById("vAll").checked;
+                const dAll = document.getElementById("diagAll").checked;
+
+                // helper: generate step list
+                function getSteps(len, all, max, maxPossible) {
+
+                    if (maxPossible <= 0) return [];
+
+                    // --- MAX MODE ---
+                    if (max) {
+                        if (all) {
+                            return Array.from({ length: maxPossible }, (_, i) => i + 1);
+                        }
+                        return [maxPossible];
+                    }
+
+                    // --- NORMAL MODE ---
+
+                    if (len <= 0) return [];
+
+                    // ❗ key fix: no fallback when not contiguous
+                    if (!all) {
+                        if (len > maxPossible) return [];
+                        return [len];
+                    }
+
+                    // contiguous → clamp
+                    const capped = Math.min(len, maxPossible);
+                    return Array.from({ length: capped }, (_, i) => i + 1);
+                }
+
+                // --- Horizontal ---
+                const maxRight = num_cols - 1 - c;
+                const maxLeft  = c;
+
+                const hStepsRight = getSteps(hLen, hAll, false, maxRight);
+                const hStepsLeft  = getSteps(hLen, hAll, false, maxLeft);
+
+                for (let step of hStepsRight) {
+                    addEdge(fromNode, all_nodes[r][c + step]);
+                }
+
+                for (let step of hStepsLeft) {
+                    addEdge(fromNode, all_nodes[r][c - step]);
+                }
+
+                // --- Vertical ---
+                const maxDown = num_rows - 1 - r;
+                const maxUp   = r;
+
+                const vStepsDown = getSteps(vLen, vAll, false, maxDown);
+                const vStepsUp   = getSteps(vLen, vAll, false, maxUp);
+
+                for (let step of vStepsDown) {
+                    addEdge(fromNode, all_nodes[r + step][c]);
+                }
+
+                for (let step of vStepsUp) {
+                    addEdge(fromNode, all_nodes[r - step][c]);
+                }
+
+                // --- Diagonal ---
+                const diagDirs = [
+                    [ 1, 1],[ 1,-1],
+                    [-1, 1],[-1,-1]
+                ];
+
+                for (let [dr, dc] of diagDirs) {
+
+                    let maxPossible = Math.min(num_rows, num_cols);
+
+                    if (dr === 1) maxPossible = Math.min(maxPossible, num_rows - 1 - r);
+                    if (dr === -1) maxPossible = Math.min(maxPossible, r);
+                    if (dc === 1) maxPossible = Math.min(maxPossible, num_cols - 1 - c);
+                    if (dc === -1) maxPossible = Math.min(maxPossible, c);
+
+                    const dSteps = getSteps(dLen, dAll, false, maxPossible);
+
+                    for (let step of dSteps) {
+                        let nr = r + dr * step;
+                        let nc = c + dc * step;
+                        addEdge(fromNode, all_nodes[nr][nc]);
+                    }
+                }
             }
 
             // knight

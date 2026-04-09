@@ -43,24 +43,27 @@ class HeisenbergNode {
     color() {
         const [a, b, c] = this.value;
         const scale = this.p - 1 || 1;
-    
-        // Raw RGB from group coordinates
-        const r = 255 * a / scale;
-        const g = 255 * b / scale;
-        const bl = 255 * c / scale;
-    
-        const alpha = 0.5;      // visual strength
-        const bg = 255;         // white background
-    
-        // Pre-blend alpha into RGB
-        const rr = Math.round(alpha * r + (1 - alpha) * bg);
-        const gg = Math.round(alpha * g + (1 - alpha) * bg);
-        const bb = Math.round(alpha * bl + (1 - alpha) * bg);
-    
-        return `rgb(${rr},${gg},${bb})`;
+
+        const MIN = 180;
+        const MAX = 240;
+
+        // Normalize
+        const ta = a / scale;
+        const tb = b / scale;
+        const tc = c / scale;
+
+        // Map coordinates → RGB channels
+        const r = Math.round(MAX - ta * (MAX - MIN)); // a → red
+        const g = Math.round(MAX - tb * (MAX - MIN)); // b → green
+        const bVal = Math.round(MAX - tc * (MAX - MIN)); // c → blue
+
+        // Identity → pure white
+        if (a === 0 && b === 0 && c === 0) {
+            return `rgb(255,255,255)`;
+        }
+
+        return `rgb(${r},${g},${bVal})`;
     }
-    
-    
 
     toString() {
         const [a, b, c] = this.value;

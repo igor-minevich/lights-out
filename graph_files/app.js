@@ -21,6 +21,7 @@ let scale = 1;
 let offsetX = 0;
 let offsetY = 0;
 let textSize = 12;
+let stop_play = false;
 
 const MIN_SCALE = 0.2;
 const MAX_SCALE = 5;
@@ -87,10 +88,12 @@ const left_close = document.getElementById('left_close');
 const right_close = document.getElementById('right_close');
 const center_close = document.getElementById('center_close');
 const center_close2 = document.getElementById('center_close2');
+const center_close3 = document.getElementById('center_close3');
 const left_text_appear = document.getElementById('left_text');
 const right_text_appear = document.getElementById('right_text');
-const modal = document.getElementById('properties_container');
+const modal = document.getElementById('inputDiv');
 const sage_cont = document.getElementById('sage_container');
+
 
 const EDGE = '#009999';
 const SELECTED = '#88aaaa';
@@ -102,7 +105,6 @@ const btn_random1 = document.getElementById('randomize_btn1');
 const resetPuzzleBtn = document.getElementById('resetPuzzle');
 const btn_random2 = document.getElementById('randomize_btn2');
 const btn_random3 = document.getElementById('randomize_btn3');
-const btn_matrix = document.getElementById('adjacency_matrix');
 const dihedralMultDisplay = document.getElementById("dihedralMultDisplay");
 
 var text = document.createTextNode('');
@@ -190,6 +192,7 @@ groupTypeSelect.addEventListener('change', function () {
     document.getElementById('displayWhenPlaying').style.display = 'block';
 
   } else if (groupType === "freeabgroup" || groupType === "freegroup") {
+    document.getElementById("playing_order").style.display = 'none';
     numVert.textContent = "Group Order:"
     document.getElementById('displayWhenPlaying').style.display = 'none';
     document.getElementById("divMultiply").style.display = 'block';
@@ -198,6 +201,7 @@ groupTypeSelect.addEventListener('change', function () {
     document.getElementById("divMultiply_heisenberg").style.display = 'none';
 
   } else if (groupType === "dihedral"){
+    document.getElementById("playing_order").style.display = 'block';
     numVert.textContent = "Number of Vertices:"
     document.getElementById("divMultiply_dihedral").style.display = 'block';
     groupOrderInput1.value = 4;
@@ -206,14 +210,16 @@ groupTypeSelect.addEventListener('change', function () {
     document.getElementById("divMultiply_heisenberg").style.display = 'none';
     document.getElementById('displayWhenPlaying').style.display = 'block';
   } else if (groupType === 'heisenberg') {
+    document.getElementById("playing_order").style.display = 'block';
     groupOrderInput1.value = 2;
     groupOrderInput1.disabled = false;
     document.getElementById("divMultiply").style.display = 'none';
     document.getElementById("divMultiply_dihedral").style.display = 'none';
     numVert.textContent = "Modulus (p):"
-    document.getElementById("divMultiply_heisenberg").style.display = 'block';
+    document.getElementById("divMultiply_heisenberg").style.display = 'flex';
     document.getElementById('displayWhenPlaying').style.display = 'block';
   } else if (groupType === 'symmetric') {
+    document.getElementById("playing_order").style.display = 'block';
     groupOrderInput1.value = 4;
     groupOrderInput1.disabled = false;
     numVert.textContent = "Size of Set (n):"
@@ -222,6 +228,7 @@ groupTypeSelect.addEventListener('change', function () {
     document.getElementById("divMultiply_heisenberg").style.display = 'none';
     document.getElementById('displayWhenPlaying').style.display = 'block';
   } else {
+    document.getElementById("playing_order").style.display = 'block';
     groupOrderInput1.value = 2;
     groupOrderInput1.disabled = false;
     numVert.textContent = "Group Order:"
@@ -236,17 +243,49 @@ document.addEventListener('DOMContentLoaded', function () {
   updateGroupTypeDisplay();
 });
 
-function checkGenerate_modal () {
-  if (btn_mode.textContent === 'Editing' && !hasBeenGenerated) {
-    alert("Please generate a graph to view properties.");
-  } else if (hasBeenGenerated){
-    modal.style.display = 'flex';
-    center_close.style.display = 'block';
-    isOpen = true;
-  }
+
+
+
+let currentEditingNode = null;
+
+function openNodeEditMenu(node) {
+  currentEditingNode = node;
+
+  document.getElementById('center_close3').style.display = 'block';
+
+  const container = document.getElementById("node_edit_cont");
+  const labelInput = document.getElementById("node_label_input");
+  const colorInput = document.getElementById("node_color_input");
+
+  container.style.display = "flex";
+  isOpen = true;
+
+  // preload existing values
+  labelInput.value = node.customLabel || node.label || "";
+  colorInput.value = node.customColor || "#ffffff";
 }
 
+document.getElementById("node_label_input").addEventListener("input", function () {
+  if (currentEditingNode) {
+    currentEditingNode.customLabel = this.value;
+    draw();
+  }
+});
+
+document.getElementById("node_color_input").addEventListener("input", function () {
+  if (currentEditingNode) {
+    currentEditingNode.customColor = this.value;
+    draw();
+  }
+});
+
 function checkGenerate_sage () {
+  if (btn_mode.textContent === 'Editing' && !hasBeenGenerated) {
+    alert("Please generate a graph to view its properties.");
+    document.getElementById("graph_props").style.display = 'none';
+  } else {
+    document.getElementById("graph_props").style.display = 'flex';
+  }
   showSageCell();
   center_close2.style.display = 'block';
   isOpen = true;
@@ -256,7 +295,6 @@ let sageInitialized = false;
 
 function showSageCell() {
   document.getElementById("sage_container").style.display = "flex";
-
   if (!sageInitialized) {
     sagecell.makeSagecell({
       inputLocation: '#sagecell',
@@ -269,9 +307,33 @@ function showSageCell() {
 }
 
 document.getElementById('chessMovesDiv').addEventListener('change', () => {
+  if (
+    document.getElementById('queenMove').checked ||
+    document.getElementById('kingMove').checked ||
+    document.getElementById('rookMove').checked ||
+    document.getElementById('knightMove').checked
+  ) {
+    document.querySelectorAll('.disable_input').forEach(el => {
+      el.disabled = true;
+    });
+  } else {
+    document.querySelectorAll('.disable_input').forEach(el => {
+      el.disabled = false;
+    });
+  }
+
   if (document.getElementById('queenMove').checked) {
     document.getElementById('rookMove').checked = false;
     document.getElementById('kingMove').checked = false;
+  }
+  if (document.getElementById('queenMove').checked || document.getElementById('rookMove').checked) {
+    document.getElementById('top_bottom').checked = false;
+    document.getElementById('sides').checked = false;
+    document.getElementById('top_bottom').disabled = true;
+    document.getElementById('sides').disabled = true;
+  } else {
+    document.getElementById('top_bottom').disabled = false;
+    document.getElementById('sides').disabled = false;
   }
   if (hasBeenGenerated === true) {
     generate_puzzle();
@@ -279,10 +341,88 @@ document.getElementById('chessMovesDiv').addEventListener('change', () => {
 });
 
 document.getElementById('chessMovesDiv2').addEventListener('change', () => {
+  if (
+    document.getElementById('queenMove').checked ||
+    document.getElementById('kingMove').checked ||
+    document.getElementById('rookMove').checked ||
+    document.getElementById('knightMove').checked
+  ) {
+    document.querySelectorAll('.disable_input').forEach(el => {
+      el.disabled = true;
+    });
+  } else {
+    document.querySelectorAll('.disable_input').forEach(el => {
+      el.disabled = false;
+    });
+  }
+
   if (document.getElementById('queenMove').checked) {
     document.getElementById('rookMove').checked = false;
     document.getElementById('kingMove').checked = false;
+    document.getElementById('rookMove').disabled = true;
+    document.getElementById('kingMove').disabled = true;
+  } else {
+    document.getElementById('rookMove').disabled = false;
+    document.getElementById('kingMove').disabled = false;
   }
+  if (document.getElementById('queenMove').checked || document.getElementById('rookMove').checked) {
+    document.getElementById('top_bottom').checked = false;
+    document.getElementById('sides').checked = false;
+    document.getElementById('top_bottom').disabled = true;
+    document.getElementById('sides').disabled = true;
+  } else {
+    document.getElementById('top_bottom').disabled = false;
+    document.getElementById('sides').disabled = false;
+  }
+  if (hasBeenGenerated === true) {
+    generate_puzzle();
+  }
+});
+
+document.getElementById('ludr').addEventListener('change', () => {
+  if (document.getElementById('hMax').checked) {
+    document.getElementById('h_length').value = document.getElementById("col_input").value - 1;
+    document.getElementById('h_length').disabled = true;
+  } else {
+    document.getElementById('h_length').disabled = false;
+  }
+
+  if (document.getElementById('vMax').checked) {
+    document.getElementById('v_length').value = document.getElementById("row_input").value - 1;
+    document.getElementById('v_length').disabled = true;
+  } else {
+    document.getElementById('v_length').disabled = false;
+  }
+
+  if (document.getElementById('diagMax').checked) {
+    if (document.getElementById("row_input").value > document.getElementById("col_input").value) {
+      document.getElementById('diag_length').value = document.getElementById('col_input').value - 1;
+    } else {
+      document.getElementById('diag_length').value = document.getElementById('row_input').value - 1;
+    }
+    document.getElementById('diag_length').disabled = true;
+  } else {
+    document.getElementById('diag_length').disabled = false;
+  }
+
+  if (hasBeenGenerated) {
+    generate_puzzle();
+  }
+});
+
+document.getElementById("graphcontrols").addEventListener("change", () => {
+  if (hasBeenGenerated) {
+    generate_puzzle();
+  }
+});
+
+document.getElementById('top_bot_con').addEventListener('change', () => {
+  if (hasBeenGenerated === true) {
+    generate_puzzle();
+  }
+});
+
+document.getElementById('sid_con').addEventListener('change', () => {
   if (hasBeenGenerated === true) {
     generate_puzzle();
   }
@@ -290,27 +430,16 @@ document.getElementById('chessMovesDiv2').addEventListener('change', () => {
 
 
 center_close2.addEventListener('click', () => {
-  center_close.style.display = 'none';
+  center_close2.style.display = 'none';
   sage_cont.style.display = 'none';
+  info_generated = false;
 });
 
-center_close.addEventListener('click', () => {
-  center_close.style.display = 'none';
-  document.getElementById("rref").innerHTML = null;
-  document.getElementById('mat_out').innerHTML = null;
-  document.getElementById('copyGraph6').innerHTML = null;
-  document.getElementById('copyDiv1').innerHTML = null;
-  document.getElementById('mat_label').innerHTML = null;
-  modal.style.display = 'none';
-  document.getElementById('elem_divisors').innerHTML = null;
-  document.getElementById('elem_divisors').style.cssText = `
-    border: none;
-    padding: none;
-    border-radius: none;
-    font-size: none;
-    margin: none;
-  `;
+center_close3.addEventListener('click', () => {
+  center_close3.style.display = 'none';
+  document.getElementById('node_edit_cont').style.display = 'none';
 });
+
 
 
 function updateGroupTypeDisplay() {
@@ -344,7 +473,7 @@ btn_mode.addEventListener('mouseleave', () => {
     btn_mode.style.backgroundColor = '#009FB7';
     btn_mode.style.color = '#EFF1F3';
   }
-})
+});
 
 btn_mode.addEventListener('click', function handleClick() {
 
@@ -357,7 +486,9 @@ btn_mode.addEventListener('click', function handleClick() {
   } else {
     checkCount = 0;
   }
-  if (currentMode === 'editing'){
+  if (labelOpen){
+    edit_label.click();
+  } else if (stateOpen) {
     edit_state.click();
   }
 
@@ -371,25 +502,33 @@ btn_mode.addEventListener('click', function handleClick() {
 
   if (groupType === "dihedral") {
     groupOrderLabel.textContent = "Number of Vertices:";
-    dihedralMultDisplay.value = 'e'
+    dihedralMultDisplay.value = 'r'
   } else if (groupType === "quaternion"){
-    dihedralMultDisplay.value = '1'
+    dihedralMultDisplay.value = 'i'
   } else if (groupType === "heisenberg"){
     groupOrderLabel.textContent = "Modulus (p):";
   } else if (groupType === "symmetric") {
     groupOrderLabel.textContent = "Size of Set (n):";
     if (document.getElementById('groupOrder1').value === '2') {
-      document.getElementById("groupMultiplier").value = '12';
+      document.getElementById("groupMultiplier").value = '21';
     } else if (document.getElementById('groupOrder1').value === '3') {
-      document.getElementById("groupMultiplier").value = '123';
+      document.getElementById("groupMultiplier").value = '321';
     } else if (document.getElementById('groupOrder1').value === '4') {
-      document.getElementById("groupMultiplier").value = '1234';
+      document.getElementById("groupMultiplier").value = '4321';
     } else if (document.getElementById('groupOrder1').value === '5') {
-      document.getElementById("groupMultiplier").value = '12345';
+      document.getElementById("groupMultiplier").value = '54321';
     }
-  } else {
+  } else if (groupType === 'cyclic') {
+    document.getElementById('displayClicks').checked = true;
     groupOrderLabel.textContent = "Group order:";
     document.getElementById("groupMultiplier").value = '1';
+  } else if(groupType === 'freeabgroup') {
+    document.getElementById('displayClicks').checked = true;
+    groupOrderLabel.textContent = "Group order:";
+    document.getElementById("groupMultiplier").value = 'a';
+  } else {
+    groupOrderLabel.textContent = "Group order:";
+    document.getElementById("groupMultiplier").value = 'a';
   }
 
   set_group_order();
@@ -441,6 +580,7 @@ btn_mode.addEventListener('click', function handleClick() {
 
   if (btn_mode.textContent === 'Editing') {
     document.getElementById('par').textContent = 1;
+    document.getElementById("make_puzzle_btn").style.display = 'none';
 
     left_arrow.style.display = 'none';
     right_arrow.style.display = 'flex';
@@ -452,12 +592,12 @@ btn_mode.addEventListener('click', function handleClick() {
     document.getElementById('play_button').style.backgroundColor = '#880D1E';
     document.getElementById('back_clr').style.background = 'linear-gradient(340deg,rgba(136, 13, 30, 1) 0%, rgba(15, 26, 32, 1) 59%)';
     document.getElementById('playing_toggle').style.display = 'block';
+    document.getElementById('vertex_edit_toggle').style.display = 'block';
     btn_clear.style.display = 'none';
     btn_clear2.style.display = 'none';
     btn_reset.style.display = 'block';
     btn_random1.style.display = 'block';
     resetPuzzleBtn.style.display = 'block';
-    btn_matrix.style.display = 'block';
     editingGroup.style.display = 'none';
     for (const vertex of nodes) {
       switch (groupType) {
@@ -494,6 +634,7 @@ btn_mode.addEventListener('click', function handleClick() {
     document.getElementById("right").checked = true;
   }
   else {
+    document.getElementById("make_puzzle_btn").style.display = 'block';
     right_arrow.style.display = 'none';
     left_arrow.style.display = 'flex';
     document.getElementById('back_clr').style.background = 'linear-gradient(20deg,rgba(0, 159, 183, 1) 0%, rgba(15, 26, 32, 1) 59%)';
@@ -545,12 +686,12 @@ btn_mode.addEventListener('click', function handleClick() {
     });
 
     document.getElementById('playing_toggle').style.display = 'none';
+    document.getElementById('vertex_edit_toggle').style.display = 'none';
     btn_clear.style.display = 'block';
     btn_clear2.style.display = 'block';
     btn_reset.style.display = 'none';
     btn_random1.style.display = 'block';
     resetPuzzleBtn.style.display = 'block';
-    btn_matrix.style.display = 'block';
     document.getElementById('play_button').style.backgroundColor = '#009FB7';
     editingGroup.style.display = 'block';
     btn_mode.textContent = 'Editing';
@@ -562,6 +703,18 @@ btn_mode.addEventListener('click', function handleClick() {
   // Call the toggleVisuals function to display/hide elements based on "playing" or "editing" mode.
   toggleVisuals();
   resetView();
+});
+
+document.getElementById("make_puzzle_btn").addEventListener("click", () => {
+  if (hasBeenGenerated) {
+    btn_mode.click();
+    document.getElementById("make_puzzle_btn").style.display = 'none';
+    document.getElementById("myRange").value = 0.25;
+    updatePar();
+    document.getElementById("randomize_btn1").click();
+  } else {
+    alert("Please generate a graph before making a puzzle.")
+  }
 });
 
 
@@ -769,12 +922,18 @@ function draw() {
       let node = nodes[i];
       context.setLineDash([]);
       context.beginPath();
-      context.fillStyle = node.node ? node.node.color() : colors[0];
+      if (stop_play) {
+        context.fillStyle = node.customColor || "rgb(255,255,255)";
+      } else {
+        context.fillStyle = node.node ? node.node.color() : colors[0];
+      }
+      
       context.arc(node.x, node.y, node.radius, 0, Math.PI * 2, true);
       context.fill();
       if (node.clicked) {
         context.lineWidth = 5;
         context.strokeStyle = "rgba(0, 255, 0, 0.5)";
+        
       } else {
         context.lineWidth = 1;
         context.strokeStyle = "black";
@@ -806,7 +965,7 @@ function move(e) {
 
 
 
-  if (node_dragged && e.buttons) {
+  if (node_dragged && e.buttons && !isOpen) {
     var pos = getMousePos(e);
     if (pos.x > 0 && pos.x <= canvas.width && pos.y > 0 && pos.y <= canvas.height) {
       node_dragged.x = e.offsetX;
@@ -886,7 +1045,7 @@ function up(e) {
       selection = undefined;
 
     // if there is nothing selected, then select the node
-    else if (target && !selection && !node_dragged.moving)
+    else if (target && !selection && !node_dragged.moving && !isOpen)
       selection = target;
 
     // create node where you clicked and select it (if clicked away from existing nodes, i.e. no target)
@@ -957,11 +1116,16 @@ function up(e) {
 
     if (target) {
       if (selectedNode !== target) {
-        if (selectedNode) {
-          selectedNode.clicked = false;
-        }
+        if (selectedNode) selectedNode.clicked = false;
+
         selectedNode = target;
         selectedNode.clicked = true;
+      }
+
+      // 🔥 NEW: open edit menu if stop_play is true
+      if (stop_play) {
+        openNodeEditMenu(target);
+        return; // stop further gameplay logic
       }
       // Update group multiplier validation when a node is clicked
       const isValidInput = set_group_multiplier(true);
@@ -1217,15 +1381,17 @@ function congradulate() {
   const parText = document.getElementById('par').textContent;
   const parInt = parseInt(parText.replace(/\D/g, ''), 10);
 
-  if (hasBeenRandomized) {
-    if (nodes.length === 0) return;
+  if (nodes.length === 0) return;
 
+  // =========================
+  // PAR / RANDOMIZED CASE
+  // =========================
+  if (hasBeenRandomized) {
     const first = nodes[0].node.toString();
 
-    // Check if all nodes match
     const allSame = nodes.every(node => node.node.toString() === first);
-  if (!allSame) return;
-    // Par-based messages
+    if (!allSame) return;
+
     if (nodeTrack === parInt) {
       alert("Perfect! You solved the puzzle on par.");
     } else if (nodeTrack < parInt) {
@@ -1233,35 +1399,73 @@ function congradulate() {
     } else {
       alert(`Nice job! You finished ${nodeTrack - parInt} move(s) over par.`);
     }
+
+    hasBeenRandomized = false;
+    return;
+  }
+
+  // =========================
+  // NON-RANDOMIZED CASE
+  // =========================
+
+  // Ignore untouched board (use history, not clicks)
+  if (historyData.length === 0) return;
+
+  const first = nodes[0].node.toString();
+
+  // Check if all nodes match
+  const allSame = nodes.every(node => node.node.toString() === first);
+  if (!allSame) return;
+
+  // =========================
+  // DETERMINE IDENTITY
+  // =========================
+  let identity;
+  const groupTypeValue = document.getElementById('groupTypeSelect').value;
+
+  if (groupTypeValue === 'cyclic') {
+    identity = "0";
+  } else if (groupTypeValue === 'dihedral') {
+    identity = "e";
+  } else if (groupTypeValue === 'heisenberg') {
+    identity = "0,0,0";
+  } else if (groupTypeValue === 'symmetric') {
+    let perm = '';
+    for (let j = 0; j < groupOrder; j++) {
+      perm += `${j + 1}`;
+    }
+    identity = perm;
   } else {
-    if (nodes.length === 0) return;
+    identity = "1";
+  }
 
-    // Ignore untouched board
-    if (nodes.every(node => node.node.clicks === 0)) return;
+  const isAllIdentity = nodes.every(node => node.node.toString() === identity);
 
-    const first = nodes[0].node.toString();
+  // =========================
+  // QUIET PATTERN DETECTION
+  // =========================
 
-    // Check if all nodes match
-    const allSame = nodes.every(node => node.node.toString() === first);
-    if (!allSame) return;
+  // Count how many times each node label appears
+  const labelCounts = {};
+  for (const item of historyData) {
+    labelCounts[item.label] = (labelCounts[item.label] || 0) + 1;
+  }
 
-    // Identify what state we ended in
-    const identity = "0";
-    const isAllIdentity = nodes.every(node => node.node.toString() === identity);
+  // Quiet = every node used at most once
+  const isQuietPattern = Object.values(labelCounts).every(count => count === 1);
 
-    // Detect quiet pattern (no repeated clicks)
-    const isQuietPattern = nodes.every(node => node.node.clicks <= 1);
+  // Prevent trivial cancel cases (like clicking same node twice → identity)
+  const isNonTrivial = historyData.length > 1;
 
+  // =========================
+  // MESSAGES
+  // =========================
 
-    // Special case: quiet identity solution
-    if (isAllIdentity && isQuietPattern) {
-      alert("Beautiful! You found a quiet pattern solution (no repeated clicks).");
-    }
-
-    // Special case: non-identity uniform state (like all 's' in dihedral)
-    else if (!isAllIdentity) {
-      alert(`Nice! You solved the puzzle to an all "${first}" state.`);
-    }
+  if (isAllIdentity && isQuietPattern && isNonTrivial) {
+    alert("Beautiful! You found a quiet pattern solution.");
+  } 
+  else {
+    alert(`Nice! You solved the puzzle to an all "${first}" state.`);
   }
 
   hasBeenRandomized = false;
@@ -1516,6 +1720,7 @@ function clear_puzzle() {
   uNodeCounter = 0;
   historyData = [];
   updateHistoryList();
+  resetEditedVertices();
 
   if (btn_mode.textContent == 'Editing') {
     nodes = [];
@@ -1578,6 +1783,17 @@ function reset_puzzle() {
   updateHistoryList();
   deleteButton.disabled = true;
   nodeTrack = 0;
+  draw();
+}
+
+function resetEditedVertices() {
+  for (let i = 0; i < nodes.length; i++) {
+    let node = nodes[i];
+
+    node.customLabel = "";
+    node.customColor = null;
+  }
+
   draw();
 }
 
@@ -1790,6 +2006,31 @@ function delete_puzzle() {
 
 // Passes group order from editing mode over to playing
 function set_group_order() {
+  let go = parseInt(document.getElementById("groupOrder1").value);
+  if (isNaN(go)) {
+    alert("This parameter must be a number.");
+    if (groupType === "cyclic" || groupType === "heisenberg") {
+      document.getElementById("groupOrder1").value = 2;
+    } else if (groupType === "dihedral" || groupType === "symmetric") {
+      document.getElementById("groupOrder1").value = 4;
+    }
+  } else if (go <= 0) {
+    alert("This parameter cannot be negative or zero.");
+    if (groupType === "cyclic" || groupType === "heisenberg") {
+      document.getElementById("groupOrder1").value = 2;
+    } else if (groupType === "dihedral" || groupType === "symmetric") {
+      document.getElementById("groupOrder1").value = 4;
+    }
+  } else if (groupType === 'symmetric' && (go < 2 || go > 5)) {
+    alert("For the Symmetric Group, n must be between 2 and 5.");
+    if (groupType === "cyclic" || groupType === "heisenberg") {
+      document.getElementById("groupOrder1").value = 2;
+    } else if (groupType === "dihedral" || groupType === "symmetric") {
+      document.getElementById("groupOrder1").value = 4;
+    }
+  }
+
+
   if (btn_mode.textContent === 'Editing') {
     groupOrder = parseInt(document.getElementById("groupOrder1").value);
     document.getElementById("groupOrder2").value = groupOrder;
@@ -1957,24 +2198,105 @@ function set_group_multiplier(validateInput = true) {
 
 //Functions for the edit state mode in playing
 const edit_state = document.getElementById('editState');
+const edit_label = document.getElementById('editState2');
 let currentMode = 'playing';
+let labelOpen = false;
+let stateOpen = false;
 
 edit_state.addEventListener("click", () => {
-    const isEditing = edit_state.classList.toggle('editing');
+    if (!labelOpen) {
+      const isEditing = edit_state.classList.toggle('editing');
 
-    currentMode = isEditing ? "editing" : "playing";
+      currentMode = isEditing ? "editing" : "playing";
 
-    edit_state.setAttribute("aria-pressed", isEditing);
+      edit_state.setAttribute("aria-pressed", isEditing);
 
-    console.log("Current mode:", currentMode);
+      console.log("Current mode:", currentMode);
 
-    if (currentMode === 'editing') {
-      document.getElementById('dihedralMultLabel').textContent = 'New state:';
-      document.getElementById('groupMultiplier_label').textContent = 'New state:';
-    } else{
-      document.getElementById('dihedralMultLabel').textContent = 'Multiplier:';
-      document.getElementById('groupMultiplier_label').textContent = 'Multiplier:';
+      if (currentMode === 'editing') {
+        document.getElementById('dihedralMultLabel').textContent = 'New state:';
+        document.getElementById('groupMultiplier_label').textContent = 'New state:';
+      } else{
+        document.getElementById('dihedralMultLabel').textContent = 'Multiplier:';
+        document.getElementById('groupMultiplier_label').textContent = 'Multiplier:';
+      }
+      if (currentMode === 'editing') {
+        stateOpen = true;
+      } else {
+        stateOpen = false;
+      }
+    } else {
+      edit_label.click();
+
+      const isEditing = edit_state.classList.toggle('editing');
+
+      currentMode = isEditing ? "editing" : "playing";
+
+      edit_state.setAttribute("aria-pressed", isEditing);
+
+      console.log("Current mode:", currentMode);
+
+      if (currentMode === 'editing') {
+        document.getElementById('dihedralMultLabel').textContent = 'New state:';
+        document.getElementById('groupMultiplier_label').textContent = 'New state:';
+      } else{
+        document.getElementById('dihedralMultLabel').textContent = 'Multiplier:';
+        document.getElementById('groupMultiplier_label').textContent = 'Multiplier:';
+      }
+      if (currentMode === 'editing') {
+        stateOpen = true;
+      } else {
+        stateOpen = false;
+      }
     }
+    
+});
+
+//Functions for the edit state mode in playing
+
+
+edit_label.addEventListener("click", () => {
+    if (!stateOpen) {
+      const isEditing = edit_label.classList.toggle('editing');
+
+      currentMode = isEditing ? "editing" : "playing";
+
+      edit_label.setAttribute("aria-pressed", isEditing);
+
+      console.log("Current mode:", currentMode);
+
+      if (currentMode === 'editing') {
+        stop_play = true;
+      } else{
+        stop_play = false;
+      }
+      if (currentMode === 'editing') {
+        labelOpen = true;
+      } else {
+        labelOpen = false;
+      }
+    } else {
+      edit_state.click();
+      const isEditing = edit_label.classList.toggle('editing');
+
+      currentMode = isEditing ? "editing" : "playing";
+
+      edit_label.setAttribute("aria-pressed", isEditing);
+
+      console.log("Current mode:", currentMode);
+
+      if (currentMode === 'editing') {
+        stop_play = true;
+      } else{
+        stop_play = false;
+      }
+      if (currentMode === 'editing') {
+        labelOpen = true;
+      } else {
+        labelOpen = false;
+      }
+    }
+    
 });
 
 
@@ -2177,7 +2499,25 @@ function drawLabel(node, showLabels) {
   context.font = `${textSize}px Verdana`;
   context.beginPath();
   context.fillStyle = "#000000";
-  let string = showLabels ? node.label.toString() : node.node.toString();
+
+  let string;
+
+  if (stop_play) {
+    // 🔥 PRIORITY: custom label in stop mode
+    if (node.customLabel && node.customLabel !== "") {
+      string = node.customLabel.toString();
+    } else {
+      // fallback to normal behavior
+      string = showLabels
+        ? (node.label ? node.label.toString() : "")
+        : (node.node ? node.node.toString() : "");
+    }
+  } else {
+    // normal gameplay behavior
+    string = showLabels
+      ? (node.label ? node.label.toString() : "")
+      : (node.node ? node.node.toString() : "");
+  }
 
   // Center the text
   const textMetrics = context.measureText(string);
@@ -2200,7 +2540,7 @@ function drawCyclicLabel(node) {
   const textWidth = textMetrics.width;
 
   const xPos = node.x - textWidth / 2;
-  const yPos = node.y + 2;
+  const yPos = node.y + (textSize / 3);
 
   context.fillText(string, xPos, yPos);
   context.fill();
@@ -2217,7 +2557,7 @@ function drawClicks(node, showClicks) {
   const textMetrics = context.measureText(string);
   const textWidth = textMetrics.width;
   const xPos = node.x - textWidth / 2;
-  const yPos = node.y + 4;
+  const yPos = node.y + (textSize / 3);
 
   context.fillText(string, xPos, yPos);
   context.fill();
@@ -2447,20 +2787,26 @@ function updateRelationsList() {
   });
 }
 
-// -------------------------------------------------------------------
 
-// Extended Euclidean Algorithm
+
+// ------------------------------------------------------------------------
+// The following functions were built to mimic Sage's elementary divisor 
+// finder, it is currently unused
+// ------------------------------------------------------------------------
+
+// Extended Euclidean Algorithm | 
+// x*a + y*b = gcd
 function extendedEuclidean(a, b) {
-  // Remainders
+  // Remainders, a then b
   let old_r = a, r = b;
 
   // Coefficients tracking
-  let old_s = 1, s = 0;
-  let old_t = 0, t = 1;
+  let old_s = BigInt(1), s = BigInt(0);
+  let old_t = BigInt(0), t = BigInt(1);
 
-  while (r !== 0) {
+  while (r !== 0n) {
     // Quotient
-    const q = Math.floor(old_r / r);
+    const q = (old_r / r);
 
     // Standard remainder update
     [old_r, r] = [r, old_r - q * r];
@@ -2508,21 +2854,24 @@ function clearColumn(M, k) {
   const rows = M.length;
   const cols = M[0].length;
 
+   console.log('entering step 1');
+
   // Step 1: ensure pivot is nonzero (swap if needed)
-  if (M[k][k] === 0) {
+  if (M[k][k] === 0n) {
     for (let i = k + 1; i < rows; i++) {
-      if (M[i][k] !== 0) {
+      if (M[i][k] !== 0n) {
         [M[k], M[i]] = [M[i], M[k]];
         break;
       }
     }
   }
 
-  if (M[k][k] === 0) return M; // nothing to do
+  if (M[k][k] === 0n) return M; // nothing to do
 
   // Step 2: clear entries below pivot
+  console.log('entering step 2');
   for (let i = k + 1; i < rows; i++) {
-    if (M[i][k] === 0) continue;
+    if (M[i][k] === 0n) continue;
 
     const a = M[k][k];
     const b = M[i][k];
@@ -2537,21 +2886,25 @@ function clearColumn(M, k) {
       M[i][c] = (-b / gcd) * rowK[c] + (a / gcd) * rowI[c];
     }
   }
+  console.log('entering step 3');
 
   // Step 3: make pivot positive
-  if (M[k][k] < 0) {
-    for (let c = 0; c < cols; c++) M[k][c] *= -1;
+  if (M[k][k] < 0n) {
+    for (let c = 0; c < cols; c++) M[k][c] *= -1n;
   }
+  console.log('entering step 4');
 
   // Step 4: reduce entries above pivot (optional but canonical)
   for (let i = 0; i < k; i++) {
-    const factor = Math.floor(M[i][k] / M[k][k]);
-    if (factor !== 0) {
+    if (M[i][k] % M[k][k] === 0n) {
+      const factor = M[i][k] / M[k][k];
       for (let c = 0; c < cols; c++) {
         M[i][c] -= factor * M[k][c];
       }
     }
   }
+
+  console.log('finished');
 
   return M;
 }
@@ -2559,25 +2912,31 @@ function clearColumn(M, k) {
 
 // Clear all entries to the right of pivot M[k][k] in row k
 function clearRow(M, k) {
+  console.log('entering first for loop');
   for (let j = k + 1; j < M[0].length; j++) {
-    if (M[k][j] === 0) continue;
+    if (M[k][j] === 0n) continue;
 
     const a = M[k][k];
     const b = M[k][j];
 
     // Compute coefficients of two entries
+    console.log('starting euclidean, ' + a + ', ' + b);
     const { gcd, x, y } = extendedEuclidean(a, b);
+    console.log(gcd + ', ' + x + ', ' + y);
 
     // Cache entire columns to avoid overwrite 
     const colK = M.map(r => r[k]);
     const colJ = M.map(r => r[j]);
 
     // Apply 2x2 unimodular matrix transformation(column-wise)
+    console.log('entering inner for loop');
     for (let r = 0; r < M.length; r++) {
       M[r][k] = x * colK[r] + y * colJ[r];
       M[r][j] = (-b / gcd) * colK[r] + (a / gcd) * colJ[r];
     }
+    console.log('finished inner for loop');
   }
+  console.log('finished');
 }
 
 // Ensure the Smith divisibility condition: M[k][k] | M[k+1][k+1]
@@ -2589,9 +2948,9 @@ function enforceDivisibility(M) {
     change = false;
 
     for (let k = 0; k < L - 1; k++) {
-      if (M[k+1][k+1] === 0) break;
+      if (M[k+1][k+1] === 0n) break;
 
-      if (M[k+1][k+1] % M[k][k] !== 0) {
+      if (M[k+1][k+1] % M[k][k] !== 0n) {
         const a = M[k][k];
         const b =  M[k+1][k+1];
 
@@ -2614,15 +2973,20 @@ function smithNormalForm(M) {
   const rows = M.length;
   const cols = M[0].length;
   const d = Math.min(rows, cols);
+  for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+          M[i][j] = BigInt(M[i][j]);
+        }
+      }
 
   for (let k = 0; k < d; k++) {
     // Ensure the pivot is nonzero by swapping
-    if (M[k][k] === 0) {
+    if (M[k][k] === 0n) {
       let found = false;
 
       for (let i = k; i < rows && !found; i++) {
         for (let j = k; j < cols; j++) {
-          if (M[i][j] !== 0) {
+          if (M[i][j] !== 0n) {
             swapRows(M, k, i);
             swapCols(M, k, j);
             found = true;
@@ -2632,13 +2996,16 @@ function smithNormalForm(M) {
       }
       // Entire remaining submatrix is zero
       if (!found) break;
+      console.log('attempt: ' + k);
     }
 
     // Clear column and row around the pivot
     clearColumn(M, k);
     clearRow(M, k);
+    console.log('attempt outside if: ' + k);
   }
 
+  console.log('Starting ED');
   // Enforce Smith divisibility condition
   enforceDivisibility(M);
   const endTime = performance.now();
@@ -2710,510 +3077,33 @@ function formatDivisors2(divisors) {
 
 // Function called upon button click that initiates SNF functions and formatting
 function elementaryDivisors(matrix) {
-  const snf = smithNormalForm(matrix);
+  const absBigInt = (n) => (n < 0n ? -n : n);
+
+  const copy = matrix.map(row => row.map(v => BigInt(v))); // deep copy
+
+  const snf = smithNormalForm(copy);
+
   const divisors = [];
   for (let i = 0; i < snf.length; i++) {
-    divisors.push(Math.abs(snf[i][i]));
+    divisors.push(absBigInt(snf[i][i]));
   }
   return divisors;
 }
 
-// -------------------------------------------------------------------
+// ------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 
-function adjacencyMatrix(nodes, edges) {
-  if (isGraph6 === false) {
-    document.getElementById('mat_label').textContent =
-      'Adjacency Matrix (Selected Input):';
-  } else if (isGraph6 === true) {
-    document.getElementById('mat_label').textContent =
-      'Adjacency Matrix (Graph-Six Input):';
-  }
 
-  document.getElementById("rref").innerHTML = null;
-  document.getElementById('mat_out').innerHTML = null;
-  document.getElementById('copyGraph6').innerHTML = null;
-  document.getElementById('elem_divisors').innerHTML = null;
-  document.getElementById('elem_divisors').style.cssText = `
-    border: none;
-    padding: none;
-    border-radius: none;
-    font-size: none;
-    margin: none;
-  `;
 
-  const indexMap = new Map();
-  nodes.forEach((n, i) => indexMap.set(n.label, i));
-
-  const size = nodes.length;
-  const matrix = Array.from({ length: size }, () =>
-    Array(size).fill(0)
-  );
-
-  for (let edge of edges) {
-    const i = indexMap.get(edge.from.label);
-    const j = indexMap.get(edge.to.label);
-    matrix[i][j] = 1;
-    matrix[j][i] = 1;
-  }
-
-  outputMatrixWithCopy(matrix, nodes.map(n => n.label));
-  return matrix;
-}
-
-
-function renderMatrixHTML(matrix, labels) {
-  const rowCount = matrix.length;
-  const colCount = matrix[0].length;
-
-  const fullRows = rowCount <= MAX_DISPLAY;
-  const fullCols = colCount <= MAX_DISPLAY;
-
-  const rowIndices = fullRows
-    ? [...Array(rowCount).keys()]
-    : [
-        ...Array(EDGE_DISPLAY).keys(),
-        null,
-        ...Array(EDGE_DISPLAY).keys().map(i => rowCount - EDGE_DISPLAY + i)
-      ];
-
-  const colIndices = fullCols
-    ? [...Array(colCount).keys()]
-    : [
-        ...Array(EDGE_DISPLAY).keys(),
-        null,
-        ...Array(EDGE_DISPLAY).keys().map(i => colCount - EDGE_DISPLAY + i)
-      ];
-
-  let html = `<div class="matrix-wrapper">`;
-  html += `<table class="adj-matrix"><thead><tr><th></th>`;
-
-  colIndices.forEach(j => {
-    html += j === null ? `<th>⋯</th>` : `<th>${labels[j]}</th>`;
-  });
-
-  html += `</tr></thead><tbody>`;
-
-  rowIndices.forEach(i => {
-    if (i === null) {
-      html += `<tr><th>⋯</th>`;
-      colIndices.forEach(() => (html += `<td>⋯</td>`));
-      html += `</tr>`;
-      return;
-    }
-
-    html += `<tr><th>${labels[i]}</th>`;
-    colIndices.forEach(j => {
-      html += j === null ? `<td>⋯</td>` : `<td>${matrix[i][j]}</td>`;
-    });
-    html += `</tr>`;
-  });
-
-  html += `</tbody></table>`;
-  return html;
-}
-
-
-function matrixToSage(matrix) {
-  const rows = matrix
-    .map(row => `[${row.join(", ")}]`)
-    .join(",\n  ");
-
-  return `matrix(ZZ, [\n  ${rows}\n])`;
-}
-
-function copyMatrixToSage(matrix) {
-  const sageText = matrixToSage(matrix);
-  navigator.clipboard.writeText(sageText).then(() => {
-    alert("Matrix copied in Sage format!");
-  });
-}
-
-
-
-function outputMatrixWithCopy(matrix, labels) {
-  const out = document.getElementById("copyDiv1");
-
-  out.innerHTML = `
-    <button id="copy_sage">Copy for Sage</button>
-    ${renderMatrixHTML(matrix, labels)}
-  `;
-
-  document
-    .getElementById("copy_sage")
-    .addEventListener("click", () => copyMatrixToSage(matrix));
-}
-
-
-
-function activationMatrix(nodes, edges) {
-  if (isGraph6 === false) {
-    document.getElementById('mat_label').textContent = 
-      'Activation Matrix (Selected Input):';
-  } else if (isGraph6 === true) {
-    document.getElementById('mat_label').textContent =
-      'Activation Matrix (Graph-Six Input):';
-  }
-
-  document.getElementById("rref").innerHTML = null;
-  document.getElementById('mat_out').innerHTML = null;
-  document.getElementById('copyGraph6').innerHTML = null;
-  if (edges.length <= 50) {
-    document.getElementById('elem_divisors').innerHTML = `
-      <button id="elem_btn" type="button" onclick="showDivisors()">Show Elementary Divisors</button>
-    `;
-    document.getElementById('elem_divisors').style.cssText = `
-      border: none;
-      padding: none;
-      border-radius: none;
-      font-size: none;
-      margin: none;
-    `;
-  } else {
-    document.getElementById('elem_divisors').innerHTML = `
-      <p>(Matrix too large for elementary divisors)</p>
-    `;
-  }
-  
-
-  const indexMap = new Map();
-  nodes.forEach((n, i) => indexMap.set(n.label, i));
-
-  const size = nodes.length;
-  const matrix = Array.from({ length: size }, () =>
-    Array(size).fill(0)
-  );
-
-  for (let edge of edges) {
-    const i = indexMap.get(edge.from.label);
-    const j = indexMap.get(edge.to.label);
-    matrix[i][j] = 1;
-    matrix[j][i] = 1;
-  }
-
-  for (let i = 0; i < size; i++) {
-    matrix[i][i] = 1;
-  }
-
-  outputMatrixWithCopy(matrix, nodes.map(n => n.label));
-
-  
-  if (edges.length > 50) {
-    return matrix;
-  } else {
-    const divisors = elementaryDivisors(matrix);
-    document.getElementById("elem_btn").addEventListener('click', () => {
-      document.getElementById('elem_divisors').innerHTML = `
-        <span>${formatDivisors(divisors).join(", ")}</span>
-      `;
-
-        document.getElementById('elem_divisors').style.cssText = `
-        border: 1px solid black;
-        padding: 10px 20px;
-        border-radius: 25px;
-        font-size: 15px;
-        margin: 5px;
-        `;
-    });
-
-    return matrix;
-  }
-  
-}
-
-
-function hermiteForm(nodes, edges) {
-  if (isGraph6 === false) {
-    document.getElementById('mat_label').textContent = 
-      'Hermite Form of Activation Matrix (Selected Input):';
-  } else if (isGraph6 === true) {
-    document.getElementById('mat_label').textContent =
-      'Hermite Form of Activation Matrix (Graph-Six Input):';
-  }
-  document.getElementById('mat_out').innerHTML = null;
-  document.getElementById('copyGraph6').innerHTML = null;
-  document.getElementById('elem_divisors').innerHTML = null;
-  document.getElementById('elem_divisors').style.cssText = `
-    border: none;
-    padding: none;
-    border-radius: none;
-    font-size: none;
-    margin: none;
-  `;
-
-  const indexMap = new Map();
-  nodes.forEach((n, i) => indexMap.set(n.label, i));
-  const size = nodes.length;
-
-  // Build activation matrix
-  const matrix = Array.from({ length: size }, () =>
-    Array(size).fill(0)
-  );
-
-  for (let edge of edges) {
-    const i = indexMap.get(edge.from.label);
-    const j = indexMap.get(edge.to.label);
-    matrix[i][j] = 1;
-    matrix[j][i] = 1;
-  }
-
-  for (let i = 0; i < size; i++) matrix[i][i] = 1;
-
-  let pivotRow = 0;
-  let pivotCol = 0;
-
-  const startTime = performance.now();
-
-  while (pivotRow < size && pivotCol < size) {
-    // Find pivot in submatrix
-    let found = false;
-    let pivotR = -1;
-    let pivotC = -1;
-
-    for (let c = pivotCol; c < size && !found; c++) {
-      for (let r = pivotRow; r < size; r++) {
-        if (matrix[r][c] !== 0) {
-          pivotR = r;
-          pivotC = c;
-          found = true;
-          break;
-        }
-      }
-    }
-
-    // No pivot = remaining columns are free variables
-    if (!found) break;
-
-    // Swap rows
-    if (pivotR !== pivotRow) {
-      [matrix[pivotRow], matrix[pivotR]] = [matrix[pivotR], matrix[pivotRow]];
-    }
-
-    // Swap columns
-    if (pivotC !== pivotCol) {
-      for (let r = 0; r < size; r++) {
-        [matrix[r][pivotCol], matrix[r][pivotC]] = [matrix[r][pivotC], matrix[r][pivotCol]];
-      }
-    }
-
-    // Clear column
-    clearColumn(matrix, pivotRow);
-
-    pivotRow++;
-    pivotCol++;
-  }
-
-  outputMatrixWithCopy(matrix, nodes.map(n => n.label));
-  const endTime = performance.now();
-
-  const elapsedTime = endTime - startTime; // Time in milliseconds
-  console.log(`Hermite form execution time: ${elapsedTime} milliseconds`);
-
-  const convert = document.getElementById("rref");
-
-  convert.innerHTML = `
-    <input type="number" placeholder="Enter Prime" id="prime_input" min="2">
-    <button id="rref_btn">Convert Matrix to RREF Mod <i>P</i></button>
-  `;
-
-  document.getElementById("rref_btn").onclick = () => {
-    const p = parseInt(document.getElementById("prime_input").value);
-    if (!p || p < 2) {
-      alert("Enter a valid prime.");
-      return;
-    }
-
-    const { matrix: rrefMatrix } = rrefMod(matrix, p);
-
-    // Override displayed matrix
-    outputMatrixWithCopy(rrefMatrix, nodes.map(n => n.label));
-  };
-}
-
-
-function findInverses(p) {
-  const inv = Array(p).fill(null);
-  for (let i = 1; i < p; i++) {
-    for (let j = 1; j < p; j++) {
-      if ((i * j) % p === 1) {
-        inv[i] = j;
-        break;
-      }
-    }
-  }
-  return inv;
-}
-
-function rrefMod(matrix, p) {
-  const startTime = performance.now();
-  const mat = matrix.map(row => row.map(v => ((v % p) + p) % p));
-  const rows = mat.length;
-  const cols = mat[0].length;
-
-  const inverses = findInverses(p);
-  let pivotRow = 0;
-  const pivots = [];
-
-  for (let col = 0; col < cols && pivotRow < rows; col++) {
-    // Find pivot
-    let pivot = -1;
-    for (let r = pivotRow; r < rows; r++) {
-      if (mat[r][col] !== 0) {
-        pivot = r;
-        break;
-      }
-    }
-
-    if (pivot === -1) continue;
-
-    pivots.push(col);
-
-    // Swap rows
-    if (pivot !== pivotRow) {
-      [mat[pivotRow], mat[pivot]] = [mat[pivot], mat[pivotRow]];
-    }
-
-    // Normalize pivot row
-    const pivotVal = mat[pivotRow][col];
-    const inv = inverses[pivotVal];
-    for (let c = 0; c < cols; c++) {
-      mat[pivotRow][c] = (mat[pivotRow][c] * inv) % p;
-    }
-
-    // Eliminate other rows
-    for (let r = 0; r < rows; r++) {
-      if (r !== pivotRow && mat[r][col] !== 0) {
-        const factor = mat[r][col];
-        for (let c = 0; c < cols; c++) {
-          mat[r][c] = (mat[r][c] - factor * mat[pivotRow][c]) % p;
-          mat[r][c] = (mat[r][c] + p) % p;
-        }
-      }
-    }
-
-    pivotRow++;
-  }
-
-  const endTime = performance.now();
-
-  const elapsedTime = endTime - startTime; // Time in milliseconds
-  console.log(`RREF execution time: ${elapsedTime} milliseconds`);
-  return { matrix: mat, pivots };
-}
-
-
-
-
-
-function RAMatrix(nodes, edges) {
-  if (isGraph6 === false) {
-    document.getElementById('mat_label').textContent = 
-      'RA Matrix (Selected Input):';
-  } else if (isGraph6 === true) {
-    document.getElementById('mat_label').textContent =
-      'RA Matrix (Graph-Six Input):';
-  }
-
-  document.getElementById("rref").innerHTML = null;
-  document.getElementById('mat_out').innerHTML = '';
-  document.getElementById('copyGraph6').innerHTML = '';
-  if (edges.length <= 50) {
-    document.getElementById('elem_divisors').innerHTML = `
-      <button id="elem_btn" type="button" onclick="showDivisors()">Show Elementary Divisors</button>
-    `;
-    document.getElementById('elem_divisors').style.cssText = `
-      border: none;
-      padding: none;
-      border-radius: none;
-      font-size: none;
-      margin: none;
-    `;
-  } else {
-    document.getElementById('elem_divisors').innerHTML = `
-      <p>(Matrix too large for elementary divisors)</p>
-    `;
-  }
-  
-
-  const indexMap = new Map();
-  nodes.forEach((n, i) => indexMap.set(n.label, i));
-
-  const n = nodes.length;
-
-  // --- Activation matrix ---
-  const activation = Array.from({ length: n }, () =>
-    Array(n).fill(0)
-  );
-
-  for (let edge of edges) {
-    const i = indexMap.get(edge.from.label);
-    const j = indexMap.get(edge.to.label);
-    activation[i][j] = 1;
-    activation[j][i] = 1;
-  }
-
-  for (let i = 0; i < n; i++) {
-    activation[i][i] = 1;
-  }
-
-  // --- AND rows ---
-  const andRows = [];
-  const andLabels = [];
-
-  let count = 1;
-  for (let i = 0; i < n; i++) {
-    for (let j = i + 1; j < n; j++) {
-      const row = new Array(n);
-      for (let k = 0; k < n; k++) {
-        row[k] = activation[i][k] & activation[j][k];
-      }
-      andRows.push(row);
-      andLabels.push(`AND${count++}`);
-    }
-  }
-
-  // --- Combine and HARD TRIM ---
-  const RA = activation.concat(andRows).map(row => row.slice(0, n));
-
-  const rowLabels = [
-    ...nodes.map(n => n.label),
-    ...andLabels
-  ];
-
-  outputMatrixWithCopy(RA, rowLabels);
-
-
-
-  if (edges.length > 50) {
-    return RA;
-  } else {
-    const divisors = elementaryDivisors(RA);
-    document.getElementById("elem_btn").addEventListener('click', () => {
-      document.getElementById('elem_divisors').innerHTML = `
-        <span>${formatDivisors2(divisors).join(", ")}</span>
-      `;
-
-        document.getElementById('elem_divisors').style.cssText = `
-        border: 1px solid black;
-        padding: 10px 20px;
-        border-radius: 25px;
-        font-size: 15px;
-        margin: 5px;
-        `;
-    });
-    return RA;
-  }
-  
-}
-
-
-
-
+// ------------------------------------------------------------------------
+// Block for converting and plotting graph from graph6 string input
+// ------------------------------------------------------------------------
 
 function graphFromAdjacencyMatrix() {
   nodes.length = 0;
   edges.length = 0;
 
-  if (!ADJ_MATRIX || ADJ_MATRIX.length === 0) {
+  if (!ADJ_MATRIX || ADJ_MATRIX.length === 0n) {
     console.error("Adjacency matrix is empty.");
     return;
   }
@@ -3254,7 +3144,6 @@ function graphFromAdjacencyMatrix() {
 
   redraw();
 }
-
 
 function graph6ToAdjacencyMatrix(g6) {
   let index = 0;
@@ -3299,7 +3188,6 @@ function graph6ToAdjacencyMatrix(g6) {
   return { adjMatrix, nodeLabels };
 }
 
-
 function graphFromGraph6() {
   isGraph6 = true;
   const input = document.getElementById("graph6");
@@ -3321,40 +3209,15 @@ function graphFromGraph6() {
   graphFromAdjacencyMatrix();
 }
 
+// ------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 
 
-function adjacencyMatrixToGraph6(matrix) {
-  const n = matrix.length;
 
-  if (n < 0 || n > 62) {
-    throw new Error("Only standard graph6 (n ≤ 62) is supported.");
-  }
-
-  // 1) vertex count
-  let g6 = String.fromCharCode(n + 63);
-
-  // 2) bits in SAME order decoder expects
-  const bits = [];
-  for (let i = 1; i < n; i++) {
-    for (let j = 0; j < i; j++) {
-      bits.push(matrix[i][j] ? 1 : 0);
-    }
-  }
-
-  // 3) pad to multiple of 6
-  while (bits.length % 6 !== 0) bits.push(0);
-
-  // 4) pack bits MSB-first
-  for (let i = 0; i < bits.length; i += 6) {
-    let val = 0;
-    for (let k = 0; k < 6; k++) {
-      val = (val << 1) | bits[i + k];
-    }
-    g6 += String.fromCharCode(val + 63);
-  }
-
-  return g6;
-}
+// ------------------------------------------------------------------------
+// Block for getting graph6 string of a plotted graph and displaying
+// that with all the other matrix and ED information (sage code)
+// ------------------------------------------------------------------------
 
 function adjacencyMatrixFromGraph2() {
   const n = nodes.length;
@@ -3385,55 +3248,211 @@ function showGraph6FromCurrentGraph() {
   }
 
   const g6 = adjacencyMatrixToGraph6(matrix);
+  const rows = matrix.map(row => `[${row.join(", ")}]`);
+  const formatted_adj = `[\n${rows.join(", \n")}\n]`;
 
-  // Display graph6 string only
-  document.getElementById("mat_out").textContent = g6;
+  let p = 2;
+  if (document.getElementById("groupTypeSelect").value === "cyclic") {
+    p = document.getElementById("groupOrder1").value;
+  }
 
-  // Create copy button
-  const copyDiv = document.getElementById("copyGraph6");
-  copyDiv.innerHTML = "";
+  if (nodes.length <= 62) {
+    navigator.clipboard.writeText(`# Graph-Six String
+G6 = "${g6}"
 
-  const btn = document.createElement("button");
-  btn.textContent = "Copy String";
-  btn.type = "button";
+G = Graph(G6)
+n = G.order()
 
-  btn.addEventListener("click", () => {
-    navigator.clipboard.writeText(g6);
-    alert('Graph-six string copied successfully!')
-  });
+# Adjacency Matrix
+Adj = G.adjacency_matrix()
 
-  copyDiv.appendChild(btn);
+# Activation Matrix
+Act = Matrix(ZZ, Adj + identity_matrix(n))
+
+from collections import OrderedDict
+
+# Activation Matrix Elementary Divisors (ungrouped)
+ED_Act = Act.elementary_divisors()
+
+# Block for grouping ED_Act
+counts = OrderedDict()
+for x in ED_Act:
+  counts[x] = counts.get(x, 0) + 1
+grouped = []
+for val, mult in counts.items():
+  if mult > 1:
+    grouped.append(f"{val}^{mult}")
+  else:
+    grouped.append(str(val))
+
+# Block for building RA Matrix
+and_rows = []
+for i in range(n):
+    for j in range(i + 1, n):
+        # entrywise AND = multiplication since entries are 0/1
+        row = [Act[i, k] * Act[j, k] for k in range(n)]
+        and_rows.append(row)
+
+# RA Matrix
+RA = Act.stack(Matrix(ZZ, and_rows))
+
+# RA Matrix Elementary Divisors (un-grouped)
+ED_RA = RA.elementary_divisors()
+
+# Block for grouping ED_RA
+counts2 = OrderedDict()
+for x in ED_RA:
+  counts2[x] = counts2.get(x, 0) + 1
+grouped2 = []
+for val, mult in counts2.items():
+  if mult > 1:
+    grouped2.append(f"{val}^{mult}")
+  else:
+    grouped2.append(str(val))
+    
+# If Group Type is Cyclic, this will parse the Group Order
+# (Set this to a prime number in order to view Nullity and RREF of Hermite Form)
+p = ${p}
+
+# Hermite Form of Activation Matrix
+HF = Act.hermite_form()
+
+HF_mod = HF.change_ring(Zmod(p))
+
+
+# To view a given matrix, simply uncomment the corresponding print statement below:
+
+print(f"Graph-Six String:\\n{G6}\\n\\n")
+# print(f"Adjacency Matrix:\\n{Adj}\\n\\n")
+# print(f"Activation Matrix:\\n{Act}\\n\\n")
+if p.is_prime():
+  print(f"Nullity: {Act.nullity()}\\n\\n")
+print(f"Elementary Divisors of Activation Matrix:\\n{", ".join(grouped)}\\n\\n")
+# print(f"RA Matrix:\\n{RA}\\n\\n")
+print(f"Elementary Divisors of RA Matrix:\\n{", ".join(grouped2)}\\n\\n")
+# print(f"Hermite Form of Activation Matrix:\\n{HF}\\n\\n")
+# if p.is_prime():
+  # print(f"RREF of Hermite Form Matrix:\\n{HF_mod.rref()}\\n\\n")`);
+      alert('Graph-Six String, all Matrices, Elementary Divisors, and RREF code copied');
+  } else {
+    navigator.clipboard.writeText(`# ${g6}
+
+# Adjacency Matrix
+Adj = Matrix(${formatted_adj})
+
+n = Adj.nrows()
+
+# Activation Matrix
+Act = Matrix(ZZ, Adj + identity_matrix(n))
+
+from collections import OrderedDict
+
+# Activation Matrix Elementary Divisors (un-grouped)
+ED_Act = Act.elementary_divisors()
+
+# Block for grouping ED_Act
+counts = OrderedDict()
+for x in ED_Act:
+  counts[x] = counts.get(x, 0) + 1
+grouped = []
+for val, mult in counts.items():
+  if mult > 1:
+    grouped.append(f"{val}^{mult}")
+  else:
+    grouped.append(str(val))
+
+# Block for building RA Matrix
+and_rows = []
+for i in range(n):
+    for j in range(i + 1, n):
+        # entrywise AND = multiplication since entries are 0/1
+        row = [Act[i, k] * Act[j, k] for k in range(n)]
+        and_rows.append(row)
+
+# RA Matrix
+RA = Act.stack(Matrix(ZZ, and_rows))
+
+# RA Matrix Elementary Divisors (un-grouped)
+ED_RA = RA.elementary_divisors()
+
+# Block for grouping ED_RA
+counts2 = OrderedDict()
+for x in ED_RA:
+  counts2[x] = counts2.get(x, 0) + 1
+grouped2 = []
+for val, mult in counts2.items():
+  if mult > 1:
+    grouped2.append(f"{val}^{mult}")
+  else:
+    grouped2.append(str(val))
+    
+# If Group Type is Cyclic, this will parse the Group Order
+# (Set this to a prime number in order to view Nullity and RREF of Hermite Form)
+p = ${p}
+
+# Hermite Form of Activation Matrix
+HF = Act.hermite_form()
+
+HF_mod = HF.change_ring(Zmod(p))
+
+
+# To view a given matrix, simply uncomment the corresponding print statement below:
+
+# print(f"Adjacency Matrix:\\n{Adj}\\n\\n")
+# print(f"Activation Matrix:\\n{Act}\\n\\n")
+if p.is_prime():
+  print(f"Nullity: {Act.nullity()}\\n\\n")
+print(f"Elementary Divisors of Activation Matrix:\\n{", ".join(grouped)}\\n\\n")
+# print(f"RA Matrix:\\n{RA}\\n\\n")
+print(f"Elementary Divisors of RA Matrix:\\n{", ".join(grouped2)}\\n\\n")
+# print(f"Hermite Form of Activation Matrix:\\n{HF}\\n\\n")
+# if p.is_prime():
+  # print(f"RREF of Hermite Form Matrix:\\n{HF_mod.rref()}\\n\\n")`);
+      alert('All Matrices, Elementary Divisors, and RREF code copied');
+  }
 }
 
+function adjacencyMatrixToGraph6(matrix) {
+  const n = matrix.length;
+
+  if (n < 0 || n > 62) {
+    return "Graph is larger than 62 vertices, no Graph-Six String supported"
+  }
+
+  // 1) vertex count
+  let g6 = String.fromCharCode(n + 63);
+
+  // 2) bits in SAME order decoder expects
+  const bits = [];
+  for (let i = 1; i < n; i++) {
+    for (let j = 0; j < i; j++) {
+      bits.push(matrix[i][j] ? 1 : 0);
+    }
+  }
+
+  // 3) pad to multiple of 6
+  while (bits.length % 6 !== 0) bits.push(0);
+
+  // 4) pack bits MSB-first
+  for (let i = 0; i < bits.length; i += 6) {
+    let val = 0;
+    for (let k = 0; k < 6; k++) {
+      val = (val << 1) | bits[i + k];
+    }
+    g6 += String.fromCharCode(val + 63);
+  }
+
+  return g6;
+}
 
 document
   .getElementById("graph6_from_graph")
   .addEventListener("click", () => {
-    if (nodes.length > 62) {
-      alert('Cannot generate a graph-six string for graphs larger than 62 vertices.');
-      return;
-    } else {
-      document.getElementById("rref").innerHTML = null;
-      document.getElementById('copyDiv1').innerHTML = null;
       showGraph6FromCurrentGraph();
-      document.getElementById('elem_divisors').innerHTML = null;
-      document.getElementById('elem_divisors').style.cssText = `
-        border: none;
-        padding: none;
-        border-radius: none;
-        font-size: none;
-        margin: none;
-      `;
-
-      if (isGraph6 === false) {
-        document.getElementById('mat_label').textContent =
-          'Graph-Six String (Selected Input):';
-      } else if (isGraph6 === true) {
-        document.getElementById('mat_label').textContent =
-          'Graph-Six String (Graph-Six Input):';
-      }
-    }
 });
+
+// ------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 
 
 
